@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RoomSiftay</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">🏠 RoomSiftay</div>
+    <nav>
+        <a href="#">Login</a>
+        <a class="btn" href="#">Get Started</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>Find Your Next Room<br>With Confidence</h1>
+    <p>Verified owners • Real photos • No brokers</p>
+</section>
+
+<section class="why">
+    <h2>Why Choose Us?</h2>
+    <div class="cards">
+        <div class="card">
+            <h4>Verified Owner</h4>
+            <p>All owners are ID & phone verified</p>
+        </div>
+        <div class="card">
+            <h4>Real Photos</h4>
+            <p>Only genuine room images are listed</p>
+        </div>
+        <div class="card">
+            <h4>No Brokers</h4>
+            <p>Direct contact with room owners</p>
+        </div>
+    </div>
+</section>
+
+<section class="reviews">
+    <h2>⭐ 4.8 Based on 1,200+ Reviews</h2>
+
+    <div class="review">
+        <p>⭐⭐⭐⭐⭐ Found the perfect room in no time. Very reliable!</p>
+        <span>— Sarah M.</span>
+    </div>
+
+    <div class="review">
+        <p>⭐⭐⭐⭐⭐ Great platform with honest listings. Highly recommend!</p>
+        <span>— James R.</span>
+    </div>
+
+    <div class="review">
+        <p>⭐⭐⭐⭐⭐ No broker fees, just straightforward deals. Loved it!</p>
+        <span>— Emily T.</span>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-left">
+        <h3>🏠 RoomSiftay</h3>
+        <p>
+            RoomSiftay helps you find verified rooms in real places
+            with genuine photos. Rent directly from owners.
+        </p>
+    </div>
+
+    <div class="footer-buttons">
+        <a href="{% url 'contact' %}" class="btn">Contact Us</a>
+        <a href="{% url 'about' %}" class="btn">About Us</a>
+    </div>
+</footer>
+
+</body>
+</html>
