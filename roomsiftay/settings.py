@@ -132,6 +132,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+<<<<<<< HEAD
 STATIC_URL = 'static/'
 import os
 STATICFILES_DIRS = [
@@ -145,4 +146,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
+=======
+STATIC_URL = '/static/'
+>>>>>>> e4619f2eeb428a20b3733a9dd17278878d195d0e
 
