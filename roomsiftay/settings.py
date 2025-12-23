@@ -146,7 +146,7 @@ ACCOUNT_USERNAME_REQUIRED = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_ADAPTER = 'task.adapters.CustomAccountAdapter'
-
+# SOCIALACCOUNT_ADAPTER = "task.adapters.CustomSocialAccountAdapter"
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 

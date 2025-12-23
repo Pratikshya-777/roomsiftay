@@ -1,6 +1,7 @@
 from django.shortcuts import render,redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
+from django.contrib.auth import login
 
 
 
@@ -14,6 +15,7 @@ def contact(request):
 def about(request):
     return render(request, 'task/about.html')
 
+
 def register(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
@@ -21,15 +23,12 @@ def register(request):
         if form.is_valid():
             user = form.save()
 
-            # get role from radio button
             role = request.POST.get("role", "user")
+            # save role if you have a profile model
 
-            # OPTIONAL: save role in profile if you have Profile model
-            # user.profile.role = role
-            # user.profile.save()
-
-            messages.success(request, "Account created successfully!")
-            return redirect("login")  # or home page
+            login(request, user)  # ✅ AUTO LOGIN
+            messages.success(request, "Welcome! Your account was created.")
+            return redirect("/")  # home or dashboard
 
         else:
             messages.error(request, "Please fix the errors below.")
@@ -38,3 +37,4 @@ def register(request):
         form = UserCreationForm()
 
     return render(request, "task/register.html", {"form": form})
+

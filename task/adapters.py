@@ -5,4 +5,4 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
     def login(self, request, user):
         messages.success(request, "Signup successful! You are now logged in.")
-        super().login(request, user)
+        return super().login(request, user) 
