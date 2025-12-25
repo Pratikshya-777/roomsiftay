@@ -1,17 +1,16 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import (
-    home,contact,about,owner_dashboard,user_dashboard,login_view,
-)
+from . import views
+
 
 urlpatterns = [
-    path('', home, name='home'),
-    path('contact/', contact, name='contact'),
-    path('about/', about, name='about'),
-    path('owner/', owner_dashboard, name='owner_dashboard'),
-    path('user/', user_dashboard, name='user_dashboard'),
-    path('login/', login_view, name='login'),
-    
+    path('', views.home, name='home'),
+    path('contact/', views.contact, name='contact'),
+    path('about/', views.about, name='about'),
+    path('owner/', views.owner_dashboard, name='owner_dashboard'),
+    path('user/', views.user_dashboard, name='user_dashboard'),
+    path('login/', views.login_view, name='login'),
+     path('register/', views.register, name='register'),
 
     path(
         'forgot-password/',
@@ -41,8 +40,5 @@ urlpatterns = [
         ),
         name='password_reset_complete'
     ),
-    path('', views.home, name='home'),
-    path('contact/', views.contact, name='contact'),
-    path('about/', views.about, name='about'),
-    path('register/', views.register, name='register'),
+
 ]
