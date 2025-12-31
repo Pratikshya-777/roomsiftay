@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('role-redirect/', views.role_redirect, name='role_redirect'),
     path('contact/', views.contact, name='contact'),
     path('about/', views.about, name='about'),
     path('owner/', views.owner_dashboard, name='owner_dashboard'),
