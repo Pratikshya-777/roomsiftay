@@ -2,122 +2,153 @@
 {% load static %}
 {% load socialaccount %}
 
-{% block title %}Register | Room Finder{% endblock %}
+{% block title %}Register | RoomSiftay{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center relative px-4">
+<div class="min-h-screen relative flex items-center justify-center px-4">
+
+    <!-- Background -->
     <div class="fixed inset-0 bg-cover bg-center"
          style="background-image:url('https://images.unsplash.com/photo-1505691938895-1758d7feb511');"></div>
-    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="fixed inset-0 bg-black/30"></div>
 
-    <div class="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl p-10">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-gray-900">Room Siftay</h1>
-            <p class="text-gray-600 mt-2">Find rooms or list your property easily</p>
+    <!-- Card -->
+    <div class="relative z-10 w-full max-w-md bg-gray-200/90 backdrop-blur-lg
+                rounded-2xl shadow-xl px-8 py-10
+                animate-fade-in-up">
+
+        <!-- Logo -->
+        <div class="text-center mb-6">
+            <div class="flex justify-center mb-2">
+                <div class="w-12 h-12 bg-indigo-600 text-white
+                            flex items-center justify-center rounded-xl text-xl font-bold">
+                    🏠
+                </div>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">RoomSiftay</h1>
+            <p class="text-sm text-indigo-600">Create your account</p>
         </div>
+
+        <!-- Errors -->
         {% if form.errors %}
-    <div class="mb-4 p-4 rounded-xl bg-red-50 border border-red-200">
-        <ul class="text-sm text-red-700 space-y-1">
+        <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-700 text-sm">
             {% for field, errors in form.errors.items %}
                 {% for error in errors %}
-                    <li>
-                        <strong>{{ field|capfirst }}:</strong> {{ error }}
-                    </li>
+                    <p>{{ error }}</p>
                 {% endfor %}
             {% endfor %}
-        </ul>
-    </div>
-{% endif %}
+        </div>
+        {% endif %}
 
-
-
-
-        <!-- Register Form -->
-         <!-- <form method="POST" action="{% url 'account_signup' %}" class="space-y-5"> -->
-        <form method="POST" action="{% url 'register' %}" class="space-y-5">
+        <!-- Form -->
+        <form method="POST" action="{% url 'register' %}" class="space-y-4">
             {% csrf_token %}
-
-            <input type="hidden" name="username" placeholder="Username" required
-                   class="w-full px-4 py-3 rounded-xl border">
+            <input type="hidden" name="username">
 
             <input type="email" name="email" placeholder="Email address" required
-                   class="w-full px-4 py-3 rounded-xl border">
+                   class="w-full px-4 py-3 rounded-lg bg-blue-50
+                          focus:ring-2 focus:ring-indigo-500 outline-none">
 
             <input type="password" name="password1" placeholder="Password" required
-                   class="w-full px-4 py-3 rounded-xl border">
+                   class="w-full px-4 py-3 rounded-lg bg-blue-50
+                          focus:ring-2 focus:ring-indigo-500 outline-none">
 
             <input type="password" name="password2" placeholder="Confirm password" required
-                   class="w-full px-4 py-3 rounded-xl border">
+                   class="w-full px-4 py-3 rounded-lg bg-blue-50
+                          focus:ring-2 focus:ring-indigo-500 outline-none">
 
-            <!-- Role Selection -->
+            <!-- Roles -->
             <div>
-                <p class="text-sm font-semibold mb-3 text-gray-700">Choose your role</p>
+                <p class="text-sm font-semibold mb-2">Choose your role</p>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- USER -->
+                <div class="grid grid-cols-3 gap-2 text-sm">
+
+                    <!-- User -->
                     <label class="cursor-pointer">
-                        <input type="radio" name="role" value="user" class="peer hidden" checked>
-                        <div class="p-4 rounded-xl border-2 peer-checked:border-indigo-600 peer-checked:bg-indigo-50">
-                            <h3 class="font-bold text-gray-800">User</h3>
-                            <p class="text-xs text-gray-600 mt-1">
-                                Search rooms, contact owners, and book stays
-                            </p>
+                        <input type="radio" name="role" value="user" checked class="peer hidden">
+                        <div class="p-3 rounded-lg border bg-white
+                                    peer-checked:border-indigo-600
+                                    transition hover:shadow">
+                            👤 <b>User</b>
+                            <p class="text-xs text-gray-500">Find & book rooms</p>
                         </div>
                     </label>
 
-                    <!-- OWNER -->
+                    <!-- Owner -->
                     <label class="cursor-pointer">
                         <input type="radio" name="role" value="owner" class="peer hidden">
-                        <div class="p-4 rounded-xl border-2 peer-checked:border-green-600 peer-checked:bg-green-50">
-                            <h3 class="font-bold text-gray-800">Owner</h3>
-                            <p class="text-xs text-gray-600 mt-1">
-                                Post rooms, manage listings & tenants
-                            </p>
+                        <div class="p-3 rounded-lg border bg-white
+                                    peer-checked:border-indigo-600
+                                    transition hover:shadow">
+                            🏠 <b>Owner</b>
+                            <p class="text-xs text-gray-500">Post & manage rooms</p>
                         </div>
                     </label>
+
+                    <!-- Admin (Disabled) -->
+                    <div class="p-3 rounded-lg border bg-gray-100 text-gray-400 cursor-not-allowed">
+                        🔒 <b>Admin</b>
+                        <p class="text-xs">Restricted</p>
+                    </div>
                 </div>
 
-                <!-- Admin notice -->
-                <p class="text-xs text-gray-400 mt-3 italic">
-                    Admin access is restricted and not publicly available.
+                <p class="text-xs text-gray-500 mt-2 italic">
+                    Admin access is not publicly available.
                 </p>
             </div>
 
-            <button class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold">
+            <!-- Button -->
+            <button
+                class="w-full py-3 rounded-xl bg-indigo-600
+                       text-white font-semibold text-lg
+                       hover:bg-indigo-700 transition
+                       active:scale-95">
                 Create Account
             </button>
         </form>
 
         <!-- Divider -->
-        <div class="flex items-center gap-3 my-7">
-            <hr class="flex-grow">
-            <span class="text-xs text-gray-400">OR CONTINUE WITH</span>
-            <hr class="flex-grow">
+        <div class="flex items-center gap-3 my-6">
+            <hr class="flex-grow border-gray-400">
+            <span class="text-xs text-gray-600">OR</span>
+            <hr class="flex-grow border-gray-400">
         </div>
 
-        <!-- Social Buttons -->
+        <!-- Social -->
         <div class="space-y-3">
             <a href="{% provider_login_url 'google' %}"
                onclick="openSocialModal(event, this)"
-               class="flex items-center justify-center gap-3 py-3 border rounded-xl hover:bg-gray-50">
+               class="flex items-center justify-center gap-3 py-2
+                      bg-white rounded-lg shadow hover:bg-gray-50">
                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5">
-                <span class="font-semibold">Google</span>
+                Continue with Google
             </a>
 
             <a href="{% provider_login_url 'github' %}"
                onclick="openSocialModal(event, this)"
-               class="flex items-center justify-center gap-3 py-3 bg-gray-900 text-white rounded-xl hover:bg-black">
-                <img src="https://www.svgrepo.com/show/512317/github-142.svg" class="w-5 invert">
-                <span class="font-semibold">GitHub</span>
+               class="flex items-center justify-center gap-3 py-2
+                      bg-gray-900 text-white rounded-lg hover:bg-black">
+                <img src="https://www.svgrepo.com/show/512317/github-142.svg"
+                     class="w-5 invert">
+                Continue with GitHub
             </a>
         </div>
+
+        <!-- Login -->
+        <p class="text-center text-sm mt-6">
+            Already signed up?
+            <a href="{% url 'login' %}" class="text-indigo-600 font-semibold">
+                Login
+            </a>
+        </p>
     </div>
 </div>
 
-<!-- SOCIAL MODAL -->
-<div id="socialModal" class="fixed inset-0 hidden items-center justify-center bg-black/60 z-50">
-    <div class="bg-white rounded-xl p-6 w-full max-w-sm text-center">
+<!-- SOCIAL ROLE CONFIRM MODAL -->
+<div id="socialModal"
+     class="fixed inset-0 hidden items-center justify-center bg-black/60 z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-sm text-center
+                animate-scale-in">
         <h2 class="text-xl font-bold mb-2">Continue with Social Login</h2>
         <p class="text-gray-600 mb-4">
             You are signing up as
@@ -137,20 +168,20 @@
     </div>
 </div>
 
+<!-- Scripts -->
 <script>
 let socialUrl = "";
 
 function openSocialModal(event, el) {
     event.preventDefault();
-
     const role = document.querySelector('input[name="role"]:checked').value;
+
     document.cookie = "social_role=" + role + "; path=/; max-age=3600";
 
     document.getElementById("roleLabel").innerText =
-        role === "owner" ? "Owner (Post Rooms)" : "User (Find Rooms)";
+        role === "owner" ? "Owner" : "User";
 
     socialUrl = el.href;
-
     document.getElementById("socialModal").classList.remove("hidden");
     document.getElementById("socialModal").classList.add("flex");
 }
@@ -163,4 +194,22 @@ document.getElementById("continueBtn").onclick = () => {
     window.location.href = socialUrl;
 };
 </script>
+
+<!-- Animations -->
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+.animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+}
+</style>
 {% endblock %}
