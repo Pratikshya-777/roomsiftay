@@ -5,24 +5,118 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room siftay</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-  {% if messages %}
-  <div class="fixed top-5 right-5 space-y-3 z-50">
-    {% for message in messages %}
-      <div
-        class="px-4 py-3 rounded-xl shadow-lg text-white
-               {% if message.tags == 'success' %}bg-green-600{% endif %}
-               {% if message.tags == 'error' %}bg-red-600{% endif %}
-               {% if message.tags == 'info' %}bg-blue-600{% endif %}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
+<body class="bg-gray-100">
+    {% if messages %}
+    <div class="fixed top-5 right-5 space-y-3 z-50">
+        {% for message in messages %}
+            <div class="px-4 py-3 rounded-xl shadow-lg text-white {% if message.tags == 'success' %}bg-green-600{% elif message.tags == 'error' %}bg-red-600{% else %}bg-blue-600{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <nav class="fixed top-0 z-50 w-full bg-[#112240] text-white py-4 px-8 flex justify-between items-center shadow-lg">
+    <div class="flex items-center gap-2">
+        <i class="fa-solid fa-house-chimney text-white text-2xl"></i>
+        <span class="text-2xl font-bold tracking-tight">🏠RoomSiftay</span>
+    </div>
 
-      <main>
-    {% block content %}{% endblock %}
-  </main>
+    <div class="flex items-center gap-4">
+        <span class="text-gray-300 text-sm">Welcome, {{ user.username }}</span>
+        <div class="relative">
+            <img src="{{ user.profile.image.url }}" 
+                 class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" 
+                 alt="User Profile">
+        </div>
+    </div>
+</nav>
+<div class="flex pt-16"> <aside class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 bg-[#112240] text-white transition-transform border-r border-slate-700">
+    <div class="h-full px-0 py-4 overflow-y-auto bg-[#112240]">
+        <ul class="space-y-0 font-medium">
+            {% comment %} <li>
+                <div class="bg-yellow-500 text-white p-3 font-bold">Dashboard</div>
+            </li> {% endcomment %}
+             <li>
+                <a href="{% url 'buyer-dashboard' %}" class="flex items-center p-4 text-white bg-blue-600 group">
+                    <span class="ms-3">Dashboard</span>
+                </a>
+            </li> 
+            <li>
+                <a href="#" class="flex items-center p-4 text-slate-300 hover:bg-slate-800 transition">
+                    <span class="ms-3">Search Rooms</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center p-4 text-slate-300 hover:bg-slate-800 transition">
+                    <span class="ms-3">My Profile</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'saved_listings' %}" class="flex items-center p-4 text-slate-300 hover:bg-slate-800 transition">
+                    <span class="ms-3">Saved Listings</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'submit_review' %}" class="flex items-center p-4 text-slate-300 hover:bg-slate-800 transition">
+                    <span class="ms-3">Website Review</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'report_issue' %}" class="flex items-center p-4 text-slate-300 hover:bg-slate-800 transition">
+                    <span class="ms-3">Report Issue</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</aside>
+    {% comment %} <nav class="fixed top-0 z-40 w-full bg-[#1e293b] text-white py-3 px-6 flex justify-between items-center shadow-md">
+        <div class="font-bold text-xl">🏠 RoomSiftay</div>
+        <div class="flex items-center gap-3">
+            <span class="text-sm">Welcome, {{ user.username }}</span>
+            <img src="{{ user.profile.image.url }}" class="w-10 h-10 rounded-full border-2 border-blue-500" alt="Profile">
+        </div>
+    </nav>{% endcomment %}  
+    
+
+       {% comment %} <div class="flex pt-16"> <aside class="w-64 bg-[#1e293b] h-screen fixed left-0 border-r border-gray-700 text-white p-4">
+            <ul class="space-y-4">
+                <li><a href="{% url 'buyer-dashboard' %}" class="block p-3 bg-yellow-500 text-black font-bold rounded-lg">Dashboard</a></li>
+                <li><a href="#" class="block p-3 hover:bg-gray-700 rounded-lg">Search Rooms</a></li>
+                <li><a href="#" class="block p-3 hover:bg-gray-700 rounded-lg">My Profile</a></li>
+        <div class="flex flex-col gap-6">
+    
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+        <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-3">
+            <i class="fa-solid fa-heart text-blue-500 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-700">Saved Listings</h3>
+        <a href="#" class="text-blue-600 text-sm font-semibold hover:underline mt-2">View Saved Listings</a>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+        <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-3">
+            <i class="fa-solid fa-star text-blue-500 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-700">Website Review</h3>
+        <a href="#" class="text-blue-600 text-sm font-semibold hover:underline mt-2">Submit a Website Review</a>
+    </div>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+        <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-3">
+            <i class="fa-solid fa-flag text-blue-500 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-gray-700">Report Issue</h3>
+        <a href="#" class="text-blue-600 text-sm font-semibold hover:underline mt-2">Report an Issue</a>
+    </div> {% endcomment %}
+
+    </div>
+
+        <main class="ml-64 w-full p-8">
+            {% block content %}
+            {% endblock %}
+        </main>
+</div>
 </body>
 </html>
