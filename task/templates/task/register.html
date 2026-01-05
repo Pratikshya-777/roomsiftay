@@ -1,10 +1,12 @@
-{% extends "base.html" %}
+<!-- {% extends "base.html" %} -->
 {% load static %}
 {% load socialaccount %}
 
 {% block title %}Register | RoomSiftay{% endblock %}
 
-{% block content %}
+<!-- {% block content %} -->
+<script src="https://cdn.tailwindcss.com"></script>
+
 <div class="min-h-screen relative flex items-center justify-center px-4">
 
     <!-- Background -->
@@ -124,14 +126,14 @@
                 Continue with Google
             </a>
 
-            <a href="{% provider_login_url 'github' %}"
+            <!-- <a href="{% provider_login_url 'github' %}"
                onclick="openSocialModal(event, this)"
                class="flex items-center justify-center gap-3 py-2
                       bg-gray-900 text-white rounded-lg hover:bg-black">
                 <img src="https://www.svgrepo.com/show/512317/github-142.svg"
                      class="w-5 invert">
                 Continue with GitHub
-            </a>
+            </a> -->
         </div>
 
         <!-- Login -->
@@ -212,4 +214,4 @@ document.getElementById("continueBtn").onclick = () => {
     animation: scaleIn 0.3s ease-out;
 }
 </style>
-{% endblock %}
+<!-- {% endblock %} -->

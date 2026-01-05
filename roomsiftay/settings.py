@@ -140,11 +140,11 @@ import os
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+SITE_ID = 1
 
 # ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 # ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 AUTH_USER_MODEL = 'task.User'
-# ACCOUNT_AUTHENTICATION_METHOD = 'email'python manage.py migrate task --fake
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

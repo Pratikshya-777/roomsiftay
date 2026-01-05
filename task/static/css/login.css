@@ -63,6 +63,7 @@ body {
     display: flex;
     align-items:center;
     justify-content: flex-start;
+        margin-top: 20px;
     gap: 4px;
 }
 
@@ -70,7 +71,7 @@ body {
     width: 16px;
     height: 16px;
 
-    margin-top: 20px;
+
     cursor: pointer;
 
     /* accent-color: #4f46e5; */
@@ -169,4 +170,41 @@ body {
 
 .back-link a:hover {
     text-decoration: underline;
+}
+
+/* Container for alerts to give them spacing */
+.messages-container {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Base style for all alerts */
+.alert {
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+}
+
+/* Green box for "Successfully Signed Up" */
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+/* Red box for "Invalid Password" or Errors */
+.alert-error, .alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* Info box (if needed for other messages) */
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-color: #bee5eb;
 }

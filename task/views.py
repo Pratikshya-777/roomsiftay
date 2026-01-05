@@ -30,51 +30,23 @@ def login_view(request):
 
         if user:
             login(request, user)
-            # return redirect("role_redirect")
-
-            if remember_me:
-               
-                request.session.set_expiry(1209600)
-            else:
-               
-                request.session.set_expiry(0)
-
-                return redirect("role_redirect")
             
-#             role redirect rakhnu ko karad 
-#             Old way (inside login_view)
+            # Set session expiry based on 'Remember Me'
+            if remember_me:
+                request.session.set_expiry(1209600)  # 2 weeks
+            else:
+                request.session.set_expiry(0)  # Browser close
 
-# Role logic runs only during manual login
+            # IMPORTANT: This redirect MUST be inside the 'if user' block
+            return redirect("role_redirect")
 
-# Google login ❌ bypasses it
-
-# Admin login ❌ bypasses it
-
-# @login_required redirects ❌ bypass it
-
-# ✅ role_redirect (current way)
-
-# Role logic runs after ANY login
-
-# Manual login ✅
-
-# Google / GitHub login ✅
-
-# Admin login ✅
-
-# Session-based login ✅
-
-            # if user.is_owner:
-            #     return redirect("owner_dashboard")
-            # else:
-            #     return redirect("user_dashboard")
-
-        # else:
-
+        else:
+            # If authentication fails, show the error
             return render(request, "login.html", {
                 "error": "Invalid email or password"
             })
 
+    # If it's a GET request, just show the login page
     return render(request, "login.html")
 
 
@@ -111,11 +83,8 @@ def register(request):
 
             user.save()
             
-            # Use the specific backend for manual login
-            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-
             messages.success(request, f"Welcome! Account created successfully.")
-            return redirect("role_redirect") # Use your central redirect logic
+            return redirect("login") 
             
     else:
         form = CustomUserCreationForm()
@@ -125,12 +94,21 @@ def register(request):
 @login_required
 def role_redirect(request):
     user = request.user
+    selected_role = request.COOKIES.get('social_role')
+    if user.is_user and user.is_owner:
+        if selected_role == "owner":
+            return redirect("owner_dashboard")
+        else:
+            # Default to user if cookie is missing or set to user
+            return redirect("user_dashboard")
 
+    # 3. For Manual Users (who only have ONE role set to True)
     if user.is_owner:
         return redirect("owner_dashboard")
-
-    # default fallback
+    
+    # Default fallback for everyone else
     return redirect("user_dashboard")
+    return redirect("index")
 
 def buyer(request):
     return render(request, 'task/buyer.html')
@@ -176,3 +154,6 @@ def admin_view(request):
     #     'reports': BuyerReport.objects.all().order_by('-created_at'),
     # }
     return render(request, 'task/admin.html', context)
+
+
+
