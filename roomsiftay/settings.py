@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'task',
+    # 'task',
      'django.contrib.sites',   # REQUIRED
-
+        'task.apps.TaskConfig',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -56,6 +56,8 @@ AUTHENTICATION_BACKENDS = (
 )
 
 
+AUTH_USER_MODEL = 'task.User'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -65,7 +67,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
 
 ]
 
@@ -140,17 +141,21 @@ import os
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+# ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+# ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+AUTH_USER_MODEL = 'task.User'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False # Users don't have to pick a username
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_ADAPTER = 'task.adapters.CustomAccountAdapter'
-# SOCIALACCOUNT_ADAPTER = "task.adapters.CustomSocialAccountAdapter"
-LOGIN_REDIRECT_URL = '/'
+SOCIALACCOUNT_ADAPTER = "task.adapters.CustomSocialAccountAdapter"
+LOGIN_REDIRECT_URL = 'role_redirect'
 LOGOUT_REDIRECT_URL = '/login/'
 
+LOGIN_URL = 'login'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
