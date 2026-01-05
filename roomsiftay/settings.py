@@ -56,7 +56,6 @@ AUTHENTICATION_BACKENDS = (
 )
 
 
-AUTH_USER_MODEL = 'task.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -145,7 +144,7 @@ STATICFILES_DIRS = [
 # ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 # ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 AUTH_USER_MODEL = 'task.User'
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+# ACCOUNT_AUTHENTICATION_METHOD = 'email'python manage.py migrate task --fake
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
