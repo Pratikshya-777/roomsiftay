@@ -1,13 +1,157 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>About Us</title>
+  <meta charset="UTF-8" />
+  <title>About Us | Room Siftay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-<h1>About RoomSiftay</h1>
-<p>
-RoomSiftay is a student-focused platform designed to eliminate
-fake listings and brokers by verifying owners and photos.
-</p>
+
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- Back to Home -->
+  <div class="absolute top-6 left-6 z-10">
+    <a href="/" class="flex items-center gap-2 text-violet-600 hover:text-green-700 transition">
+      ← <span class="font-semibold hover:">Back to Home</span>
+    </a>
+  </div>
+
+ <section class="relative min-h-screen flex items-center justify-center px-6">
+
+  <!-- Background Image -->
+  <div class="absolute inset-0 bg-cover bg-center"
+       style="background-image:url('https://images.unsplash.com/photo-1505691938895-1758d7feb511');">
+  </div>
+
+  <!-- Dark Overlay -->
+  <div class="absolute inset-0 bg-black/40"></div>
+
+  <!-- Content -->
+  <div class="relative max-w-5xl text-center text-white">
+    <span class="inline-block mb-4 px-4 py-1 text-sm rounded-full bg-white/20 backdrop-blur text-white font-medium">
+      About Room Siftay
+    </span>
+
+    <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
+      Making room hunting
+      <span class="text-indigo-300">simple, safe & transparent</span>
+    </h1>
+
+    <p class="text-lg text-gray-200 max-w-3xl mx-auto">
+      Room Siftay connects room seekers with verified property owners across Nepal,
+      eliminating middlemen and simplifying the rental experience.
+    </p>
+
+    <div class="mt-8 flex justify-center gap-4">
+      <a href="/contact/"
+        class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-500 transition">
+        Contact Us
+      </a>
+      <a href="/"
+        class="px-8 py-3 rounded-xl border border-white/40 font-semibold hover:bg-white/10 transition">
+        Explore Platform
+      </a>
+    </div>
+  </div>
+
+</section>
+
+  <!-- WHAT WE DO -->
+  <section class="py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">
+        What We Do
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <div class="p-8 rounded-2xl border shadow-sm hover:shadow-md transition">
+          <h3 class="text-xl font-semibold mb-3">Verified Listings</h3>
+          <p class="text-gray-600">
+            We focus on genuine property listings to help users avoid scams and wasted visits.
+          </p>
+        </div>
+
+        <div class="p-8 rounded-2xl border shadow-sm hover:shadow-md transition">
+          <h3 class="text-xl font-semibold mb-3">Direct Communication</h3>
+          <p class="text-gray-600">
+            Users can contact owners directly without brokers or unnecessary fees.
+          </p>
+        </div>
+
+        <div class="p-8 rounded-2xl border shadow-sm hover:shadow-md transition">
+          <h3 class="text-xl font-semibold mb-3">Simple Experience</h3>
+          <p class="text-gray-600">
+            A clean, easy-to-use platform built for real people and real needs.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- USERS & OWNERS -->
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-6">
+
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">
+        Built for Everyone
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+        <!-- Users -->
+        <div class="p-10 rounded-3xl bg-white border shadow-sm">
+          <h3 class="text-2xl font-bold mb-4">For Room Seekers</h3>
+          <ul class="space-y-3 text-gray-600">
+            <li>✔ Find rooms quickly</li>
+            <li>✔ Verified owners & listings</li>
+            <li>✔ Save time and money</li>
+            <li>✔ No broker interference</li>
+          </ul>
+        </div>
+
+        <!-- Owners -->
+        <div class="p-10 rounded-3xl bg-white border shadow-sm">
+          <h3 class="text-2xl font-bold mb-4">For Property Owners</h3>
+          <ul class="space-y-3 text-gray-600">
+            <li>✔ List properties easily</li>
+            <li>✔ Reach genuine tenants</li>
+            <li>✔ Manage inquiries efficiently</li>
+            <li>✔ Increase visibility</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSION / VISION -->
+  <section class="py-20 bg-white">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+
+      <h2 class="text-3xl md:text-4xl font-bold mb-8">
+        Our Mission & Vision
+      </h2>
+
+      <p class="text-lg text-gray-600 mb-6">
+        <strong>Mission:</strong> To simplify room and rental discovery through a trusted,
+        transparent, and easy-to-use platform.
+      </p>
+
+      <p class="text-lg text-gray-600">
+        <strong>Vision:</strong> To become Nepal’s most trusted digital platform
+        for rental housing.
+      </p>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-10 text-center text-gray-500 text-sm bg-gray-50">
+    © 2026 Room Siftay. All rights reserved.
+  </footer>
+
 </body>
 </html>

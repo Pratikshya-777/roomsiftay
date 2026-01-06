@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from .models import Owner, Listing, BuyerReport
@@ -17,8 +18,37 @@ User = get_user_model()
 def home(request):
     return render(request, 'task/index.html')
 
+
 def contact(request):
-    return render(request, 'task/contact.html')
+    if request.method == "POST":
+        name = request.POST.get("full_name")
+        email = request.POST.get("email")
+        role = request.POST.get("role")
+        subject = request.POST.get("subject")
+        message = request.POST.get("message")
+
+        full_message = f"""
+        Name: {name}
+        Email: {email}
+        Role: {role}
+
+        Message:
+        {message}
+        """
+
+        send_mail(
+            subject=f"[RoomSiftay Contact] {subject}",
+            message=full_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.EMAIL_HOST_USER],
+            fail_silently=False,
+        )
+
+        return render(request, "task/contact.html", {
+            "success": True
+        })
+
+    return render(request, "task/contact.html")
 
 def about(request):
     return render(request, 'task/about.html')
