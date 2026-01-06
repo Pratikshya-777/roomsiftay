@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm , UserProfileForm
+from .forms import CustomUserCreationForm
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -284,7 +284,6 @@ def role_redirect(request):
     
     # Default fallback for everyone else
     return redirect("buyer_dashboard")
-    return redirect("index")
 
 def buyer(request):
     return render(request, 'task/buyer.html')
