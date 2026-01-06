@@ -7,9 +7,12 @@ class User(AbstractUser):
     email = models.EmailField(unique=True) # Email must be unique
     is_owner = models.BooleanField(default=False)
     is_user = models.BooleanField(default=False)
+    email_otp = models.CharField(max_length=6, null=True, blank=True)
+    is_email_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email' # This tells Django: "Use email to log in"
     REQUIRED_FIELDS = ['username'] # Keep username here for AllAuth compatibility
+    
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(default='default.jpg', upload_to='profile_pics')

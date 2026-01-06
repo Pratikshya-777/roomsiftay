@@ -54,16 +54,19 @@ body {
     display: flex;
     justify-content: space-between;
     align-items:center;
-    margin-top: 12px;
-    width: 100%;
+    margin-top: 15px; ;
+        /* color: #4f46e5; */
+
+    /* width: 100%; */
 }
  
 
 .remember {
     display: flex;
     align-items:center;
-    justify-content: flex-start;
-        margin-top: 20px;
+    /* background: blue; */
+    /* justify-content: flex-start;
+        margin-top: 20px; */
     gap: 4px;
 }
 
@@ -78,8 +81,9 @@ body {
 }
 
 .remember label {
+    display: flex;
     font-size: 14px;
-    color: #000;
+    color: #7b0f0f;
     cursor: pointer;
     line-height: 1;
 }
@@ -106,7 +110,7 @@ body {
     display: block;
     text-align: left;
     font-size: 14px;
-    margin-top: 15px;
+    /* margin-top: 12px; */
     color: #141212;
 }
 

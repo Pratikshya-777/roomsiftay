@@ -5,10 +5,12 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('role-redirect/', views.role_redirect, name='role_redirect'),
     path('contact/', views.contact, name='contact'),
+    path('role-redirect/', views.role_redirect, name='role_redirect'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
+    path("resend-otp/", views.resend_otp, name="resend_otp"),
     path('about/', views.about, name='about'),
-    path('owner/', views.owner_dashboard, name='owner_dashboard'),
+    # path('owner/', views.owner_dashboard, name='owner_dashboard'),
     path('user/', views.user_dashboard, name='user_dashboard'),
     path('login/', views.login_view, name='login'),
      path('register/', views.register, name='register'),
@@ -42,7 +44,6 @@ urlpatterns = [
         name='password_reset_complete'
     ),
 
-    path('register/', views.register, name='register'),
     path('buyer/', views.buyer, name='buyer-dashboard'),
     path('saved-listings/', views.saved_listings, name='saved_listings'),
     path('submit-review/', views.submit_review, name='submit_review'),

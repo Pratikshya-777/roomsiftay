@@ -4,11 +4,15 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm
 from django.contrib import messages
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from .models import Owner, Listing, BuyerReport
+import random
+from django.core.mail import send_mail
 
+def generate_otp():
+    return str(random.randint(100000, 999999))
 
+User = get_user_model()
 
 def home(request):
     return render(request, 'task/index.html')
@@ -47,11 +51,64 @@ def login_view(request):
             })
 
     # If it's a GET request, just show the login page
-    return render(request, "login.html")
+    return render(request, "task/login.html")
 
 
 def owner_dashboard(request):
     return render(request, "task/owner_dashboard.html")
+
+def verify_otp(request):
+    # user id stored in session during registration
+    user_id = request.session.get("otp_user_id")
+
+    if not user_id:
+        messages.error(request, "Session expired. Please register again.")
+        return redirect("register")
+
+    user = User.objects.get(id=user_id)
+
+    if request.method == "POST":
+        entered_otp = request.POST.get("otp")
+
+        if entered_otp == user.email_otp:
+            user.is_active = True
+            user.is_email_verified = True
+            user.email_otp = None
+            user.save()
+
+            # cleanup session
+            del request.session["otp_user_id"]
+
+            messages.success(request, "Email verified successfully. You can now login.")
+            return redirect("login")
+
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, "task/verify_otp.html")
+
+def resend_otp(request):
+    user_id = request.session.get("otp_user_id")
+
+    if not user_id:
+        messages.error(request, "Session expired. Please register again.")
+        return redirect("register")
+
+    user = User.objects.get(id=user_id)
+
+    otp = generate_otp()
+    user.email_otp = otp
+    user.save()
+
+    send_mail(
+        subject="Your new RoomSiftay OTP",
+        message=f"Your new OTP is {otp}",
+        from_email="RoomSiftay <roomsiftay@gmail.com>",
+        recipient_list=[user.email],
+    )
+
+    messages.success(request, "A new OTP has been sent to your email.")
+    return redirect("verify_otp")
 
 
 def user_dashboard(request):
@@ -59,20 +116,19 @@ def user_dashboard(request):
 
 def register(request):
     if request.method == "POST":
-        # We copy the POST data to modify it
         data = request.POST.copy()
         email = data.get("email")
-        
-        # FIX: Set username to be the same as email automatically
+
+        # Auto-set username = email
         if email:
-            data['username'] = email 
-        
+            data["username"] = email
+
         form = CustomUserCreationForm(data)
 
         if form.is_valid():
             user = form.save(commit=False)
 
-            # Role Selection
+            # Role selection
             role = request.POST.get("role")
             if role == "owner":
                 user.is_owner = True
@@ -81,15 +137,39 @@ def register(request):
                 user.is_user = True
                 user.is_owner = False
 
+            # 🔐 IMPORTANT: deactivate user until OTP verified
+            user.is_active = False
+
+            # Generate OTP
+            otp = generate_otp()
+            user.email_otp = otp
+
             user.save()
-            
-            messages.success(request, f"Welcome! Account created successfully.")
-            return redirect("login") 
-            
+
+            # Send OTP email
+            send_mail(
+                subject="Verify your RoomSiftay account",
+                message=f"Your OTP is {otp}",
+                from_email="no-reply@roomsiftay.com",
+                recipient_list=[user.email],
+            )
+
+            # Store user id in session for OTP verification
+            request.session["otp_user_id"] = user.id
+
+            messages.success(
+                request,
+                "We have sent a verification code to your email."
+            )
+
+            # 🔁 Redirect to OTP page (NOT login)
+            return redirect("verify_otp")
+
     else:
         form = CustomUserCreationForm()
 
     return render(request, "task/register.html", {"form": form})
+
 
 @login_required
 def role_redirect(request):
@@ -97,17 +177,17 @@ def role_redirect(request):
     selected_role = request.COOKIES.get('social_role')
     if user.is_user and user.is_owner:
         if selected_role == "owner":
-            return redirect("owner_dashboard")
+            return redirect("admin_dashboard")
         else:
             # Default to user if cookie is missing or set to user
-            return redirect("user_dashboard")
+            return redirect("buyer-dashboard")
 
     # 3. For Manual Users (who only have ONE role set to True)
     if user.is_owner:
-        return redirect("owner_dashboard")
+        return redirect("admin_dashboard")
     
     # Default fallback for everyone else
-    return redirect("user_dashboard")
+    return redirect("buyer-dashboard")
     return redirect("index")
 
 def buyer(request):
