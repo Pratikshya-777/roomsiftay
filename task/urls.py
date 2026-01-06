@@ -12,7 +12,6 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('owner/', views.owner_dashboard, name='owner_dashboard'),
     path('buyer/', views.buyer, name='buyer_dashboard'),
-    # path('user/', views.user_dashboard, name='user_dashboard'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register, name='register'),
 

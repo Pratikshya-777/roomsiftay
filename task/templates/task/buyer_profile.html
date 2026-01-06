@@ -12,13 +12,13 @@
 
         <!-- Avatar -->
     <label class="relative cursor-pointer">
-      {% if profile.profile_photo % and profile.profile_photo.url %}
+      {% if profile.profile_photo %}
         <img src="{{ profile.profile_photo.url }}"
             class="w-24 h-24 rounded-full object-cover border">
       {% else %}
         <img src="https://static.vecteezy.com/system/resources/previews/002/318/271/original/user-profile-icon-free-vector.jpg"
             class="w-24 h-24 rounded-full object-cover border">
-      {% endif %}
+      {% endif %} 
 
 
           <input type="file" name="profile_photo"

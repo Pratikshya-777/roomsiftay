@@ -12,7 +12,10 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
+from .forms import UserProfileForm
 
+def generate_otp():
+    return str(random.randint(100000, 999999))
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -88,9 +91,61 @@ def login_view(request):
     return render(request, "task/login.html")
 
 
-
 def owner_dashboard(request):
     return render(request, "task/owner_dashboard.html")
+
+def verify_otp(request):
+    # user id stored in session during registration
+    user_id = request.session.get("otp_user_id")
+
+    if not user_id:
+        messages.error(request, "Session expired. Please register again.")
+        return redirect("register")
+
+    user = User.objects.get(id=user_id)
+
+    if request.method == "POST":
+        entered_otp = request.POST.get("otp")
+
+        if entered_otp == user.email_otp:
+            user.is_active = True
+            user.is_email_verified = True
+            user.email_otp = None
+            user.save()
+
+            # cleanup session
+            del request.session["otp_user_id"]
+
+            messages.success(request, "Email verified successfully. You can now login.")
+            return redirect("login")
+
+        else:
+            messages.error(request, "Invalid OTP. Please try again.")
+
+    return render(request, "task/verify_otp.html")
+
+def resend_otp(request):
+    user_id = request.session.get("otp_user_id")
+
+    if not user_id:
+        messages.error(request, "Session expired. Please register again.")
+        return redirect("register")
+
+    user = User.objects.get(id=user_id)
+
+    otp = generate_otp()
+    user.email_otp = otp
+    user.save()
+
+    send_mail(
+        subject="Your new RoomSiftay OTP",
+        message=f"Your new OTP is {otp}",
+        from_email="RoomSiftay <roomsiftay@gmail.com>",
+        recipient_list=[user.email],
+    )
+
+    messages.success(request, "A new OTP has been sent to your email.")
+    return redirect("verify_otp")
 
 
 
@@ -218,14 +273,14 @@ def role_redirect(request):
     selected_role = request.COOKIES.get('social_role')
     if user.is_user and user.is_owner:
         if selected_role == "owner":
-            return redirect("owner_dashboard")
+            return redirect("admin_dashboard")
         else:
             # Default to user if cookie is missing or set to user
             return redirect("buyer_dashboard")
 
     # 3. For Manual Users (who only have ONE role set to True)
     if user.is_owner:
-        return redirect("owner_dashboard")
+        return redirect("admin_dashboard")
     
     # Default fallback for everyone else
     return redirect("buyer_dashboard")
@@ -282,6 +337,7 @@ def admin_view(request):
 def buyer_profile(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
+    # Profile completion
     completion = 0
     if request.user.get_full_name(): completion += 25
     if request.user.email: completion += 25
@@ -293,15 +349,25 @@ def buyer_profile(request):
 
     if request.method == "POST":
 
-        # Profile update
+        # DELETE profile photo
+        if "delete_photo" in request.POST:
+            if profile.profile_photo:
+                profile.profile_photo.delete(save=False)
+                profile.profile_photo = None
+                profile.save()
+            return redirect("buyer_profile")
+
+        # UPDATE profile info / photo
         if "update_profile" in request.POST:
-            profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
+            profile_form = UserProfileForm(
+                request.POST, request.FILES, instance=profile
+            )
             if profile_form.is_valid():
                 profile_form.save()
                 return redirect("buyer_profile")
 
-        # Password change
-        elif "change_password" in request.POST:
+        # CHANGE password
+        if "change_password" in request.POST:
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
@@ -310,7 +376,7 @@ def buyer_profile(request):
 
     return render(request, "task/buyer_profile.html", {
         "profile": profile,
-        "profile_form": profile_form,
+        "form": profile_form,
         "password_form": password_form,
-        "completion": completion
+        "completion": completion,
     })
