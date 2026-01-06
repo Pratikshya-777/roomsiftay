@@ -57,6 +57,9 @@ urlpatterns = [
     path('report-issue/', views.report_issue, name='report_issue'),
     path('admin-dashboard/', views.admin_view, name='admin_dashboard'),
     path("profile/", views.buyer_profile, name="buyer_profile"),
+    path("forgot-password/", views.forgot_password, name="forgot_password"),
+    path("reset-password/", views.reset_password, name="reset_password"),
+
 ]
 
 

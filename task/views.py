@@ -17,9 +17,6 @@ from .forms import UserProfileForm
 def generate_otp():
     return str(random.randint(100000, 999999))
 
-def generate_otp():
-    return str(random.randint(100000, 999999))
-
 User = get_user_model()
 
 def home(request):
@@ -273,20 +270,20 @@ def role_redirect(request):
     selected_role = request.COOKIES.get('social_role')
     if user.is_user and user.is_owner:
         if selected_role == "owner":
-            return redirect("admin_dashboard")
+            return redirect("owner_dashboard")
         else:
             # Default to user if cookie is missing or set to user
             return redirect("buyer_dashboard")
 
     # 3. For Manual Users (who only have ONE role set to True)
     if user.is_owner:
-        return redirect("admin_dashboard")
+        return redirect("owner_dashboard")
     
     # Default fallback for everyone else
     return redirect("buyer_dashboard")
 
 def buyer(request):
-    return render(request, 'task/buyer.html')
+    return render(request, 'task/buyer_dashboard.html')
 
 
 def saved_listings(request):

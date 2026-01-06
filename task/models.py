@@ -59,3 +59,10 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.email
     
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    email_otp = models.CharField(max_length=6, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timezone.timedelta(minutes=5)
