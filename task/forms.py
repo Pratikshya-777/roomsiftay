@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from .models import UserProfile
 
 User = get_user_model()
 
@@ -28,3 +29,15 @@ class CustomUserCreationForm(UserCreationForm):
                 'class': 'w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 transition shadow-sm outline-none',
                 'placeholder': f'Enter {field_name.replace("_", " ").capitalize()}'
             })
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ["phone_number", "profile_photo"]
+
+        widgets = {
+            "phone_number": forms.TextInput(attrs={
+                "class": "w-full p-2 border rounded-lg",
+                "placeholder": "Phone number"
+            }),
+        }

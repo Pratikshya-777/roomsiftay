@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-# from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 from django.utils import timezone
 
 
@@ -14,6 +14,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email' # This tells Django: "Use email to log in"
     REQUIRED_FIELDS = ['username'] # Keep username here for AllAuth compatibility
     
+    EMAIL_FIELD = 'email' 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(default='default.jpg', upload_to='profile_pics')
@@ -47,3 +48,11 @@ class PasswordResetOTP(models.Model):
 
     def is_expired(self):
         return timezone.now() > self.created_at + timezone.timedelta(minutes=5)
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number = models.CharField(max_length=15, blank=True)
+    profile_photo = models.ImageField(upload_to="profile_photos/", blank=True, null=True)
+
+    def __str__(self):
+        return self.user.username

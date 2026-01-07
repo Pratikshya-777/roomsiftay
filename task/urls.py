@@ -17,28 +17,33 @@ urlpatterns = [
     path('register/', views.register, name='register'),
 
     path(
-        'forgot-password/',
+        'forgot_password/',
         auth_views.PasswordResetView.as_view(
-            template_name='task/forgot_password.html'
+            template_name='task/forgot_password.html',
+            success_url="/password-reset-done/",
         ),
-        name='password_reset'
+        name='forgot_password'
     ),
+
     path(
         'password-reset-done/',
         auth_views.PasswordResetDoneView.as_view(
-            template_name='task/password_reset_done.html'
+            template_name='task/password_reset_done.html',
         ),
         name='password_reset_done'
     ),
+
     path(
         'reset/<uidb64>/<token>/',
         auth_views.PasswordResetConfirmView.as_view(
-            template_name='task/password_reset_confirm.html'
+            template_name='task/password_reset_confirm.html',
+            success_url="/password-reset-complete/",
         ),
         name='password_reset_confirm'
     ),
+
     path(
-        'reset-complete/',
+        'password-reset-complete/',
         auth_views.PasswordResetCompleteView.as_view(
             template_name='task/password_reset_complete.html'
         ),
@@ -49,7 +54,7 @@ urlpatterns = [
     path('submit-review/', views.submit_review, name='submit_review'),
     path('report-issue/', views.report_issue, name='report_issue'),
     path('admin-dashboard/', views.admin_view, name='admin_dashboard'),
-    path("forgot-password/", views.forgot_password, name="forgot_password"),
-    path("reset-password/", views.reset_password, name="reset_password"),
-
+    path("profile/", views.buyer_profile, name="buyer_profile"),
 ]
+
+

@@ -2,15 +2,16 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm , UserProfileForm
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from .models import Owner, Listing, BuyerReport
+from .models import Owner, Listing, BuyerReport, UserProfile
 import random
 from django.core.mail import send_mail
-from .models import PasswordResetOTP
 from django.utils import timezone
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 
 
 def generate_otp():
@@ -87,8 +88,13 @@ def login_view(request):
     return render(request, "task/login.html")
 
 
+
 def owner_dashboard(request):
     return render(request, "task/owner_dashboard.html")
+def forgot_password(request):
+    return render(request, "task/forgot_password.html")
+
+
 
 def verify_otp(request):
     # user id stored in session during registration
@@ -161,6 +167,9 @@ def register(request):
         if form.is_valid():
             user = form.save(commit=False)
 
+            user.email = email
+            user.username = email
+
             # Role selection
             role = request.POST.get("role")
             if role == "owner":
@@ -224,7 +233,8 @@ def role_redirect(request):
     return redirect("index")
 
 def buyer(request):
-    return render(request, 'task/buyer_dashboard.html')
+    return render(request, 'task/buyer.html')
+
 
 def saved_listings(request):
     # Logic to fetch user's saved items will go here later
@@ -244,7 +254,7 @@ def report_issue(request):
             title=title,
             description=description
         )
-        return redirect('buyer_dashboard')
+        return redirect('buyer.html')
     return render(request, 'task/report_issue.html')
 
 
@@ -269,73 +279,39 @@ def admin_view(request):
     return render(request, 'task/admin.html', context)
 
 
-def forgot_password(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
+@login_required
+def buyer_profile(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
-        try:
-            user = User.objects.get(email=email)
-            otp = generate_otp()
-            user.email_otp = otp
-            user.save()
+    completion = 0
+    if request.user.get_full_name(): completion += 25
+    if request.user.email: completion += 25
+    if profile.phone_number: completion += 25
+    if profile.profile_photo: completion += 25
 
-            send_mail(
-                subject="RoomSiftay Password Reset OTP",
-                message=f"Your OTP is {otp}",
-                from_email="no-reply@roomsiftay.com",
-                recipient_list=[email],
-                fail_silently=False,
-            )
-
-            request.session["reset_user_id"] = user.id
-            messages.success(request, "OTP sent to your email.")
-            return redirect("verify_otp")
-
-        except User.DoesNotExist:
-            messages.error(request, "Email not registered.")
-
-    return render(request, "task/forgot_password.html")
-
-def verify_otp(request):
-    user_id = request.session.get("reset_user_id")
-
-    if not user_id:
-        messages.error(request, "Session expired.")
-        return redirect("forgot_password")
-
-    user = User.objects.get(id=user_id)
+    profile_form = UserProfileForm(instance=profile)
+    password_form = PasswordChangeForm(user=request.user)
 
     if request.method == "POST":
-        otp = request.POST.get("otp")
 
-        if entered_otp and entered_otp.strip() == user.email_otp:
-            request.session["otp_verified"] = True
-            return redirect("reset_password")
-        else:
-            messages.error(request, "Invalid OTP")
+        # Profile update
+        if "update_profile" in request.POST:
+            profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
+            if profile_form.is_valid():
+                profile_form.save()
+                return redirect("buyer_profile")
 
-    return render(request, "task/verify_otp.html")
+        # Password change
+        elif "change_password" in request.POST:
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                return redirect("buyer_profile")
 
-def reset_password(request):
-    if not request.session.get("otp_verified"):
-        return redirect("forgot_password")
-
-    user = User.objects.get(id=request.session.get("reset_user_id"))
-
-    if request.method == "POST":
-        password = request.POST.get("password")
-        confirm = request.POST.get("confirm")
-
-        if password == confirm:
-            user.set_password(password)
-            user.email_otp = ""
-            user.save()
-
-            request.session.flush()
-            messages.success(request, "Password reset successful.")
-            return redirect("login")
-        else:
-            messages.error(request, "Passwords do not match")
-
-    return render(request, "task/reset_password.html")
-
+    return render(request, "task/buyer_profile.html", {
+        "profile": profile,
+        "profile_form": profile_form,
+        "password_form": password_form,
+        "completion": completion
+    })

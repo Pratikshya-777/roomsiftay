@@ -23,7 +23,7 @@
             <img src="{{ user.profile.image.url }}" class="w-28 h-28 rounded-full border-4 border-blue-50 object-cover mb-4" alt="Profile">
             <h3 class="font-bold text-lg text-gray-800">{{ user.username }}</h3>
             <p class="text-sm text-gray-400 mb-6">{{ user.email }}</p>
-            <button class="px-8 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">View Profile</button>
+            <a href="{% url 'buyer_profile' %}" class="px-8 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">View Profile</a>
         </div>
     </div>
 
