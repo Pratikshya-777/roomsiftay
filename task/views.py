@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm , UserProfileForm
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -12,7 +12,11 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
+<<<<<<< HEAD
 from .forms import UserProfileForm
+=======
+
+>>>>>>> 1ae2d05 (Implement user profile management)
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -88,8 +92,13 @@ def login_view(request):
     return render(request, "task/login.html")
 
 
+
 def owner_dashboard(request):
     return render(request, "task/owner_dashboard.html")
+def forgot_password(request):
+    return render(request, "task/forgot_password.html")
+
+
 
 def verify_otp(request):
     # user id stored in session during registration
@@ -283,7 +292,8 @@ def role_redirect(request):
     return redirect("buyer_dashboard")
 
 def buyer(request):
-    return render(request, 'task/buyer_dashboard.html')
+    return render(request, 'task/buyer.html')
+
 
 
 def saved_listings(request):
@@ -332,6 +342,7 @@ def admin_view(request):
 @login_required
 def buyer_profile(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
+<<<<<<< HEAD
 
     # Profile completion
     completion = 0
@@ -358,12 +369,34 @@ def buyer_profile(request):
             profile_form = UserProfileForm(
                 request.POST, request.FILES, instance=profile
             )
+=======
+
+    completion = 0
+    if request.user.get_full_name(): completion += 25
+    if request.user.email: completion += 25
+    if profile.phone_number: completion += 25
+    if profile.profile_photo: completion += 25
+
+    profile_form = UserProfileForm(instance=profile)
+    password_form = PasswordChangeForm(user=request.user)
+
+    if request.method == "POST":
+
+        # Profile update
+        if "update_profile" in request.POST:
+            profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
+>>>>>>> 1ae2d05 (Implement user profile management)
             if profile_form.is_valid():
                 profile_form.save()
                 return redirect("buyer_profile")
 
+<<<<<<< HEAD
         # CHANGE password
         if "change_password" in request.POST:
+=======
+        # Password change
+        elif "change_password" in request.POST:
+>>>>>>> 1ae2d05 (Implement user profile management)
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
@@ -372,7 +405,14 @@ def buyer_profile(request):
 
     return render(request, "task/buyer_profile.html", {
         "profile": profile,
+<<<<<<< HEAD
         "form": profile_form,
         "password_form": password_form,
         "completion": completion,
     })
+=======
+        "profile_form": profile_form,
+        "password_form": password_form,
+        "completion": completion
+    })
+>>>>>>> 1ae2d05 (Implement user profile management)
