@@ -9,6 +9,9 @@ from django.contrib.auth import get_user_model
 from .models import Owner, Listing, BuyerReport
 import random
 from django.core.mail import send_mail
+from .models import PasswordResetOTP
+from django.utils import timezone
+
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -141,8 +144,8 @@ def resend_otp(request):
     return redirect("verify_otp")
 
 
-def user_dashboard(request):
-    return render(request, "task/user_dashboard.html")
+# def user_dashboard(request):
+#     return render(request, "task/user_dashboard.html")
 
 def register(request):
     if request.method == "POST":
@@ -207,21 +210,21 @@ def role_redirect(request):
     selected_role = request.COOKIES.get('social_role')
     if user.is_user and user.is_owner:
         if selected_role == "owner":
-            return redirect("admin_dashboard")
+            return redirect("owner_dashboard")
         else:
             # Default to user if cookie is missing or set to user
-            return redirect("buyer-dashboard")
+            return redirect("buyer_dashboard")
 
     # 3. For Manual Users (who only have ONE role set to True)
     if user.is_owner:
-        return redirect("admin_dashboard")
+        return redirect("owner_dashboard")
     
     # Default fallback for everyone else
-    return redirect("buyer-dashboard")
+    return redirect("buyer_dashboard")
     return redirect("index")
 
 def buyer(request):
-    return render(request, 'task/buyer.html')
+    return render(request, 'task/buyer_dashboard.html')
 
 def saved_listings(request):
     # Logic to fetch user's saved items will go here later
@@ -266,4 +269,73 @@ def admin_view(request):
     return render(request, 'task/admin.html', context)
 
 
+def forgot_password(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+
+        try:
+            user = User.objects.get(email=email)
+            otp = generate_otp()
+            user.email_otp = otp
+            user.save()
+
+            send_mail(
+                subject="RoomSiftay Password Reset OTP",
+                message=f"Your OTP is {otp}",
+                from_email="no-reply@roomsiftay.com",
+                recipient_list=[email],
+                fail_silently=False,
+            )
+
+            request.session["reset_user_id"] = user.id
+            messages.success(request, "OTP sent to your email.")
+            return redirect("verify_otp")
+
+        except User.DoesNotExist:
+            messages.error(request, "Email not registered.")
+
+    return render(request, "task/forgot_password.html")
+
+def verify_otp(request):
+    user_id = request.session.get("reset_user_id")
+
+    if not user_id:
+        messages.error(request, "Session expired.")
+        return redirect("forgot_password")
+
+    user = User.objects.get(id=user_id)
+
+    if request.method == "POST":
+        otp = request.POST.get("otp")
+
+        if entered_otp and entered_otp.strip() == user.email_otp:
+            request.session["otp_verified"] = True
+            return redirect("reset_password")
+        else:
+            messages.error(request, "Invalid OTP")
+
+    return render(request, "task/verify_otp.html")
+
+def reset_password(request):
+    if not request.session.get("otp_verified"):
+        return redirect("forgot_password")
+
+    user = User.objects.get(id=request.session.get("reset_user_id"))
+
+    if request.method == "POST":
+        password = request.POST.get("password")
+        confirm = request.POST.get("confirm")
+
+        if password == confirm:
+            user.set_password(password)
+            user.email_otp = ""
+            user.save()
+
+            request.session.flush()
+            messages.success(request, "Password reset successful.")
+            return redirect("login")
+        else:
+            messages.error(request, "Passwords do not match")
+
+    return render(request, "task/reset_password.html")
 

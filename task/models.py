@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 # from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -38,3 +39,11 @@ class BuyerReport(models.Model):
 
     def __clstr__(self):
         return f"{self.title} by {self.user.username}"
+
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    email_otp = models.CharField(max_length=6, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timezone.timedelta(minutes=5)

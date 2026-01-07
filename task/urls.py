@@ -10,10 +10,11 @@ urlpatterns = [
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path("resend-otp/", views.resend_otp, name="resend_otp"),
     path('about/', views.about, name='about'),
-    # path('owner/', views.owner_dashboard, name='owner_dashboard'),
-    path('user/', views.user_dashboard, name='user_dashboard'),
+    path('owner/', views.owner_dashboard, name='owner_dashboard'),
+    path('buyer/', views.buyer, name='buyer_dashboard'),
+    # path('user/', views.user_dashboard, name='user_dashboard'),
     path('login/', views.login_view, name='login'),
-     path('register/', views.register, name='register'),
+    path('register/', views.register, name='register'),
 
     path(
         'forgot-password/',
@@ -44,9 +45,11 @@ urlpatterns = [
         name='password_reset_complete'
     ),
 
-    path('buyer/', views.buyer, name='buyer-dashboard'),
     path('saved-listings/', views.saved_listings, name='saved_listings'),
     path('submit-review/', views.submit_review, name='submit_review'),
     path('report-issue/', views.report_issue, name='report_issue'),
     path('admin-dashboard/', views.admin_view, name='admin_dashboard'),
+    path("forgot-password/", views.forgot_password, name="forgot_password"),
+    path("reset-password/", views.reset_password, name="reset_password"),
+
 ]
