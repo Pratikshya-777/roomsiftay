@@ -20,12 +20,10 @@ urlpatterns = [
         auth_views.PasswordResetView.as_view(
             template_name='task/forgot_password.html',
             success_url="/password-reset-done/",
-<<<<<<< HEAD
+
             # email_template_name='task/password_reset_email.html',
             # from_email='RoomSiftay <roomsiftay@gmail.com>',
             # extra_email_context={'domain': '127.0.0.1:8000'}, 
-=======
->>>>>>> 1ae2d05 (Implement user profile management)
         ),
         name='forgot_password'
     ),
@@ -60,12 +58,9 @@ urlpatterns = [
     path('report-issue/', views.report_issue, name='report_issue'),
     path('admin-dashboard/', views.admin_view, name='admin_dashboard'),
     path("profile/", views.buyer_profile, name="buyer_profile"),
-<<<<<<< HEAD
     path("forgot-password/", views.forgot_password, name="forgot_password"),
     path("reset-password/", views.reset_password, name="reset_password"),
 
-=======
->>>>>>> 1ae2d05 (Implement user profile management)
 ]
 
 

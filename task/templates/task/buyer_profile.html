@@ -11,7 +11,8 @@
       <div class="flex items-center gap-6">
 
         <!-- Avatar -->
-<<<<<<< HEAD
+
+>>>>>>> 67054b3 (Refactor user model and admin interface)
     <label class="relative cursor-pointer">
       {% if profile.profile_photo %}
         <img src="{{ profile.profile_photo.url }}"
@@ -20,17 +21,6 @@
         <img src="https://static.vecteezy.com/system/resources/previews/002/318/271/original/user-profile-icon-free-vector.jpg"
             class="w-24 h-24 rounded-full object-cover border">
       {% endif %} 
-
-=======
-        <label class="relative cursor-pointer">
-          {% if profile.profile_photo %}
-            <img src="{{ profile.profile_photo.url }}"
-                 class="w-24 h-24 rounded-full object-cover border">
-          {% else %}
-            <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username }}&background=4f46e5&color=fff&size=256"
-                 class="w-24 h-24 rounded-full border">
-          {% endif %}
->>>>>>> 1ae2d05 (Implement user profile management)
 
           <input type="file" name="profile_photo"
                  form="profileForm"
