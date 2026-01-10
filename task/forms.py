@@ -1,21 +1,21 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
-from .models import UserProfile
+from .models import UserProfile,User
 
 User = get_user_model()
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
 
-    class Meta(UserCreationForm.Meta):
+class Meta(UserCreationForm.Meta):
         model = User
         # FIX 1: Add a comma after "email" to make it a tuple. 
         # FIX 2: Include "username" here so the form doesn't crash, 
         # but we will hide it in the __init__ below.
         fields = ("email", "username")
 
-    def __init__(self, *args, **kwargs):
+def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
         # FIX 3: Hide the username field from the UI entirely

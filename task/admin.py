@@ -1,5 +1,39 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import User  # Import your custom User model
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User
 
-admin.site.register(User, UserAdmin)
+
+@admin.register(User)
+class CustomUserAdmin(BaseUserAdmin):
+    model = User
+
+    ordering = ('email',)
+    list_display = ('email', 'is_staff', 'is_active')
+    search_fields = ('email',)
+
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Permissions', {
+            'fields': (
+                'is_active',
+                'is_staff',
+                'is_superuser',
+                'groups',
+                'user_permissions',
+            )
+        }),
+        ('Important dates', {'fields': ('last_login',)}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                'email',
+                'password1',
+                'password2',
+                'is_staff',
+                'is_superuser',
+            ),
+        }),
+    )
