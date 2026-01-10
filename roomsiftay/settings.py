@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 'task',
-     'django.contrib.sites',   # REQUIRED
-        'task.apps.TaskConfig',
+    'django.contrib.sites',   # REQUIRED
+    'task.apps.TaskConfig',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -140,10 +140,9 @@ import os
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-SITE_ID = 1
 
-# ACCOUNT_LOGIN_METHODS = {'email', 'username'}
-# ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 AUTH_USER_MODEL = 'task.User'
 
 MEDIA_URL = '/media/'
@@ -160,8 +159,8 @@ LOGIN_REDIRECT_URL = 'role_redirect'
 LOGOUT_REDIRECT_URL = '/login/'
 
 LOGIN_URL = 'login'
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587

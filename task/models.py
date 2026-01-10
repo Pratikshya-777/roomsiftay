@@ -1,10 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.utils import timezone
 
 
 class User(AbstractUser):
+    # username = models.CharField(
+    #     max_length=150,
+    #     unique=True,
+    #     null=True,
+    #     blank=True,
+    #             )
     email = models.EmailField(unique=True) # Email must be unique
     is_owner = models.BooleanField(default=False)
     is_user = models.BooleanField(default=False)
@@ -15,12 +21,8 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username'] # Keep username here for AllAuth compatibility
     
     EMAIL_FIELD = 'email' 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
 
-    def __str__(self):
-        return f'{self.user.username} Profile'
+
     
 
 class Owner(models.Model):
@@ -41,13 +43,13 @@ class BuyerReport(models.Model):
     def __clstr__(self):
         return f"{self.title} by {self.user.username}"
 
-class PasswordResetOTP(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
-    email_otp = models.CharField(max_length=6, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+# class PasswordResetOTP(models.Model):
+#     user = models.ForeignKey('User', on_delete=models.CASCADE)
+#     email_otp = models.CharField(max_length=6, null=True, blank=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
 
-    def is_expired(self):
-        return timezone.now() > self.created_at + timezone.timedelta(minutes=5)
+#     def is_expired(self):
+#         return timezone.now() > self.created_at + timezone.timedelta(minutes=5)
     
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -55,4 +57,5 @@ class UserProfile(models.Model):
     profile_photo = models.ImageField(upload_to="profile_photos/", blank=True, null=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.email
+    

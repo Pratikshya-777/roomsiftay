@@ -91,8 +91,7 @@ def login_view(request):
 
 def owner_dashboard(request):
     return render(request, "task/owner_dashboard.html")
-def forgot_password(request):
-    return render(request, "task/forgot_password.html")
+
 
 
 

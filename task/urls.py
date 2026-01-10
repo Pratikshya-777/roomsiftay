@@ -21,6 +21,9 @@ urlpatterns = [
         auth_views.PasswordResetView.as_view(
             template_name='task/forgot_password.html',
             success_url="/password-reset-done/",
+            # email_template_name='task/password_reset_email.html',
+            # from_email='RoomSiftay <roomsiftay@gmail.com>',
+            # extra_email_context={'domain': '127.0.0.1:8000'}, 
         ),
         name='forgot_password'
     ),
