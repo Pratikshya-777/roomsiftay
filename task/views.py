@@ -1,18 +1,13 @@
-
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm , UserProfileForm
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import get_user_model
 from .models import Owner, Listing, BuyerReport, UserProfile
 import random
 from django.core.mail import send_mail
-from django.utils import timezone
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth import update_session_auth_hash
-from .forms import UserProfileForm
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -92,7 +87,32 @@ def login_view(request):
 def owner_dashboard(request):
     return render(request, "task/owner_dashboard.html")
 
+def forgot_password(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
 
+        try:
+            user = User.objects.get(email=email)
+            otp = generate_otp()
+            user.email_otp = otp
+            user.save()
+
+            send_mail(
+                subject="RoomSiftay Password Reset OTP",
+                message=f"Your OTP is {otp}",
+                from_email="no-reply@roomsiftay.com",
+                recipient_list=[email],
+                fail_silently=False,
+            )
+
+            request.session["reset_user_id"] = user.id
+            messages.success(request, "OTP sent to your email.")
+            return redirect("verify_otp")
+
+        except User.DoesNotExist:
+            messages.error(request, "Email not registered.")
+
+    return render(request, "task/forgot_password.html")
 
 
 def verify_otp(request):
@@ -334,10 +354,41 @@ def admin_view(request):
     return render(request, 'task/admin.html', context)
 
 
+def reset_password(request):
+    if not request.session.get("otp_verified"):
+        return redirect("forgot_password")
+    completion = 0
+    if request.user.get_full_name(): completion += 25
+    if request.user.email: completion += 25
+    if UserProfile.phone_number: completion += 25
+    if UserProfile.profile_photo: completion += 25
+
+    user = User.objects.get(id=request.session.get("reset_user_id"))
+    profile_form = UserProfileForm(instance=UserProfile)
+    password_form = PasswordChangeForm(user=request.user)
+
+    if request.method == "POST":
+        password = request.POST.get("password")
+        confirm = request.POST.get("confirm")
+
+        if password == confirm:
+            user.set_password(password)
+            user.email_otp = ""
+            user.save()
+
+            request.session.flush()
+            messages.success(request, "Password reset successful.")
+            return redirect("login")
+        else:
+            messages.error(request, "Passwords do not match")
+
+    return render(request, "task/reset_password.html")
+
+
 @login_required
 def buyer_profile(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
-
+    
     # Profile completion
     completion = 0
     if request.user.get_full_name(): completion += 25
@@ -358,7 +409,6 @@ def buyer_profile(request):
                 profile.save()
             return redirect("buyer_profile")
 
-        # UPDATE profile info / photo
         if "update_profile" in request.POST:
             profile_form = UserProfileForm(
                 request.POST, request.FILES, instance=profile
