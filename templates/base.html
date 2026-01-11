@@ -13,12 +13,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 flex flex-col min-h-screen">
 
-<!-- Overlay -->
+<!-- ================= OVERLAY ================= -->
 <div id="overlay" class="fixed inset-0 bg-black/40 hidden z-30"></div>
 
-<!-- Navbar -->
+<!-- ================= NAVBAR ================= -->
 <nav class="fixed top-0 z-50 w-full bg-[#112240] text-white px-6 py-4 flex items-center justify-between shadow-lg">
 
     <!-- Left -->
@@ -49,7 +49,7 @@
     </div>
 </nav>
 
-<!-- Sidebar -->
+<!-- ================= SIDEBAR ================= -->
 <aside id="sidebar"
 class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 bg-[#112240] text-white
 transform -translate-x-full transition-transform duration-300 ease-in-out">
@@ -71,7 +71,7 @@ transform -translate-x-full transition-transform duration-300 ease-in-out">
         </li>
 
         <li>
-            <a href="#"
+            <a href="{% url 'buyer_profile' %}"
                class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
                 <i class="fa-solid fa-user mr-3"></i> My Profile
             </a>
@@ -101,13 +101,72 @@ transform -translate-x-full transition-transform duration-300 ease-in-out">
     </ul>
 </aside>
 
-<!-- Main Content -->
-<main class="pt-24 px-8">
+<!-- ================= MAIN CONTENT ================= -->
+<main class="pt-24 px-8 flex-1">
     {% block content %}
     {% endblock %}
 </main>
 
-<!-- Sidebar Script -->
+<!-- ================= FOOTER ================= -->
+<footer class="bg-[#0f1e38] text-gray-300 mt-16">
+
+  <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-10">
+
+    <!-- Brand -->
+    <div>
+      <h3 class="text-2xl font-bold text-white mb-3">🏠 RoomSiftay</h3>
+      <p class="text-sm leading-relaxed text-gray-400">
+        Find rooms smarter, faster, and easier.
+        RoomSiftay helps you discover comfortable living spaces that match your lifestyle.
+      </p>
+    </div>
+
+    <!-- Quick Links -->
+    <div>
+      <h4 class="text-white font-semibold mb-3">Quick Links</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="{% url 'buyer_dashboard' %}" class="hover:text-white transition">Dashboard</a></li>
+        <li><a href="#" class="hover:text-white transition">Search Rooms</a></li>
+        <li><a href="{% url 'saved_listings' %}" class="hover:text-white transition">Saved Listings</a></li>
+        <li><a href="{% url 'buyer_profile' %}" class="hover:text-white transition">My Profile</a></li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div>
+      <h4 class="text-white font-semibold mb-3">Support</h4>
+      <ul class="space-y-2 text-sm">
+        <li><a href="{% url 'report_issue' %}" class="hover:text-white transition">Report an Issue</a></li>
+        <li><a href="{% url 'submit_review' %}" class="hover:text-white transition">Website Review</a></li>
+        <li><a href="#" class="hover:text-white transition">Help Center</a></li>
+      </ul>
+    </div>
+
+    <!-- Contact -->
+    <div>
+      <h4 class="text-white font-semibold mb-3">Contact</h4>
+      <ul class="space-y-2 text-sm">
+        <li>Email: support@roomsiftay.com</li>
+        <li>Phone: +977-9876453231</li>
+        <li>Location: Nepal</li>
+      </ul>
+
+      <div class="flex gap-4 mt-4 text-lg">
+        <a href="#" class="hover:text-white transition"><i class="fa-brands fa-facebook"></i></a>
+        <a href="#" class="hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" class="hover:text-white transition"><i class="fa-brands fa-twitter"></i></a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="border-t border-white/10 py-4 text-center text-sm text-gray-400">
+    © {% now "Y" %} RoomSiftay. All rights reserved.
+  </div>
+
+</footer>
+
+<!-- ================= SIDEBAR SCRIPT ================= -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const menuBtn = document.getElementById("menuBtn");
