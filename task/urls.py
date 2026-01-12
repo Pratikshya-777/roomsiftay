@@ -60,6 +60,8 @@ urlpatterns = [
     path("profile/", views.buyer_profile, name="buyer_profile"),
     path("forgot-password/", views.forgot_password, name="forgot_password"),
     path("reset-password/", views.reset_password, name="reset_password"),
+    # Add this inside urlpatterns
+path('resolve-report/<int:report_id>/', views.resolve_report, name='resolve_report'),
 
 ]
 

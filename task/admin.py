@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User
+from .models import User, BuyerReport
 
 
 @admin.register(User)
@@ -37,3 +37,6 @@ class CustomUserAdmin(BaseUserAdmin):
             ),
         }),
     )
+
+
+admin.site.register(BuyerReport)

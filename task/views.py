@@ -13,6 +13,8 @@ from django.utils import timezone
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from .forms import UserProfileForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -298,19 +300,47 @@ def saved_listings(request):
 def submit_review(request):
     return render(request, 'task/review.html')
 
+# def report_issue(request):
+#     if request.method == 'POST':
+#         title = request.POST.get('title')
+#         description = request.POST.get('description')
+        
+#         # Save the report to the database
+#         BuyerReport.objects.create(
+#             user=request.user,
+#             title=title,
+#             description=description
+#         )
+#         return redirect('buyer.html')
+#     return render(request, 'task/report_issue.html')
+
+
+@login_required # Ensure only logged-in users can report
 def report_issue(request):
     if request.method == 'POST':
         title = request.POST.get('title')
         description = request.POST.get('description')
         
-        # Save the report to the database
+        # 1. Validation to prevent the IntegrityError (NOT NULL)
+        if not title:
+            messages.error(request, "Please provide a title for your report.")
+            return render(request, 'task/report_issue.html')
+
+        # 2. Save the report to the database (Visible to Admin)
         BuyerReport.objects.create(
             user=request.user,
             title=title,
             description=description
         )
-        return redirect('buyer.html')
+        
+        # 3. Add success notification
+        messages.success(request, "Your report has been submitted successfully!")
+        
+        # 4. Stay on the same page so they see the message
+        return redirect('report_issue') 
+
     return render(request, 'task/report_issue.html')
+
 
 
 def admin_view(request):
@@ -331,7 +361,7 @@ def admin_view(request):
     #     'listings': Listing.objects.all(),
     #     'reports': BuyerReport.objects.all().order_by('-created_at'),
     # }
-    return render(request, 'task/admin.html', context)
+    # return render(request, 'task/admin.html', context)
 
 
 @login_required
@@ -381,3 +411,23 @@ def buyer_profile(request):
         "password_form": password_form,
         "completion": completion,
     })
+
+def forgot_password(request):
+    return render(request, "task/forgot_password.html")
+
+
+
+def reset_password(request):
+    return render(request, "task/reset_password.html")
+
+
+@login_required
+@require_POST
+def resolve_report(request, report_id):
+    try:
+        report = BuyerReport.objects.get(id=report_id)
+        report.status = 'verified'  # Ensure you have a status field in your model
+        report.save()
+        return JsonResponse({'status': 'success'})
+    except BuyerReport.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)
