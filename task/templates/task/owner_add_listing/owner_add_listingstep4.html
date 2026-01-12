@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Add Listing · Step 4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<div class="min-h-screen flex items-center justify-center px-4 py-10">
+
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-8">
+
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">
+                Review & Submit Listing
+            </h1>
+            <p class="text-sm text-gray-600 mt-1">
+                Step 4 of 4 · Preview & Confirm
+            </p>
+
+            <!-- Progress bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
+                <div class="bg-indigo-600 h-2 rounded-full w-full"></div>
+            </div>
+        </div>
+
+        <!-- Preview Card -->
+        <div class="border rounded-2xl p-6 bg-gray-50 mb-6">
+
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                👁 Listing Preview
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Image Placeholder -->
+                <div class="bg-gray-200 rounded-xl h-48 flex items-center justify-center text-gray-500">
+                    Room Photos Preview
+                </div>
+
+                <!-- Info -->
+                <div class="space-y-2 text-sm text-gray-700">
+                    <p><strong>Title:</strong> Bright Single Room near Baneshwor</p>
+                    <p><strong>Room Type:</strong> Single Room</p>
+                    <p><strong>Location:</strong> Kathmandu · New Baneshwor</p>
+                    <p><strong>Rent:</strong> NPR 12,000 / month</p>
+                    <p><strong>Deposit:</strong> NPR 24,000</p>
+                    <p><strong>Bedrooms:</strong> 1</p>
+                    <p><strong>Bathrooms:</strong> 1</p>
+                    <p><strong>Facilities:</strong> Furnished, Wi-Fi, Parking</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Verification Info -->
+        <div class="border border-indigo-200 bg-indigo-50 rounded-xl p-4 mb-6">
+            <h3 class="font-semibold text-indigo-700 mb-1">
+                🔍 Verification Process
+            </h3>
+            <p class="text-sm text-indigo-700">
+                After submission, your listing will be reviewed by our team.
+                Once verified, it will become visible to renters.
+            </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-between border-t pt-6">
+
+            <!-- Back -->
+            <a href="{% url 'owner_add_listingstep3' %}"
+               class="text-sm text-gray-600 hover:text-gray-900">
+                ← Back
+            </a>
+
+            <div class="flex gap-3">
+
+                <!-- Save Draft -->
+                <button
+                    type="button"
+                    class="px-5 py-3 rounded-xl border border-gray-300
+                           text-gray-700 font-medium
+                           hover:bg-gray-100 transition">
+                    Save as Draft
+                </button>
+
+                <!-- Submit -->
+                <button
+                    type="button"
+                    class="px-6 py-3 rounded-xl bg-indigo-600
+                           text-white font-semibold
+                           hover:bg-indigo-700 transition">
+                    Submit for Verification
+                </button>
+
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-500 text-center mt-6">
+            You can edit your listing anytime from the owner dashboard.
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>

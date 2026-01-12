@@ -22,3 +22,5 @@ def assign_role_after_social_login(sender, request, user, **kwargs):
             user.is_owner = False
 
         user.save()
+
+        

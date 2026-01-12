@@ -97,7 +97,7 @@
             </div>
         </div>
 
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
+        {% comment %} <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
             <h3 class="text-2xl font-medium text-gray-600 mb-1">Reports</h3>
             <div class="h-[2px] w-64 bg-red-100 mb-2"></div>
             <p class="text-gray-400 text-xs font-medium mb-10">Issues reported by buyers</p>
@@ -110,7 +110,140 @@
                 </div>
                 {% endfor %}
             </div>
+        </div> {% endcomment %}
+
+
+<div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
+    <h3 class="text-2xl font-medium text-gray-600 mb-1">Reports</h3>
+    <div class="h-[2px] w-64 bg-red-100 mb-2"></div>
+    <p class="text-gray-400 text-xs font-medium mb-10">Issues reported by buyers</p>
+    
+    {% comment %} <div class="divide-y divide-gray-50" id="reports-container">
+        {% for report in reports %}
+        <div id="report-row-{{ report.id }}" class="flex justify-between items-center py-8 transition-all duration-500">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="text-gray-800 font-semibold text-lg">{{ report.title }}</span>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                        {{ report.created_at|date:"M d" }}
+                    </span>
+                </div>
+                <p class="text-gray-500 text-base font-normal">Report: {{ report.description }}</p>
+                <p class="text-gray-400 text-xs mt-1 italic">User: {{ report.user.email }}</p>
+            </div>
+            
+            <button onclick="resolveReport('{{ report.id }}')" 
+                    class="bg-[#4a86e8] text-white px-6 py-2 rounded-xl text-xs font-bold uppercase shadow-md hover:bg-blue-600 transition active:scale-95">
+                Verify
+            </button>
         </div>
+        {% empty %}
+        <div class="py-10 text-center text-gray-400 italic">No reports found.</div>
+        {% endfor %}
+    </div> {% endcomment %}
+
+<div class="divide-y divide-gray-50" id="reports-container">
+    {% for report in reports %}
+    <div id="report-row-{{ report.id }}" class="flex justify-between items-center py-8">
+        <div>
+            <div class="flex items-center gap-3 mb-1">
+                <span class="text-gray-800 font-semibold text-lg">{{ report.title }}</span>
+                <span id="badge-{{ report.id }}">
+                    {% if report.status == 'verified' %}
+                        <i class="fa-solid fa-circle-check text-green-500 text-xl"></i>
+                    {% endif %}
+                </span>
+            </div>
+            <p class="text-gray-500 text-base font-normal">{{ report.description }}</p>
+        </div>
+        
+        <div id="action-area-{{ report.id }}">
+            {% if report.status == 'pending' %}
+                <button onclick="resolveReport('{{ report.id }}')" 
+                        class="bg-[#4a86e8] text-white px-6 py-2 rounded-xl text-xs font-bold uppercase shadow-md">
+                    Verify
+                </button>
+            {% else %}
+                <span class="text-green-600 font-bold text-xs uppercase">Verified</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+
+</div>
+
     </main>
+
+
+{% comment %} <script>
+function resolveReport(reportId) {
+    const reportRow = document.getElementById(`report-row-${reportId}`);
+    
+    // Optional: add a loading state to the button
+    if (!confirm("Mark this report as verified?")) return;
+
+    fetch(`/resolve-report/${reportId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}', // Standard Django CSRF
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Visual Feedback: Smooth slide and fade out
+            reportRow.style.opacity = '0';
+            reportRow.style.transform = 'translateX(30px)';
+            
+            setTimeout(() => {
+                reportRow.remove();
+                
+                // Show "No reports" message if container is empty
+                const container = document.getElementById('reports-container');
+                if (container.children.length === 0) {
+                    container.innerHTML = '<div class="py-10 text-center text-gray-400 italic">No reports found.</div>';
+                }
+            }, 500);
+        } else {
+            alert("Error: Could not verify report. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Server error. Please check your connection.");
+    });
+} {% endcomment %}
+
+<script>
+function resolveReport(reportId) {
+    fetch(`/resolve-report/${reportId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // 1. Add the tick mark next to the title
+            const badge = document.getElementById(`badge-${reportId}`);
+            badge.innerHTML = '<i class="fa-solid fa-circle-check text-green-500 text-xl animate-bounce"></i>';
+            
+            // 2. Replace the button with "Verified" text
+            const actionArea = document.getElementById(`action-area-${reportId}`);
+            actionArea.innerHTML = '<span class="text-green-600 font-bold text-xs uppercase">Verified</span>';
+            
+            // 3. Optional: Lightly dim the row to show it's "completed"
+            document.getElementById(`report-row-${reportId}`).style.opacity = '0.7';
+        }
+    });
+}
+</script>
+
+
 </body>
 </html>
