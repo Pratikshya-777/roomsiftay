@@ -88,6 +88,7 @@ def login_view(request):
 
 
 def owner_dashboard(request):
+    
     return render(request, "task/owner_dashboard.html")
 
 def verify_otp(request):

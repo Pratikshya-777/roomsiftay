@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,6 +14,7 @@
             --accent-blue: #3b82f6;
             --success-green: #22c55e;
             --border-color: #f1f5f9;
+            
         }
 
         body { margin: 0; font-family: 'Inter', sans-serif; display: flex; height: 100vh; background: var(--bg-light); color: var(--text-main); }
@@ -20,7 +22,7 @@
         /* Sidebar */
         .sidebar { width: 260px; background: var(--sidebar-blue); color: white; display: flex; flex-direction: column; }
         .sidebar-brand { padding: 25px; font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .nav-item { padding: 15px 25px; color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
+        .nav-item { padding: 15px 25px; color: #fcfdfeff; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
         .nav-item:hover, .nav-item.active { background: #334155; color: white; border-left: 4px solid var(--accent-blue); }
 
         /* Main Area */
@@ -50,7 +52,7 @@
             transition: 0.2s; cursor: pointer; border-bottom: 1px solid var(--border-color);
         }
         .chat-item:hover { background-color: #f8fafc; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; flex-shrink: 0; object-fit: cover; }
         .chat-info { flex: 1; min-width: 0; }
         .chat-header { display: flex; justify-content: space-between; align-items: center; }
         .chat-name { font-weight: 600; font-size: 0.9rem; color: #1e293b; }
@@ -60,7 +62,7 @@
         /* Badges & Toggles */
         .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .badge-active { background: #dcfce7; color: #166534; }
-        .badge-booked { background: #fef9c3; color: #854d0e; }
+        .badge-pending { background: #fef9c3; color: #854d0e; }
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #cbd5e1; border-radius: 20px; transition: .4s; }
@@ -84,30 +86,33 @@
     <main class="main">
         <div class="header">
             <h2>Dashboard Overview</h2>
-            <div class="user-profile" style="display: flex; align-items: center;">
-                <i class="fas fa-bell" style="color: #64748b; cursor: pointer;"></i>
-                <img src="https://ui-avatars.com/api/?name=Admin" style="width:35px; border-radius:50%; margin-left:15px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div class="user-profile" style=""flex items-center gap-4">
+                <span class="text-gray-300 text-sm">Welcome, {{ owner.ownername }}</span>
+                <i class="fas fa-bell" style="color: #131b27ff; cursor: pointer; margin-right: 15px;"></i>
+                <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{ owner_profile.name }}</span>
+                <img src="{{ request.user.profile.image.url }}" alt="Profile" style="width:35px; height:35px; border-radius:50%; margin-left:12px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); object-fit: cover;">
             </div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Identity Status</h3>
-                <p style="color: var(--success-green); font-size: 1rem; display: flex; align-items: center; gap: 5px;">
-                    <i class="fas fa-check-circle"></i> Verified
+                <p style="color: {% if owner_profile.is_verified %}var(--success-green){% else %}#f59e0b{% endif %}; font-size: 1rem; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas {% if owner_profile.is_verified %}fa-check-circle{% else %}fa-clock{% endif %}"></i> 
+                    {% if owner_profile.is_verified %}Verified{% else %}Pending{% endif %}
                 </p>
             </div>
             <div class="stat-card">
                 <h3>Total Listings</h3>
-                <p>{{ total_count|default:"0" }}</p>
+                <p>{{ total_count }}</p>
             </div>
             <div class="stat-card">
                 <h3>Active Listings</h3>
-                <p>{{ active_count|default:"0" }}</p>
+                <p>{{ active_count }}</p>
             </div>
             <div class="stat-card">
                 <h3>Pending Chats</h3>
-                <p style="color: var(--accent-blue);">{{ pending_chats|default:"0" }}</p>
+                <p style="color: var(--accent-blue);">{{ messages|length }}</p>
             </div>
         </div>
 
@@ -128,10 +133,10 @@
                     <tbody>
                         {% for item in listings %}
                         <tr>
-                            <td>{{ item.name }}</td>
+                            <td>{{ item.title }}</td>
                             <td>
                                 <label class="switch">
-                                    <input type="checkbox" {% if item.is_available %}checked{% endif %}>
+                                    <input type="checkbox" {% if item.is_available %}checked{% endif %} disabled>
                                     <span class="slider"></span>
                                 </label>
                             </td>
@@ -151,18 +156,29 @@
                         <i class="fas fa-id-card" style="font-size:1.5rem; color:var(--accent-blue);"></i>
                         <div style="flex:1;">
                             <p style="margin:0; font-size:0.85rem; font-weight:600;">ID Card</p>
-                            <p style="margin:0; font-size:0.75rem; color:var(--success-green);">Verified</p>
+                            <p style="margin:0; font-size:0.75rem; color:{% if owner_profile.is_verified %}var(--success-green){% else %}#94a3b8{% endif %};">
+                                {% if owner_profile.is_verified %}Verified{% else %}Pending Verification{% endif %}
+                            </p>
                         </div>
-                        <i class="fas fa-check-circle" style="color:var(--success-green);"></i>
+                        {% if owner_profile.is_verified %}<i class="fas fa-check-circle" style="color:var(--success-green);"></i>{% endif %}
                     </div>
-                    <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px dashed #cbd5e1; border-radius:10px;">
-                        <i class="fas fa-file-alt" style="font-size:1.5rem; color:var(--accent-blue);"></i>
-                        <div style="flex:1;">
-                            <p style="margin:0; font-size:0.85rem; font-weight:600;">Auth Proof</p>
-                            <p style="margin:0; font-size:0.75rem; color:#94a3b8;">Not Uploaded</p>
+
+                    <form method="POST" enctype="multipart/form-data" id="authForm">
+                        {% csrf_token %}
+                        <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px dashed #cbd5e1; border-radius:10px;">
+                            <i class="fas fa-file-alt" style="font-size:1.5rem; color:var(--accent-blue);"></i>
+                            <div style="flex:1;">
+                                <p style="margin:0; font-size:0.85rem; font-weight:600;">Auth Proof</p>
+                                <p style="margin:0; font-size:0.75rem; color:#94a3b8;">
+                                    {% if owner_profile.auth_proof %}Document Uploaded{% else %}Not Uploaded{% endif %}
+                                </p>
+                            </div>
+                            <input type="file" name="auth_document" id="file_input" hidden onchange="document.getElementById('authForm').submit();">
+                            <button type="button" onclick="document.getElementById('file_input').click();" style="border:none; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:5px; font-size:0.7rem; cursor:pointer;">
+                                {% if owner_profile.auth_proof %}Update{% else %}Upload{% endif %}
+                            </button>
                         </div>
-                        <button style="border:none; background:var(--accent-blue); color:white; padding:5px 10px; border-radius:5px; font-size:0.7rem; cursor:pointer;">Upload</button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
