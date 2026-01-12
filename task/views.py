@@ -391,3 +391,15 @@ def resolve_report(request, report_id):
 def logout(request):
     auth_logout(request)
     return redirect("login")
+
+def owner_add_listingstep1(request):
+    return render(request, "task/owner_add_listing/owner_add_listingstep1.html")
+
+def owner_add_listingstep2(request):
+    return render(request, "task/owner_add_listing/owner_add_listingstep2.html")
+
+def owner_add_listingstep3(request):
+    return render(request, "task/owner_add_listing/owner_add_listingstep3.html")
+
+def owner_add_listingstep4(request):
+    return render(request, "task/owner_add_listing/owner_add_listingstep4.html")

@@ -62,7 +62,13 @@ urlpatterns = [
     # path("forgot-password/", views.forgot_password, name="forgot_password"),
     path("reset-password/", views.reset_password, name="reset_password"),
     # Add this inside urlpatterns
-path('resolve-report/<int:report_id>/', views.resolve_report, name='resolve_report'),
+    path('resolve-report/<int:report_id>/', views.resolve_report, name='resolve_report'),
+
+    path("add-listing-step1/", views.owner_add_listingstep1, name="owner_add_listingstep1"),
+    path("add-listing-step2/", views.owner_add_listingstep2, name="owner_add_listingstep2"),
+    path("add-listing-step3/", views.owner_add_listingstep3, name="owner_add_listingstep3"),
+    path("add-listing-step4/", views.owner_add_listingstep4, name="owner_add_listingstep4"),
+
 
 ]
 
