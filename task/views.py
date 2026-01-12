@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model
+from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as auth_logout
 from .forms import CustomUserCreationForm , UserProfileForm
 from django.conf import settings
 from django.contrib import messages
@@ -9,6 +10,7 @@ import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
 
+@login_required
 def generate_otp():
     return str(random.randint(100000, 999999))
 
@@ -83,35 +85,11 @@ def login_view(request):
     return render(request, "task/login.html")
 
 
-
+@login_required
 def owner_dashboard(request):
     return render(request, "task/owner_dashboard.html")
 
 def forgot_password(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-
-        try:
-            user = User.objects.get(email=email)
-            otp = generate_otp()
-            user.email_otp = otp
-            user.save()
-
-            send_mail(
-                subject="RoomSiftay Password Reset OTP",
-                message=f"Your OTP is {otp}",
-                from_email="no-reply@roomsiftay.com",
-                recipient_list=[email],
-                fail_silently=False,
-            )
-
-            request.session["reset_user_id"] = user.id
-            messages.success(request, "OTP sent to your email.")
-            return redirect("verify_otp")
-
-        except User.DoesNotExist:
-            messages.error(request, "Email not registered.")
-
     return render(request, "task/forgot_password.html")
 
 
@@ -168,63 +146,6 @@ def resend_otp(request):
     messages.success(request, "A new OTP has been sent to your email.")
     return redirect("verify_otp")
 
-
-
-
-def verify_otp(request):
-    # user id stored in session during registration
-    user_id = request.session.get("otp_user_id")
-
-    if not user_id:
-        messages.error(request, "Session expired. Please register again.")
-        return redirect("register")
-
-    user = User.objects.get(id=user_id)
-
-    if request.method == "POST":
-        entered_otp = request.POST.get("otp")
-
-        if entered_otp == user.email_otp:
-            user.is_active = True
-            user.is_email_verified = True
-            user.email_otp = None
-            user.save()
-
-            # cleanup session
-            del request.session["otp_user_id"]
-
-            messages.success(request, "Email verified successfully. You can now login.")
-            return redirect("login")
-
-        else:
-            messages.error(request, "Invalid OTP. Please try again.")
-
-    return render(request, "task/verify_otp.html")
-
-def resend_otp(request):
-    user_id = request.session.get("otp_user_id")
-
-    if not user_id:
-        messages.error(request, "Session expired. Please register again.")
-        return redirect("register")
-
-    user = User.objects.get(id=user_id)
-
-    otp = generate_otp()
-    user.email_otp = otp
-    user.save()
-
-    send_mail(
-        subject="Your new RoomSiftay OTP",
-        message=f"Your new OTP is {otp}",
-        from_email="RoomSiftay <roomsiftay@gmail.com>",
-        recipient_list=[user.email],
-    )
-
-    messages.success(request, "A new OTP has been sent to your email.")
-    return redirect("verify_otp")
-
-
 # def user_dashboard(request):
 #     return render(request, "task/user_dashboard.html")
 
@@ -246,7 +167,7 @@ def register(request):
             user.username = email
 
             # Role selection
-            role = request.POST.get("role")
+            role = request.POST.get("role" ,"buyer")
             if role == "owner":
                 user.is_owner = True
                 user.is_user = False
@@ -306,18 +227,20 @@ def role_redirect(request):
     # Default fallback for everyone else
     return redirect("buyer_dashboard")
 
+@login_required
 def buyer(request):
     return render(request, 'task/buyer.html')
 
-
-
+@login_required
 def saved_listings(request):
     # Logic to fetch user's saved items will go here later
     return render(request, 'task/saved_listings.html')
 
+@login_required
 def submit_review(request):
     return render(request, 'task/review.html')
 
+@login_required
 def report_issue(request):
     if request.method == 'POST':
         title = request.POST.get('title')
@@ -333,6 +256,7 @@ def report_issue(request):
     return render(request, 'task/report_issue.html')
 
 
+@login_required
 def admin_view(request):
     owners = Owner.objects.all() # Or however you fetch owners
     listings = Listing.objects.all()
@@ -431,3 +355,7 @@ def buyer_profile(request):
         "password_form": password_form,
         "completion": completion,
     })
+
+def logout(request):
+    auth_logout(request)
+    return redirect("login")
