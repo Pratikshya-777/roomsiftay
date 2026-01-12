@@ -16,3 +16,4 @@ def activate_social_user(request, sociallogin, **kwargs):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
+    
