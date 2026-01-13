@@ -70,6 +70,8 @@ urlpatterns = [
     path("add-listing-step4/", views.owner_add_listingstep4, name="owner_add_listingstep4"),
 
 
+    path('provide-review/', views.provide_review, name='provide_review'),
+    path('all-reviews/', views.all_reviews, name='all_reviews'),
 ]
 
 

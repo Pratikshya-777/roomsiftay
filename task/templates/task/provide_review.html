@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto mt-16 p-8 bg-white rounded-3xl shadow-sm border border-gray-100 relative">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Write a Review</h2>
+    
+    <form id="reviewForm" method="POST">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Overall Rating</label>
+            <div class="flex gap-2 text-3xl" id="star-rating">
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="1"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="2"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="3"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="4"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="rating-value" value="5">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Your Feedback</label>
+            <textarea name="comment" rows="5" required 
+                class="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none" 
+                placeholder="What do you think of RoomSiftay?"></textarea>
+        </div>
+        
+        <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">
+            Post Review
+        </button>
+    </form>
+
+    <div id="successModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm items-center justify-center z-50 px-4">
+        <div class="bg-white p-8 rounded-3xl text-center shadow-2xl max-w-sm w-full transform transition-all">
+            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Submitted!</h3>
+            <p class="text-gray-600">Your review has been posted. Redirecting you to your dashboard...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. Star Rating Logic ---
+    const stars = document.querySelectorAll('#star-rating i');
+    const ratingInput = document.getElementById('rating-value');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const selectedValue = this.getAttribute('data-value');
+            ratingInput.value = selectedValue;
+            stars.forEach(s => {
+                const sValue = s.getAttribute('data-value');
+                if (sValue <= selectedValue) {
+                    s.classList.remove('fa-regular', 'text-gray-300');
+                    s.classList.add('fa-solid', 'text-yellow-400');
+                } else {
+                    s.classList.remove('fa-solid', 'text-yellow-400');
+                    s.classList.add('fa-regular', 'text-gray-300');
+                }
+            });
+        });
+    });
+
+    // --- 2. AJAX Submission & Popup Logic ---
+    const reviewForm = document.getElementById('reviewForm');
+    const successModal = document.getElementById('successModal');
+    const submitBtn = document.getElementById('submitBtn');
+
+    reviewForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // Stop page from refreshing
+        
+        // Change button state
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Submitting...";
+
+        const formData = new FormData(this);
+
+        fetch("{% url 'provide_review' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "X-Requested-With": "XMLHttpRequest" 
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Show the popup
+                successModal.classList.remove('hidden');
+                successModal.classList.add('flex');
+
+                // Wait 2.5 seconds, then redirect
+                setTimeout(() => {
+                    window.location.href = "{% url 'buyer_dashboard' %}";
+                }, 2500);
+            }
+        })
+        .catch(error => {
+            alert("Something went wrong. Please try again.");
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Post Review";
+        });
+    });
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+{% comment %} {% extends 'base.html' %}
+{% block content %}
+<div class="max-w-xl mx-auto mt-16 p-8 bg-white rounded-3xl shadow-sm border border-gray-100">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Write a Review</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Overall Rating</label>
+            <div class="flex gap-2 text-3xl" id="star-rating">
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="1"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="2"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="3"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="4"></i>
+                <i class="fa-solid fa-star cursor-pointer text-yellow-400" data-value="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="rating-value" value="5">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Your Feedback</label>
+            <textarea name="comment" rows="5" required 
+                class="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none" 
+                placeholder="What do you think of RoomSiftay?"></textarea>
+        </div>
+        
+        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">
+            Post Review
+        </button>
+    </form>
+</div>
+
+<script>
+    const stars = document.querySelectorAll('#star-rating i');
+    const ratingInput = document.getElementById('rating-value');
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const selectedValue = this.getAttribute('data-value');
+            ratingInput.value = selectedValue;
+
+            // Loop through all stars to color them
+            stars.forEach(s => {
+                const sValue = s.getAttribute('data-value');
+                if (sValue <= selectedValue) {
+                    // Make it solid yellow
+                    s.classList.remove('fa-regular', 'text-gray-300');
+                    s.classList.add('fa-solid', 'text-yellow-400');
+                } else {
+                    // Make it empty gray
+                    s.classList.remove('fa-solid', 'text-yellow-400');
+                    s.classList.add('fa-regular', 'text-gray-300');
+                }
+            });
+        });
+
+        // Hover effect (optional but nice)
+        star.addEventListener('mouseover', function() {
+            this.classList.add('scale-110');
+        });
+        star.addEventListener('mouseout', function() {
+            this.classList.remove('scale-110');
+        });
+    });
+</script>
+{% endblock %} {% endcomment %}
