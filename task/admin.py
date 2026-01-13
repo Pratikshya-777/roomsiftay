@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth import get_user_model
 from .models import User, BuyerReport
 
+User = get_user_model()
 
 @admin.register(User)
 class CustomUserAdmin(BaseUserAdmin):
