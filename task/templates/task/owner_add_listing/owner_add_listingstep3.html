@@ -1,119 +1,131 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Add Listing · Step 3</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
 
-<div class="min-h-screen flex items-center justify-center px-4 py-10">
+<div class="min-h-screen flex items-center justify-center px-4 py-10 bg-gray-100">
+  <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
 
-    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">Add New Listing</h1>
+      <p class="text-sm text-gray-600 mt-1">
+        Step 3 of 4 · Photos & Verification
+      </p>
 
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-900">
-                Add New Listing
-            </h1>
-            <p class="text-sm text-gray-600 mt-1">
-                Step 3 of 4 · Photos & Verification
-            </p>
-
-            <!-- Progress bar -->
-            <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
-                <div class="bg-indigo-600 h-2 rounded-full w-3/4"></div>
-            </div>
-        </div>
-
-        <!-- FORM -->
-        <form class="space-y-6">
-
-            <!-- Photo Upload -->
-            <div>
-                <h2 class="text-lg font-semibold text-gray-800 mb-2">
-                    📸 Room Photos <span class="text-red-500">*</span>
-                </h2>
-
-                <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50">
-                    <p class="text-gray-600 font-medium">
-                        Drag & drop room photos here
-                    </p>
-                    <p class="text-sm text-gray-500 mt-1">
-                        or click to upload (minimum 3 photos)
-                    </p>
-
-                    <input type="file" multiple class="hidden" />
-                </div>
-
-                <!-- Guidelines -->
-                <ul class="text-xs text-gray-500 mt-3 space-y-1">
-                    <li>• Upload clear, recent photos</li>
-                    <li>• Avoid screenshots or edited images</li>
-                    <li>• Include at least one wide-angle room photo</li>
-                </ul>
-            </div>
-
-            <!-- Optional Proof Photo -->
-            <div>
-                <h2 class="text-lg font-semibold text-gray-800 mb-2">
-                    📝 Proof Photo (Optional)
-                </h2>
-
-                <div class="border border-gray-300 rounded-xl p-4 bg-white">
-                    <p class="text-sm text-gray-600 mb-2">
-                        Upload one photo with today’s date written on paper inside the room.
-                    </p>
-
-                    <p class="text-xs text-indigo-600 font-medium mb-3">
-                        ⚡ Faster verification if provided
-                    </p>
-
-                    <input type="file" />
-                </div>
-            </div>
-
-            <!-- Confirmation -->
-            <div class="bg-gray-50 border rounded-xl p-4">
-                <label class="flex items-start gap-2 text-sm">
-                    <input type="checkbox" class="mt-1 rounded text-indigo-600" required />
-                    <span>
-                        I confirm that these photos are recent and accurately represent the current condition of the room.
-                    </span>
-                </label>
-            </div>
-
-            <!-- Navigation -->
-            <div class="flex items-center justify-between pt-6 border-t">
-
-                <a href="{% url 'owner_add_listingstep2' %}"
-                   class="text-sm text-gray-600 hover:text-gray-900">
-                    ← Back
-                </a>
-
-                <a href="{% url 'owner_add_listingstep4' %}"
-                   class="inline-flex items-center px-6 py-3 rounded-xl
-                          bg-indigo-600 text-white font-semibold
-                          hover:bg-indigo-700 transition">
-                    Next →
-                </a>
-
-            </div>
-
-            <p class="text-xs text-gray-500 text-center mt-4">
-                Listings with clear photos get verified faster.
-            </p>
-
-        </form>
-
+      <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
+        <div class="bg-indigo-600 h-2 rounded-full w-3/4"></div>
+      </div>
     </div>
 
+    <!-- FORM -->
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- 📸 Room Photos -->
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800 mb-2">
+          📸 Room Photos <span class="text-red-500">*</span>
+        </h2>
+
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50">
+
+          <p class="text-gray-600 font-medium">
+            Drag & drop room photos here
+          </p>
+          <p class="text-sm text-gray-500 mt-1">
+            or click to upload (minimum 3 photos)
+          </p>
+
+          <!-- Trigger -->
+          <label for="photos-input"
+                 class="cursor-pointer inline-block mt-3 text-indigo-600 font-semibold">
+            Select photos
+          </label>
+
+          <!-- REAL FILE INPUT -->
+          <input
+            type="file"
+            id="photos-input"
+            name="photos"
+            multiple
+            accept="image/*"
+            class="hidden"
+            required
+          >
+        </div>
+
+        <!-- Preview -->
+        <div id="photo-preview"
+             class="grid grid-cols-3 gap-3 mt-4"></div>
+      </div>
+
+      <!-- 📝 Proof Photo -->
+      <div>
+        <h2 class="text-lg font-semibold text-gray-800 mb-2">
+          📝 Proof Photo (Optional)
+        </h2>
+
+        <input
+          type="file"
+          name="proof_photo"
+          accept="image/*"
+          class="block w-full text-sm text-gray-700"
+        >
+      </div>
+
+      <!-- Confirmation -->
+      <div class="bg-gray-50 border rounded-xl p-4">
+        <label class="flex items-start gap-2 text-sm">
+          <input type="checkbox" name="confirm_photos" required>
+          <span>
+            I confirm that these photos are recent and accurately represent the
+            current condition of the room.
+          </span>
+        </label>
+      </div>
+
+      <!-- Navigation -->
+      <div class="flex items-center justify-between pt-6 border-t">
+        <a href="{% url 'owner_add_listingstep2' %}"
+           class="text-sm text-gray-600 hover:text-gray-900">
+          ← Back
+        </a>
+
+        <button type="submit"
+          class="inline-flex items-center px-6 py-3 rounded-xl
+                 bg-indigo-600 text-white font-semibold
+                 hover:bg-indigo-700 transition">
+          Next →
+        </button>
+      </div>
+
+    </form>
+  </div>
 </div>
 
-</body>
-</html>
+<!-- JS: Photo Preview -->
+<script>
+const input = document.getElementById("photos-input");
+const preview = document.getElementById("photo-preview");
+
+if (input) {
+  input.addEventListener("change", () => {
+    preview.innerHTML = "";
+
+    Array.from(input.files).forEach(file => {
+      if (!file.type.startsWith("image/")) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        img.className =
+          "w-full h-32 object-cover rounded-lg border";
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+}
+</script>
+
 {% endblock %}

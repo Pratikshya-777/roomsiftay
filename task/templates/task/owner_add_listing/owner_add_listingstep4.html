@@ -9,6 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100">
 
 <div class="min-h-screen flex items-center justify-center px-4 py-10">
@@ -24,7 +25,6 @@
                 Step 4 of 4 · Preview & Confirm
             </p>
 
-            <!-- Progress bar -->
             <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
                 <div class="bg-indigo-600 h-2 rounded-full w-full"></div>
             </div>
@@ -39,21 +39,37 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <!-- Image Placeholder -->
-                <div class="bg-gray-200 rounded-xl h-48 flex items-center justify-center text-gray-500">
-                    Room Photos Preview
+                <!-- Photos -->
+                <div class="grid grid-cols-2 gap-2">
+                    {% for photo in photos %}
+                        <img
+                            src="{{ photo.image.url }}"
+                            class="w-full h-40 object-cover rounded-lg"
+                        >
+                    {% empty %}
+                        <div class="bg-gray-200 rounded-xl h-48 flex items-center justify-center text-gray-500">
+                            No photos uploaded
+                        </div>
+                    {% endfor %}
                 </div>
 
                 <!-- Info -->
                 <div class="space-y-2 text-sm text-gray-700">
-                    <p><strong>Title:</strong> Bright Single Room near Baneshwor</p>
-                    <p><strong>Room Type:</strong> Single Room</p>
-                    <p><strong>Location:</strong> Kathmandu · New Baneshwor</p>
-                    <p><strong>Rent:</strong> NPR 12,000 / month</p>
-                    <p><strong>Deposit:</strong> NPR 24,000</p>
-                    <p><strong>Bedrooms:</strong> 1</p>
-                    <p><strong>Bathrooms:</strong> 1</p>
-                    <p><strong>Facilities:</strong> Furnished, Wi-Fi, Parking</p>
+                    <p><strong>Title:</strong> {{ listing.title }}</p>
+                    <p><strong>Room Type:</strong> {{ listing.room_type }}</p>
+                    <p><strong>Location:</strong> {{ listing.city }} · {{ listing.area }}</p>
+                    <p><strong>Rent:</strong> NPR {{ listing.monthly_rent }}</p>
+                    <p><strong>Deposit:</strong> NPR {{ listing.security_deposit }}</p>
+                    <p><strong>Bedrooms:</strong> {{ listing.bedrooms }}</p>
+                    <p><strong>Bathrooms:</strong> {{ listing.bathrooms }}</p>
+
+                    <p>
+                        <strong>Facilities:</strong>
+                        {% if listing.is_furnished %} Furnished,{% endif %}
+                        {% if listing.wifi_available %} Wi-Fi,{% endif %}
+                        {% if listing.parking_available %} Parking,{% endif %}
+                        {% if listing.utilities_included %} Utilities Included{% endif %}
+                    </p>
                 </div>
 
             </div>
@@ -79,27 +95,33 @@
                 ← Back
             </a>
 
-            <div class="flex gap-3">
+            <!-- FORM ACTIONS -->
+            <form method="post"
+                  action="{% url 'owner_add_listingstep4' %}"
+                  class="flex gap-3">
+                {% csrf_token %}
 
-                <!-- Save Draft -->
                 <button
-                    type="button"
+                    type="submit"
+                    name="action"
+                    value="draft"
                     class="px-5 py-3 rounded-xl border border-gray-300
                            text-gray-700 font-medium
                            hover:bg-gray-100 transition">
                     Save as Draft
                 </button>
 
-                <!-- Submit -->
                 <button
-                    type="button"
+                    type="submit"
+                    name="action"
+                    value="submit"
                     class="px-6 py-3 rounded-xl bg-indigo-600
                            text-white font-semibold
                            hover:bg-indigo-700 transition">
                     Submit for Verification
                 </button>
+            </form>
 
-            </div>
         </div>
 
         <p class="text-xs text-gray-500 text-center mt-6">

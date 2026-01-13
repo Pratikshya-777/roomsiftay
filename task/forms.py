@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm,PasswordResetForm
 from django.contrib.auth import get_user_model
-from .models import UserProfile
+from .models import UserProfile, Listing
 
 User = get_user_model()
 
@@ -49,3 +49,106 @@ class CustomPasswordResetForm(PasswordResetForm):
             "placeholder": "Enter your email address"
         })
     )
+
+
+class ListingStep1Form(forms.ModelForm):
+    class Meta:
+        model = Listing
+        fields = [
+            "title",
+            "room_type",
+            "city",
+            "area",
+            "full_address",
+        ]
+
+        widgets = {
+            "title": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Listing title"
+            }),
+            "room_type": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Room type (Single, Flat, Room)"
+            }),
+            "city": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "City"
+            }),
+            "area": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Area / Locality"
+            }),
+            "full_address": forms.Textarea(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "rows": 3,
+                "placeholder": "Full address (optional)"
+            }),
+        }
+
+
+class ListingStep2Form(forms.ModelForm):
+    class Meta:
+        model = Listing
+        fields = [
+            "monthly_rent",
+            "security_deposit",
+            "bedrooms",
+            "bathrooms",
+            "floor_number",
+            "is_furnished",
+            "utilities_included",
+            "wifi_available",
+            "parking_available",
+
+        ]
+
+        widgets = {
+            "monthly_rent": forms.NumberInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Monthly rent"
+            }),
+            "security_deposit": forms.NumberInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Security deposit (optional)"
+            }),
+            "bedrooms": forms.NumberInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Number of bedrooms"
+            }),
+            "bathrooms": forms.NumberInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Number of bathrooms"
+            }),
+            "floor_number": forms.NumberInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Floor number (optional)"
+            }),
+            "is_furnished": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+            "utilities_included": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+            "wifi_available": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+            "parking_available": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+        }
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+class ListingStep3Form(forms.Form):
+    photos = forms.ImageField(
+        widget=MultipleFileInput(attrs={
+            "id": "photos-input",
+            "class": "hidden",
+            "accept": "image/*",
+            "class": "hidden"
+        }),
+        required=True
+    )
+
+    proof_photo = forms.ImageField(
+        required=False
+    )
+
+    confirm_photos = forms.BooleanField(
+        required=True
+    )
+

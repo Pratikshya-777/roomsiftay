@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
-from .forms import CustomUserCreationForm , UserProfileForm
+from .forms import CustomUserCreationForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form
 from django.conf import settings
 from django.contrib import messages
-from .models import Owner, Listing, BuyerReport, UserProfile
+from .models import Owner, Listing, BuyerReport, UserProfile, Listing,ListingPhoto
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
@@ -396,17 +397,144 @@ def logout(request):
     auth_logout(request)
     return redirect("login")
 
+@login_required
 def owner_add_listingstep1(request):
-    return render(request, "task/owner_add_listing/owner_add_listingstep1.html")
+        if request.method == "POST":
+            form = ListingStep1Form(request.POST)
+            if form.is_valid():
+                listing = form.save(commit=False)
+
+            # attach owner
+            listing.owner = request.user  # adjust if you use a profile
+            listing.status = "draft"
+
+            listing.save()
+
+            # store listing id in session
+            request.session["listing_id"] = listing.id
+
+            return redirect("owner_add_listingstep2")
+        else:
+            form = ListingStep1Form()
+        return render(request, "task/owner_add_listing/owner_add_listingstep1.html" , {"form": form})
 
 def owner_add_listingstep2(request):
-    return render(request, "task/owner_add_listing/owner_add_listingstep2.html")
+    listing_id = request.session.get("listing_id")
+
+    if not listing_id:
+        return redirect("owner_add_listingstep1")
+
+    listing = get_object_or_404(Listing, id=listing_id, owner=request.user)
+
+    if request.method == "POST":
+        form = ListingStep2Form(request.POST, instance=listing)
+        if form.is_valid():
+            form.save()
+            return redirect("owner_add_listingstep3")
+    else:
+        form = ListingStep2Form(instance=listing)
+    return render(request, "task/owner_add_listing/owner_add_listingstep2.html",{"form": form})
+
 
 def owner_add_listingstep3(request):
-    return render(request, "task/owner_add_listing/owner_add_listingstep3.html")
+    listing_id = request.session.get("listing_id")
+    if not listing_id:
+        return redirect("owner_add_listingstep1")
+
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        owner=request.user
+    )
+
+    if request.method == "POST":
+        photos = request.FILES.getlist("photos")
+        proof = request.FILES.get("proof_photo")
+        confirm = request.POST.get("confirm_photos")
+
+        # 🔍 Debug (remove later)
+        print("FILES:", request.FILES)
+
+        if len(photos) < 3:
+            messages.error(request, "Upload at least 3 room photos.")
+            return redirect("owner_add_listingstep3")
+
+        if not confirm:
+            messages.error(request, "Please confirm the photos.")
+            return redirect("owner_add_listingstep3")
+
+        # Save room photos
+        for image in photos:
+            ListingPhoto.objects.create(
+                listing=listing,
+                image=image,
+                is_proof=False
+            )
+
+        # Save proof photo (optional)
+        if proof:
+            ListingPhoto.objects.create(
+                listing=listing,
+                image=proof,
+                is_proof=True
+            )
+
+        return redirect("owner_add_listingstep4")
+
+    return render(
+        request,
+        "task/owner_add_listing/owner_add_listingstep3.html"
+    )
+
 
 def owner_add_listingstep4(request):
-    return render(request, "task/owner_add_listing/owner_add_listingstep4.html")
+    listing_id = request.session.get("listing_id")
+    if not listing_id:
+        return redirect("owner_add_listingstep1")
+
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        owner=request.user
+    )
+
+    photos = listing.photos.filter(is_proof=False)
+    proof_photo = listing.photos.filter(is_proof=True).first()
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        # SAVE AS DRAFT
+        if action == "draft":
+            listing.status = "draft"
+            listing.save()
+
+            messages.success(request, "Listing saved as draft.")
+            return redirect("owner_dashboard")
+
+        # SUBMIT FOR VERIFICATION
+        if action == "submit":
+            listing.status = "pending"
+            listing.save()
+
+            # Clear session
+            request.session.pop("listing_id", None)
+
+            messages.success(
+                request,
+                "Listing submitted for verification."
+            )
+            return redirect("owner_dashboard")
+
+    return render(
+        request,
+        "task/owner_add_listing/owner_add_listingstep4.html",
+        {
+            "listing": listing,
+            "photos": photos,
+            "proof_photo": proof_photo,
+        }
+    )
 
 def provide_review(request):
     if request.method == "POST":
@@ -432,3 +560,44 @@ def all_reviews(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'task/all_reviews.html', {'page_obj': page_obj})
+
+@login_required
+def owner_listing(request):
+    drafts = Listing.objects.filter(
+        owner=request.user,
+        status="draft"
+    )
+
+    pending = Listing.objects.filter(
+        owner=request.user,
+        status="pending"
+    )
+
+    approved = Listing.objects.filter(
+        owner=request.user,
+        status="approved"
+    )
+
+    return render(
+        request,
+        "task/owner_listing.html",
+        {
+            "drafts": drafts,
+            "pending": pending,
+            "approved": approved,
+        }
+    )
+
+@login_required
+def edit_listing(request, listing_id):
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        owner=request.user,
+    )
+
+    # put listing back into session
+    request.session["listing_id"] = listing.id
+
+    # redirect to step 1 (or step 2 / 3 if you want)
+    return redirect("owner_add_listingstep1")
