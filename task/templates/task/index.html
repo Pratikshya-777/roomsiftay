@@ -38,24 +38,38 @@
     </div>
 </section>
 
+
+
 <section class="reviews">
-    <h2>⭐ 4.8 Based on 1,200+ Reviews</h2>
+    <h2>⭐ Reviews</h2>
 
+    {% for review in reviews %}
     <div class="review">
-        <p>⭐⭐⭐⭐⭐ Found the perfect room in no time. Very reliable!</p>
-        <span>— Sarah M.</span>
+        <p>
+            {% for i in "12345"|make_list %}
+                {% if forloop.counter <= review.rating %}
+                    ⭐
+                {% endif %}
+            {% endfor %}
+            
+            {{ review.comment }}
+        </p>
+        
+        <span>— {{ review.user.username }}</span>
     </div>
-
+    {% empty %}
     <div class="review">
-        <p>⭐⭐⭐⭐⭐ Great platform with honest listings. Highly recommend!</p>
-        <span>— James R.</span>
+        <p>No reviews yet. Be the first to share your experience!</p>
     </div>
-
-    <div class="review">
-        <p>⭐⭐⭐⭐⭐ No broker fees, just straightforward deals. Loved it!</p>
-        <span>— Emily T.</span>
+    {% endfor %}
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'all_reviews' %}" class="btn-view-all">
+            View All Reviews →
+        </a>
     </div>
 </section>
+
+
 
 <footer class="footer">
     <div class="footer-left">

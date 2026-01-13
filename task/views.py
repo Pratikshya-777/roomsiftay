@@ -11,6 +11,10 @@ from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from .models import Review
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+
 
 @login_required
 def generate_otp():
@@ -238,9 +242,9 @@ def saved_listings(request):
     # Logic to fetch user's saved items will go here later
     return render(request, 'task/saved_listings.html')
 
-@login_required
-def submit_review(request):
-    return render(request, 'task/review.html')
+# @login_required
+# def submit_review(request):
+#     return render(request, 'task/review.html')
 
 @login_required
 def report_issue(request):
@@ -403,3 +407,28 @@ def owner_add_listingstep3(request):
 
 def owner_add_listingstep4(request):
     return render(request, "task/owner_add_listing/owner_add_listingstep4.html")
+
+def provide_review(request):
+    if request.method == "POST":
+        comment = request.POST.get('comment')
+        rating = request.POST.get('rating')
+        if comment:
+            Review.objects.create(user=request.user, comment=comment, rating=int(rating))
+            messages.success(request, "Thank you for your review!")
+            return JsonResponse({'status': 'success', 'message': 'Your review is submitted!'})
+            # return redirect('buyer_dashboard') # Redirects to landing page
+    return render(request, 'task/provide_review.html')
+
+def home(request):
+    # Fetch all reviews to show on the landing page
+    recent_reviews = Review.objects.all().order_by('-created_at')[:5]
+    return render(request, 'task/index.html', {'reviews': recent_reviews})
+
+def all_reviews(request):
+    # Fetch every review in the database
+    full_reviews = Review.objects.all().order_by('-created_at')
+    paginator = Paginator(full_reviews, 5) 
+    
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'task/all_reviews.html', {'page_obj': page_obj})
