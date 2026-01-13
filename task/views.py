@@ -242,9 +242,9 @@ def saved_listings(request):
     # Logic to fetch user's saved items will go here later
     return render(request, 'task/saved_listings.html')
 
-@login_required
-def submit_review(request):
-    return render(request, 'task/review.html')
+# @login_required
+# def submit_review(request):
+#     return render(request, 'task/review.html')
 
 @login_required
 def report_issue(request):

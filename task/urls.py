@@ -55,7 +55,7 @@ urlpatterns = [
     ),
 
     path('saved-listings/', views.saved_listings, name='saved_listings'),
-    path('submit-review/', views.submit_review, name='submit_review'),
+    # path('submit-review/', views.submit_review, name='submit_review'),
     path('report-issue/', views.report_issue, name='report_issue'),
     path('admin-dashboard/', views.admin_view, name='admin_dashboard'),
     path("profile/", views.buyer_profile, name="buyer_profile"),
