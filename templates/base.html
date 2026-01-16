@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -50,59 +50,96 @@
 </nav>
 
 <!-- ================= SIDEBAR ================= -->
+
 <aside id="sidebar"
 class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 bg-[#112240] text-white
-transform -translate-x-full transition-transform duration-300 ease-in-out">
+transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto">
+
+    <div class="px-4 py-2 border-b border-slate-700 mb-4">
+        <p class="text-xs uppercase text-gray-500 font-bold tracking-widest">
+            {% if '/owner/' in request.path or user.profile.user_type == 'owner' %}
+                Owner Menu
+            {% else %}
+                Buyer Menu
+            {% endif %}
+        </p>
+    </div>
 
     <ul class="px-2 space-y-1 text-sm">
 
-        <li>
-            <a href="{% url 'buyer_dashboard' %}"
-               class="flex items-center px-4 py-3 rounded-lg bg-blue-600 text-white">
-                <i class="fa-solid fa-chart-line mr-3"></i> Dashboard
-            </a>
-        </li>
+        {% if '/buyer/' in request.path or user.profile.user_type == 'buyer' %}
+            <li>
+                <a href="{% url 'buyer_dashboard' %}"
+                   class="flex items-center px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'buyer_dashboard' %}bg-blue-600{% else %}hover:bg-slate-800 text-gray-300{% endif %}">
+                    <i class="fa-solid fa-chart-line mr-3"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-magnifying-glass mr-3"></i> Search Rooms
+                </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-user mr-3"></i> My Profile
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'saved_listings' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-heart mr-3"></i> Saved Listings
+                </a>
+            </li>
+             <li>
+                <a href="{% url 'saved_listings' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-star mr-3"></i> Website Review
+                </a>
+            </li>
+             <li>
+                <a href="{% url 'saved_listings' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-flag mr-3"></i> Report Issue
+                </a>
+            </li>
+        {% elif '/owner/' in request.path or user.profile.user_type == 'owner' %}
+            <li>
+                <a href="{% url 'owner_dashboard' %}"
+                   class="flex items-center px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'owner_dashboard' %}bg-blue-600{% else %}hover:bg-slate-800 text-gray-300{% endif %}">
+                    <i class="fa-solid fa-chart-line mr-3"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'verification_page' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-magnifying-glass mr-3"></i> Verification & Authentication
+                </a>
+            </li>
+            <li>
+                 <a href="{% url 'owner_add_listingstep1' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-heart mr-3"></i> Add New Listings 
+                 </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-house-chimney mr-3"></i> My Listings
+                </a>
+            </li>
+             <li>
+                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-user mr-3"></i> My Profile
+                </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                    <i class="fa-solid fa-comment-dots mr-3"></i> Chats with Buyers
+                </a>
+            </li>
+        {% endif %}
 
-        <li>
-            <a href="#"
-               class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                <i class="fa-solid fa-magnifying-glass mr-3"></i> Search Rooms
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'buyer_profile' %}"
-               class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                <i class="fa-solid fa-user mr-3"></i> My Profile
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'saved_listings' %}"
-               class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                <i class="fa-solid fa-heart mr-3"></i> Saved Listings
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'submit_review' %}"
-               class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                <i class="fa-solid fa-star mr-3"></i> Website Review
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'report_issue' %}"
-               class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                <i class="fa-solid fa-flag mr-3"></i> Report Issue
-            </a>
-        </li>
-        <li>
-                <a href="{% url 'logout' %}"
-               class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                <i class="fa-solid fa-flag mr-3"></i> Logout
-            </a>
-        </li>
+        <div class="pt-4 mt-4 border-t border-slate-700">
+            <li>
+                <a href="{% url 'logout' %}" class="flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10">
+                    <i class="fa-solid fa-right-from-bracket mr-3"></i> Logout
+                </a>
+            </li>
+        </div>
 
     </ul>
 </aside>

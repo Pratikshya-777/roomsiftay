@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-h-screen bg-[#0f172a] p-8 text-white">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold tracking-tight">Verification Center</h1>
+        <p class="text-slate-400 mt-2">Manage and update your property owner identity documents.</p>
+    </div>
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <div class="bg-[#1e293b] rounded-2xl p-6 shadow-xl border border-slate-700/50">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold">Current Uploaded ID</h3>
+                {% if verification.is_verified %}
+                    <span class="bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-bold border border-green-500/20">Verified</span>
+                {% else %}
+                    <span class="bg-amber-500/10 text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-500/20">Under Review</span>
+                {% endif %}
+            </div>
+
+            <div class="relative group overflow-hidden rounded-xl bg-[#0f172a] aspect-video flex items-center justify-center border border-slate-700">
+                {% if owner_profile.auth_document %}
+                    <img src="{{ owner_profile.auth_document.url }}" alt="ID Card" class="object-cover transition-all duration-300 group-hover:scale-105">
+                    <a href="{{ owner_profile.auth_document.url }}" target="_blank" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer">
+                        <span class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-lg border border-white/20">View Full Image</span>
+                    </a>
+                {% else %}
+                    <div class="text-center text-slate-500">
+                        <i class="fas fa-id-card text-5xl mb-3"></i>
+                        <p>No ID Uploaded</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4 text-sm text-slate-400">
+                <p>Uploaded on: <span class="text-slate-200">{{ verification.updated_at|date:"M d, Y" }}</span></p>
+            </div>
+        </div>
+
+        <div class="bg-[#1e293b] rounded-2xl p-6 shadow-xl border border-slate-700/50">
+            <h3 class="text-xl font-semibold mb-6">Update Verification</h3>
+            
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div id="drop-zone" class="relative group border-2 border-dashed border-blue-500/30 rounded-2xl p-10 text-center hover:border-blue-500 transition-colors cursor-pointer bg-[#0f172a]/50">
+                    <input type="file" name="document_file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer" required>
+                    <div class="space-y-4">
+                        <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-blue-900/20">
+                            <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                        </div>
+                        <p class="text-lg">Drag & drop new file or <span class="text-blue-400 font-semibold">Browse</span></p>
+                        <p id="file-name" class="text-sm text-blue-300 font-mono italic"></p>
+                    </div>
+                </div>
+
+                <div class="text-center text-xs text-slate-500">
+                    Accepted: JPG, PNG, PDF • Max size: 5MB
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02]">
+                        Update Document
+                    </button>
+                    <a href="{% url 'owner_dashboard' %}" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-center font-bold py-3 rounded-xl transition-all">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Show selected filename in the UI
+    const fileInput = document.getElementById('file-input');
+    const fileNameDisplay = document.getElementById('file-name');
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            fileNameDisplay.textContent = "Selected: " + e.target.files[0].name;
+        }
+    });
+</script>
+{% endblock %}

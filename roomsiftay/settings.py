@@ -148,7 +148,7 @@ AUTH_USER_MODEL = 'task.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False # Users don't have to pick a username
 SOCIALACCOUNT_LOGIN_ON_GET = True
