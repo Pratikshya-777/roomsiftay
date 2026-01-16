@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.utils import timezone
+from django.conf import settings
 
 
 class User(AbstractUser):
@@ -36,11 +37,58 @@ class OldListing(models.Model):
     title = models.CharField(max_length=200)
     # Status: use a red icon/dot in the template for 'Pending'
     status = models.CharField(max_length=20, default='Pending') 
+# Add this to task/models.py
+class OwnerProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    auth_document = models.FileField(upload_to='documents/', null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Profile for {self.user.email}"
+
+# class Owner(models.Model):
+    
+#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='owner_profile')
+#     name = models.CharField(max_length=100) 
+#     is_verified = models.BooleanField(default=False)
+#     auth_proof = models.FileField(upload_to='owner_verifications/', null=True, blank=True)
+
+#     def __str__(self):
+#         return f"Owner: {self.name}"
+
+
+class Listing(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='listings',
+        null=True,
+        blank=True
+    )
+    title = models.CharField(max_length=200)
+    is_available = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='Pending'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
 
 class BuyerReport(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('verified', 'Verified/Resolved'),
+
     ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200, default="Untitled")
@@ -152,3 +200,9 @@ class ListingPhoto(models.Model):
         return f"Photo for {self.listing.id}" 
 
 
+class OwnerVerification(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    document_file = models.FileField(upload_to='verification/') # Check this name!
+    document_type = models.CharField(max_length=50, default='Citizenship')
+    is_verified = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)

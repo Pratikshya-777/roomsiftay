@@ -6,7 +6,8 @@ from django.contrib.auth import logout as auth_logout
 from .forms import CustomUserCreationForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form
 from django.conf import settings
 from django.contrib import messages
-from .models import Owner, Listing, BuyerReport, UserProfile, Listing,ListingPhoto
+from .models import Owner, Listing, BuyerReport,ListingPhoto
+from .models import Listing, BuyerReport, UserProfile, OwnerProfile, OwnerVerification
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
@@ -17,7 +18,8 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 
-@login_required
+
+# @login_required
 def generate_otp():
     return str(random.randint(100000, 999999))
 
@@ -84,7 +86,7 @@ def login_view(request):
 
         else:
             # If authentication fails, show the error
-            return render(request, "login.html", {
+            return render(request, "task/login.html", {
                 "error": "Invalid email or password"
             })
 
@@ -94,7 +96,71 @@ def login_view(request):
 
 @login_required
 def owner_dashboard(request):
-    return render(request, "task/owner_dashboard.html")
+    # 1. Get or create the necessary profiles
+    owner_profile, created = OwnerProfile.objects.get_or_create(user=request.user)
+    
+    verification, _ = OwnerVerification.objects.get_or_create(
+        user=request.user,
+        defaults={'document_type': 'Citizenship'}
+    )
+
+    # 2. Handle the Image Sync (If a file is uploaded from the dashboard)
+    if request.method == "POST" and request.FILES.get('auth_document'):
+        uploaded_file = request.FILES['auth_document']
+        
+        # Save to OwnerProfile (Dashboard view)
+        owner_profile.auth_document = uploaded_file
+        owner_profile.save()
+        
+        # Sync to OwnerVerification (Verification view)
+        verification.document_file = uploaded_file
+        verification.save()
+        
+        messages.success(request, "Identity document updated across your profile.")
+        return redirect('owner_dashboard')
+
+    # 3. Gather dashboard data
+    listings = Listing.objects.filter(owner=request.user)
+    total_count = listings.count()
+    active_count = listings.filter(status='active').count()
+
+    context = {
+        'owner_profile': owner_profile,
+        'verification': verification,
+        'listings': listings,
+        'total_count': total_count,
+        'active_count': active_count,
+    }
+    return render(request, 'task/owner_dashboard.html', context)
+
+def verification_page(request):
+    # Fetch both records
+    verification, _ = OwnerVerification.objects.get_or_create(user=request.user)
+    owner_profile, _ = OwnerProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        if request.FILES.get('document_file'):
+            uploaded_file = request.FILES['document_file']
+            
+            # 1. Update Verification Model
+            verification.document_type = request.POST.get('document_type', 'Citizenship')
+            verification.document_file = uploaded_file
+            verification.is_verified = False
+            verification.save()
+
+            # 2. Update OwnerProfile Model (This fixes the Dashboard mismatch)
+            owner_profile.auth_document = uploaded_file
+            owner_profile.save()
+
+            messages.success(request, "Document updated successfully! It is now under review.")
+            return redirect('verification_page')
+        else:
+            messages.error(request, "Please select a file to upload.")
+
+    return render(request, 'task/verification.html', {
+        'verification': verification,
+        'owner_profile': owner_profile # Pass this to ensure consistency in template
+    })
 
 def forgot_password(request):
     return render(request, "task/forgot_password.html")
@@ -236,7 +302,7 @@ def role_redirect(request):
 
 @login_required
 def buyer(request):
-    return render(request, 'task/buyer.html')
+    return render(request, 'task/buyer_dashboard.html')
 
 @login_required
 def saved_listings(request):
