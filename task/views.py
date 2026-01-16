@@ -6,8 +6,7 @@ from django.contrib.auth import logout as auth_logout
 from .forms import CustomUserCreationForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form
 from django.conf import settings
 from django.contrib import messages
-from .models import Owner, Listing, BuyerReport,ListingPhoto
-from .models import Listing, BuyerReport, UserProfile, OwnerProfile, OwnerVerification
+from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
