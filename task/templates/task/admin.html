@@ -113,111 +113,66 @@
         </div> {% endcomment %}
 
 
-<div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100">
-    <h3 class="text-2xl font-medium text-gray-600 mb-1">Reports</h3>
+
+
+<div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100 mb-8">
+    <h3 class="text-2xl font-medium text-gray-600 mb-1">Active Reports</h3>
     <div class="h-[2px] w-64 bg-red-100 mb-2"></div>
-    <p class="text-gray-400 text-xs font-medium mb-10">Issues reported by buyers</p>
-    
-    {% comment %} <div class="divide-y divide-gray-50" id="reports-container">
-        {% for report in reports %}
-        <div id="report-row-{{ report.id }}" class="flex justify-between items-center py-8 transition-all duration-500">
+    <p class="text-gray-400 text-xs font-medium mb-10">Issues requiring immediate action</p>
+
+    <div class="divide-y divide-gray-50" id="pending-reports-container">
+        {% for report in pending_reports %}
+        <div id="report-row-{{ report.id }}" class="flex justify-between items-center py-8">
             <div>
-                <div class="flex items-center gap-3 mb-1">
-                    <span class="text-gray-800 font-semibold text-lg">{{ report.title }}</span>
-                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                        {{ report.created_at|date:"M d" }}
-                    </span>
-                </div>
-                <p class="text-gray-500 text-base font-normal">Report: {{ report.description }}</p>
-                <p class="text-gray-400 text-xs mt-1 italic">User: {{ report.user.email }}</p>
+                <span class="text-gray-800 font-semibold text-lg">{{ report.title }}</span>
+                <p class="text-gray-500 text-base font-normal">{{ report.description }}</p>
             </div>
-            
             <button onclick="resolveReport('{{ report.id }}')" 
-                    class="bg-[#4a86e8] text-white px-6 py-2 rounded-xl text-xs font-bold uppercase shadow-md hover:bg-blue-600 transition active:scale-95">
+                    class="bg-[#4a86e8] text-white px-6 py-2 rounded-xl text-xs font-bold uppercase shadow-md hover:bg-blue-600 transition">
                 Verify
             </button>
         </div>
         {% empty %}
-        <div class="py-10 text-center text-gray-400 italic">No reports found.</div>
+        <div class="py-10 text-center text-gray-400 italic">No pending reports! All clear.</div>
         {% endfor %}
-    </div> {% endcomment %}
-
-<div class="divide-y divide-gray-50" id="reports-container">
-    {% for report in reports %}
-    <div id="report-row-{{ report.id }}" class="flex justify-between items-center py-8">
-        <div>
-            <div class="flex items-center gap-3 mb-1">
-                <span class="text-gray-800 font-semibold text-lg">{{ report.title }}</span>
-                <span id="badge-{{ report.id }}">
-                    {% if report.status == 'verified' %}
-                        <i class="fa-solid fa-circle-check text-green-500 text-xl"></i>
-                    {% endif %}
-                </span>
-            </div>
-            <p class="text-gray-500 text-base font-normal">{{ report.description }}</p>
-        </div>
-        
-        <div id="action-area-{{ report.id }}">
-            {% if report.status == 'pending' %}
-                <button onclick="resolveReport('{{ report.id }}')" 
-                        class="bg-[#4a86e8] text-white px-6 py-2 rounded-xl text-xs font-bold uppercase shadow-md">
-                    Verify
-                </button>
-            {% else %}
-                <span class="text-green-600 font-bold text-xs uppercase">Verified</span>
-            {% endif %}
-        </div>
     </div>
-    {% endfor %}
 </div>
 
+<div class="bg-gray-50 p-8 rounded-[2rem] border border-dashed border-gray-200">
+    <div class="flex justify-between items-center">
+        <div>
+            <h3 class="text-lg font-medium text-gray-500">Verified History</h3>
+            <p class="text-gray-400 text-[10px] uppercase tracking-wider">Resolved issues</p>
+        </div>
+        <button onclick="toggleArchive()" id="archive-btn" class="text-[#4a86e8] text-sm font-semibold hover:underline flex items-center gap-2">
+            <i class="fa-solid fa-eye mr-1"></i> <span>Show Archive</span>
+        </button>
+    </div>
 
-
+    <div id="archive-content" class="hidden mt-6 divide-y divide-gray-200">
+        {% for report in verified_reports %}
+        <div class="flex justify-between items-center py-4 opacity-70">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-600 font-medium text-base">{{ report.title }}</span>
+                    <i class="fa-solid fa-circle-check text-green-500"></i>
+                </div>
+                <p class="text-gray-400 text-sm">{{ report.description }}</p>
+            </div>
+            <span class="text-[9px] font-bold text-gray-400 uppercase">Archived</span>
+        </div>
+        {% empty %}
+        <div class="py-4 text-center text-gray-400 text-xs">Archive is empty.</div>
+        {% endfor %}
+    </div>
 </div>
+
 
     </main>
 
 
+
 {% comment %} <script>
-function resolveReport(reportId) {
-    const reportRow = document.getElementById(`report-row-${reportId}`);
-    
-    // Optional: add a loading state to the button
-    if (!confirm("Mark this report as verified?")) return;
-
-    fetch(`/resolve-report/${reportId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}', // Standard Django CSRF
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (response.ok) {
-            // Visual Feedback: Smooth slide and fade out
-            reportRow.style.opacity = '0';
-            reportRow.style.transform = 'translateX(30px)';
-            
-            setTimeout(() => {
-                reportRow.remove();
-                
-                // Show "No reports" message if container is empty
-                const container = document.getElementById('reports-container');
-                if (container.children.length === 0) {
-                    container.innerHTML = '<div class="py-10 text-center text-gray-400 italic">No reports found.</div>';
-                }
-            }, 500);
-        } else {
-            alert("Error: Could not verify report. Please try again.");
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert("Server error. Please check your connection.");
-    });
-} {% endcomment %}
-
-<script>
 function resolveReport(reportId) {
     fetch(`/resolve-report/${reportId}/`, {
         method: 'POST',
@@ -242,6 +197,63 @@ function resolveReport(reportId) {
         }
     });
 }
+</script> {% endcomment %}  
+
+<script>
+function toggleArchive() {
+    const content = document.getElementById('archive-content');
+    const btnText = document.querySelector('#archive-btn span');
+    const btnIcon = document.querySelector('#archive-btn i');
+    
+    const isHidden = content.classList.toggle('hidden');
+    
+    if (isHidden) {
+        btnText.innerText = 'Show Archive';
+        btnIcon.classList.replace('fa-eye-slash', 'fa-eye');
+    } else {
+        btnText.innerText = 'Hide Archive';
+        btnIcon.classList.replace('fa-eye', 'fa-eye-slash');
+    }
+}
+
+function resolveReport(reportId) {
+    if (!confirm("Confirm verification for this report?")) return;
+     
+    const url = `/resolve-report/${reportId}/`;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json', // Added comma here
+            'X-Requested-With': 'XMLHttpRequest' // Added comma here
+        }, // Added comma here
+        body: JSON.stringify({ 'id': reportId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Server responded with status: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            // This reloads the page. 
+            // Because the status is now 'verified', Django will 
+            // automatically render this report in the Verified History section.
+            window.location.reload(); 
+        } else {
+            alert("Error: " + (data.message || "Something went wrong."));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Failed to connect to the server. Check your terminal for errors.");
+    });
+}
+</script>
+
+
 </script>
 
 

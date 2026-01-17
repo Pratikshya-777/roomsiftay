@@ -17,10 +17,34 @@
 
 <section class="hero">
     <h1>Find Your Next Room<br>With Confidence</h1>
+    <br>
+    <br>
     <p>Verified owners • Real photos • No brokers</p>
 </section>
 
-<section class="why">
+<section class="why-choose-us">
+    <h2>Why Choose Us?</h2>
+    <div class="feature-container">
+        <div class="feature-card">
+            <div class="icon-wrapper">🛡️</div>
+            <h4>Verified Owner</h4>
+            <p>All owners are ID & phone verified for your safety.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon-wrapper">📸</div>
+            <h4>Real Photos</h4>
+            <p>What you see is what you get. Only genuine room images.</p>
+        </div>
+        <div class="feature-card">
+            <div class="icon-wrapper">🤝</div>
+            <h4>No Brokers</h4>
+            <p>Talk directly with room owners and save on extra fees.</p>
+        </div>
+    </div>
+</section>
+
+
+{% comment %} <section class="why">
     <h2>Why Choose Us?</h2>
     <div class="feature-container">
         <div class="feature-card">
@@ -36,12 +60,44 @@
             <p>Direct contact with room owners</p>
         </div>
     </div>
+</section> {% endcomment %}
+
+<section class="reviews">
+    <h2 class="reviews-heading">⭐ Reviews And Ratings</h2>
+
+    <div class="reviews-container"> 
+        {% for review in reviews %}
+        <div class="review-card"> <div class="stars">
+                {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= review.rating %}
+                        ⭐
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <p class="review-text">"{{ review.comment }}"</p>
+            
+            <span class="reviewer-name">— {{ review.user.username }}</span>
+        </div>
+        {% empty %}
+        <div class="review-card">
+            <p>No reviews yet. Be the first to share your experience!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="{% url 'all_reviews' %}" class="btn-view-all">
+            View All Reviews →
+        </a>
+    </div>
 </section>
 
 
 
-<section class="reviews">
-    <h2>⭐ Reviews</h2>
+
+{% comment %} <section class="reviews">
+    <h2>⭐ Reviews And Ratings</h2>
 
     {% for review in reviews %}
     <div class="review">
@@ -67,7 +123,7 @@
             View All Reviews →
         </a>
     </div>
-</section>
+</section> {% endcomment %}
 
 
 

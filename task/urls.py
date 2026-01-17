@@ -80,7 +80,7 @@ urlpatterns = [
 
     path('provide-review/', views.provide_review, name='provide_review'),
     path('all-reviews/', views.all_reviews, name='all_reviews'),
-
+    path('resolve-report/<int:report_id>/', views.resolve_report, name='resolve_report'),
 ]
 
 

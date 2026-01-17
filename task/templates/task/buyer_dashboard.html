@@ -54,8 +54,24 @@
             {% comment %} <a href="#" class="text-blue-600 text-sm font-semibold hover:underline">Report an Issue</a> {% endcomment %}
             <a href="{% url 'report_issue' %}" class="text-blue-600 text-sm font-semibold hover:underline">Report an Issue</a>
         </div>
-        
     </div>
+
+<div class="notifications-section">
+    <h3>Notifications</h3>
+    <ul>
+        {% for note in notifications %}
+            <li class="{% if not note.is_read %}font-bold bg-blue-50{% endif %} p-3 border-b">
+                {{ note.message }}
+                <span class="text-xs text-gray-400">{{ note.created_at|timesince }} ago</span>
+            </li>
+        {% empty %}
+            <li>No new notifications.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+
+
 </div>
 {% endblock %}
 
