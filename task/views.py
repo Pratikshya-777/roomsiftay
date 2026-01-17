@@ -16,7 +16,8 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 
-@login_required
+
+# @login_required
 def generate_otp():
     return str(random.randint(100000, 999999))
 
@@ -83,7 +84,7 @@ def login_view(request):
 
         else:
             # If authentication fails, show the error
-            return render(request, "login.html", {
+            return render(request, "task/login.html", {
                 "error": "Invalid email or password"
             })
 
@@ -234,8 +235,9 @@ def role_redirect(request):
     return redirect("buyer_dashboard")
 
 @login_required
-def buyer(request):
+def buyer(request): 
     return render(request, 'task/buyer.html')
+    
 
 @login_required
 def saved_listings(request):
@@ -273,18 +275,21 @@ def report_issue(request):
     return render(request, 'task/report_issue.html')
 
 
-@login_required
+# @login_required
 def admin_view(request):
     owners = Owner.objects.all() # Or however you fetch owners
     listings = Listing.objects.all()
     
-    # Fetch all reports from the database
-    reports = BuyerReport.objects.all().order_by('-created_at')
+    
+    reports = BuyerReport.objects.all().order_by('-id')
     
     context = {
         'owners': owners,
         'listings': listings,
-        'reports': reports, # This matches the {% for report in reports %} in your admin.html
+        # 'reports': reports,
+        'pending_reports': reports.filter(status='pending'),
+        'verified_reports': reports.filter(status='verified'), 
+        
     }
     return render(request, 'task/admin.html', context)
     # context = {
@@ -388,10 +393,20 @@ def resolve_report(request, report_id):
     try:
         report = BuyerReport.objects.get(id=report_id)
         report.status = 'verified'  # Ensure you have a status field in your model
+        # report.resolved_at = timezone.now()
         report.save()
+        
+        # Notification.objects.create(
+        #     user=report.buyer, 
+        #     text=f"Hello! Your report on '{report.title}' has been verified by the admin."
+        # )
+
+
+
         return JsonResponse({'status': 'success'})
     except BuyerReport.DoesNotExist:
         return JsonResponse({'status': 'error'}, status=404)
+    
 def logout(request):
     auth_logout(request)
     return redirect("login")
