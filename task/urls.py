@@ -70,10 +70,13 @@ urlpatterns = [
     path("add-listing-step2/", views.owner_add_listingstep2, name="owner_add_listingstep2"),
     path("add-listing-step3/", views.owner_add_listingstep3, name="owner_add_listingstep3"),
     path("add-listing-step4/", views.owner_add_listingstep4, name="owner_add_listingstep4"),
-    path("show-listings/", views.owner_listing, name="owner_listing"),
-    path("edit-listing/<int:listing_id>/",views.edit_listing,name="edit_listing"
-),
-
+    path("show-listings/",views.owner_listing,name="owner_listing"),
+    path("owner/listings/<int:pk>/", views.owner_listing_details, name="owner_listing_details"),
+    path("owner/listings/<int:pk>/edit/", views.owner_edit_listing, name="owner_edit_listing"),
+    path("owner/listings/<int:pk>/submit/", views.submit_listing, name="submit_listing"),
+    path("chats/", views.chat_list, name="chat_list"),
+    path("chat/start/<int:listing_id>/", views.start_chat, name="start_chat"),
+    path("chat/<int:conversation_id>/", views.chat_room, name="chat_room"),
 
     path('provide-review/', views.provide_review, name='provide_review'),
     path('all-reviews/', views.all_reviews, name='all_reviews'),

@@ -19,7 +19,7 @@ class User(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'email' # This tells Django: "Use email to log in"
-    REQUIRED_FIELDS = ['username'] # Keep username here for AllAuth compatibility
+    REQUIRED_FIELDS = [] # Keep username here for AllAuth compatibility
     
     EMAIL_FIELD = 'email' 
 
@@ -213,3 +213,56 @@ class OwnerVerification(models.Model):
     document_type = models.CharField(max_length=50, default='Citizenship')
     is_verified = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
+
+class Conversation(models.Model):
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name="conversations"
+    )
+
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="buyer_conversations"
+    )
+
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="owner_conversations"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("listing", "buyer", "owner")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Chat: {self.listing} | {self.buyer} → {self.owner}"
+
+class Message(models.Model):
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name="messages"
+    )
+
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sent_messages"
+    )
+
+    text = models.TextField()
+
+    is_read = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Message from {self.sender}"

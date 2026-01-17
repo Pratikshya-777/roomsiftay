@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-12">
+
+    <!-- PAGE HEADER -->
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">My Listings</h1>
+        <p class="text-gray-500 mt-1">
+            Manage your draft, pending, and approved listings
+        </p>
+    </div>
+
+    <!-- ================= DRAFT LISTINGS ================= -->
+    <section>
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            📝 Draft Listings
+        </h2>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for listing in drafts %}
+                <a href="{% url 'owner_listing_details' listing.id %}"
+                   class="group bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+
+                    <!-- Image -->
+                    <div class="h-44 bg-gray-200 relative">
+                        {% if listing.photos.first %}
+                            <img src="{{ listing.photos.first.image.url }}"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                <i class="fa-solid fa-image text-3xl"></i>
+                            </div>
+                        {% endif %}
+
+                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full
+                                     bg-gray-200 text-gray-700">
+                            Draft
+                        </span>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-4 space-y-2">
+                        <h3 class="font-semibold text-gray-800 truncate">
+                            {{ listing.title }}
+                        </h3>
+
+                        <p class="text-sm text-gray-500">
+                            {{ listing.city }} {{ listing.area }}
+                        </p>
+
+                        {% if listing.monthly_rent %}
+                            <p class="font-bold text-indigo-600">
+                                रु {{ listing.monthly_rent }} / month
+                            </p>
+                        {% endif %}
+
+                        <div class="pt-2 flex justify-between items-center text-sm">
+                            <span class="text-gray-400">
+                                Last updated {{ listing.updated_at|date:"M d, Y" }}
+                            </span>
+                            <span class="text-indigo-600 font-semibold">
+                                Edit →
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
+                    <i class="fa-regular fa-folder-open text-4xl mb-3"></i>
+                    <p>No draft listings yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ================= PENDING LISTINGS ================= -->
+    <section>
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            ⏳ Pending Verification
+        </h2>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for listing in pending %}
+                <a href="{% url 'owner_listing_details' listing.id %}"
+                   class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+
+                    <div class="h-44 bg-gray-200 relative">
+                        {% if listing.photos.first %}
+                            <img src="{{ listing.photos.first.image.url }}"
+                                 class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                <i class="fa-solid fa-image text-3xl"></i>
+                            </div>
+                        {% endif %}
+
+                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full
+                                     bg-yellow-100 text-yellow-700">
+                            Pending
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-2">
+                        <h3 class="font-semibold text-gray-800 truncate">
+                            {{ listing.title }}
+                        </h3>
+
+                        <p class="text-sm text-yellow-600">
+                            Waiting for admin approval
+                        </p>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
+                    <p>No listings pending verification.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ================= APPROVED LISTINGS ================= -->
+    <section>
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            ✅ Approved Listings
+        </h2>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for listing in approved %}
+                <a href="{% url 'owner_listing_details' listing.id %}"
+                   class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+
+                    <div class="h-44 bg-gray-200 relative">
+                        {% if listing.photos.first %}
+                            <img src="{{ listing.photos.first.image.url }}"
+                                 class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                <i class="fa-solid fa-image text-3xl"></i>
+                            </div>
+                        {% endif %}
+
+                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full
+                                     bg-green-100 text-green-700">
+                            Approved
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-2">
+                        <h3 class="font-semibold text-gray-800 truncate">
+                            {{ listing.title }}
+                        </h3>
+
+                        <p class="text-sm text-green-600">
+                            Live & visible to users
+                        </p>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
+                    <p>No approved listings yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

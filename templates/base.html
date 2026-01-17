@@ -121,7 +121,7 @@ transform -translate-x-full transition-transform duration-300 ease-in-out overfl
                  </a>
             </li>
             <li>
-                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+                <a href="{% url 'owner_listing' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
                     <i class="fa-solid fa-house-chimney mr-3"></i> My Listings
                 </a>
             </li>
@@ -131,13 +131,13 @@ transform -translate-x-full transition-transform duration-300 ease-in-out overfl
                 </a>
             </li>
             <li>
-                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
+        <a href="{% url 'chat_list' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
                     <i class="fa-solid fa-comment-dots mr-3"></i> Chats with Buyers
                 </a>
             </li>
         {% endif %}
 
-        <li>
+        <!-- <li>
             <a href="#"
                class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
                 <i class="fa-solid fa-magnifying-glass mr-3"></i> Search Rooms
@@ -170,7 +170,7 @@ transform -translate-x-full transition-transform duration-300 ease-in-out overfl
                class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
                 <i class="fa-solid fa-flag mr-3"></i> Report Issue
             </a>
-        </li>
+        </li> -->
         <!-- <li>
                 <a href="{% url 'logout' %}"
                class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">

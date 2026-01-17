@@ -1,12 +1,11 @@
-from django.shortcuts import render, redirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
-from .forms import CustomUserCreationForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form
+from .forms import CustomUserCreationForm, ListingForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form,MessageForm
 from django.conf import settings
 from django.contrib import messages
-from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner
+from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
@@ -14,7 +13,6 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Review
 from django.core.paginator import Paginator
-from django.http import JsonResponse
 
 
 # @login_required
@@ -644,7 +642,7 @@ def owner_listing(request):
 
     return render(
         request,
-        "task/owner_listing.html",
+        "task/owner_listing/owner_listing.html",
         {
             "drafts": drafts,
             "pending": pending,
@@ -653,15 +651,115 @@ def owner_listing(request):
     )
 
 @login_required
-def edit_listing(request, listing_id):
+def owner_listing_details(request, pk):
     listing = get_object_or_404(
         Listing,
-        id=listing_id,
-        owner=request.user,
+        pk=pk,
+        owner=request.user
     )
 
-    # put listing back into session
-    request.session["listing_id"] = listing.id
+    return render(
+        request,
+        "task/owner_listing/owner_listing_details.html",
+        {"listing": listing}
+    )
 
-    # redirect to step 1 (or step 2 / 3 if you want)
-    return redirect("owner_add_listingstep1")
+@login_required
+def submit_listing(request, pk):
+    listing = get_object_or_404(
+        Listing,
+        pk=pk,
+        owner=request.user,
+        status="draft"
+    )
+
+    listing.status = "pending"
+    listing.save()
+
+    return redirect("owner_listing_detail", pk=pk)
+
+@login_required
+def owner_edit_listing(request, pk):
+    listing = get_object_or_404(
+        Listing,
+        pk=pk,
+        owner=request.user
+    )
+
+    # Optional rule (recommended)
+    if listing.status == "approved":
+        return redirect("owner_listing_detail", pk=pk)
+
+    if request.method == "POST":
+        form = ListingForm(request.POST, request.FILES, instance=listing)
+        if form.is_valid():
+            form.save()
+            return redirect("owner_listing_detail", pk=pk)
+    else:
+        form = ListingForm(instance=listing)
+
+    return render(
+        request,
+        "task/owner_listing/owner_edit_listing.html",
+        {
+            "form": form,
+            "listing": listing,
+        }
+    )
+
+@login_required
+def start_chat(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id)
+
+    # Prevent owner chatting with themselves
+    if request.user == listing.owner:
+        return redirect("chat_list")
+
+    conversation, created = Conversation.objects.get_or_create(
+        listing=listing,
+        buyer=request.user,
+        owner=listing.owner,
+    )
+
+    return redirect("chat_room", conversation_id=conversation.id)
+
+@login_required
+def chat_list(request):
+    conversations = Conversation.objects.filter(
+        buyer=request.user
+    ) | Conversation.objects.filter(
+        owner=request.user
+    )
+
+    conversations = conversations.order_by("-created_at")
+
+    return render(request, "task/chat/chat_list.html", {
+        "conversations": conversations
+    })
+
+@login_required
+def chat_room(request, conversation_id):
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+
+    # Security check
+    if request.user not in [conversation.buyer, conversation.owner]:
+        return redirect("chat_list")
+
+    messages = conversation.messages.order_by("created_at")
+
+    if request.method == "POST":
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            msg = form.save(commit=False)
+            msg.conversation = conversation
+            msg.sender = request.user
+            msg.save()
+            return redirect("chat_room", conversation_id=conversation.id)
+    else:
+        form = MessageForm()
+
+    return render(request, "task/chat/chat_room.html", {
+        "conversation": conversation,
+        "messages": messages,
+        "form": form,
+    })

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">
+                {{ listing.title }}
+            </h1>
+            <p class="text-gray-500">
+                {{ listing.city }} {{ listing.area }}
+            </p>
+        </div>
+
+        <span class="px-4 py-1.5 rounded-full text-sm font-semibold
+            {% if listing.status == 'draft' %}
+                bg-gray-200 text-gray-700
+            {% elif listing.status == 'pending' %}
+                bg-yellow-100 text-yellow-700
+            {% else %}
+                bg-green-100 text-green-700
+            {% endif %}
+        ">
+            {{ listing.status|title }}
+        </span>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- PHOTOS -->
+        <div class="space-y-4">
+            {% for photo in listing.photos.all %}
+                <img src="{{ photo.image.url }}"
+                     class="rounded-xl border shadow-sm">
+            {% empty %}
+                <div class="h-56 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-image text-4xl"></i>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- DETAILS -->
+        <div class="bg-white rounded-xl border shadow-sm p-6 space-y-4">
+
+            <h2 class="text-xl font-semibold text-gray-800">
+                Listing Details
+            </h2>
+
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <p><strong>Room Type:</strong> {{ listing.room_type }}</p>
+                <p><strong>Bedrooms:</strong> {{ listing.bedrooms }}</p>
+                <p><strong>Bathrooms:</strong> {{ listing.bathrooms }}</p>
+                <p><strong>Floor:</strong> {{ listing.floor_number }}</p>
+            </div>
+
+            <div class="pt-4 border-t">
+                <p class="text-lg font-bold text-indigo-600">
+                    Nrs. {{ listing.monthly_rent }} / month
+                </p>
+                <p class="text-sm text-gray-500">
+                    Deposit: Nrs. {{ listing.security_deposit }}
+                </p>
+            </div>
+
+            <!-- FACILITIES -->
+            <div class="pt-4 border-t grid grid-cols-2 gap-2 text-sm">
+                <span>🪑 Furnished: {{ listing.is_furnished|yesno:"Yes,No" }}</span>
+                <span>📶 WiFi: {{ listing.wifi_available|yesno:"Yes,No" }}</span>
+                <span>🚗 Parking: {{ listing.parking_available|yesno:"Yes,No" }}</span>
+                <span>💡 Utilities Included: {{ listing.utilities_included|yesno:"Yes,No" }}</span>
+            </div>
+
+            {% if listing.admin_note %}
+                <div class="bg-red-50 border border-red-200 p-4 rounded-lg mt-4">
+                    <strong class="text-red-700">Admin Note:</strong>
+                    <p class="text-red-600 mt-1">
+                        {{ listing.admin_note }}
+                    </p>
+                </div>
+            {% endif %}
+
+            <!-- ACTIONS -->
+            {% if listing.status == "draft" %}
+                <div class="flex gap-4 pt-6">
+                    <a href="{% url 'owner_edit_listing' listing.id %}"
+                       class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-semibold">
+                        Edit Listing
+                    </a>
+
+                    <a href="{% url 'submit_listing' listing.id %}"
+                       class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold">
+                        Submit for Review
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+    {% if user.is_authenticated and user != listing.owner %}
+
+
+    <a href="{% url 'start_chat' listing.id %}"
+   class="inline-flex items-center gap-2 px-4 py-2
+          bg-indigo-600 text-white rounded-xl text-sm font-semibold
+          hover:bg-indigo-700 transition">
+  💬 Chat with Owner
+</a>
+{% endif %}
+
+</div>
+{% endblock %}
