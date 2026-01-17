@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect,get_object_or_404
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
 from .forms import CustomUserCreationForm, ListingForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form,MessageForm
 from django.conf import settings
 from django.contrib import messages
-from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message
+from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message,SavedListing
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
@@ -339,9 +340,9 @@ def report_issue(request):
 # @login_required
 def admin_view(request):
     owners = Owner.objects.all() # Or however you fetch owners
-    listings = Listing.objects.all()
-    
-    
+    listings = Listing.objects.filter(
+    status__in=["pending", "approved", "rejected"]
+)    
     reports = BuyerReport.objects.all().order_by('-id')
     
     context = {
@@ -352,7 +353,7 @@ def admin_view(request):
         'verified_reports': reports.filter(status='verified'), 
         
     }
-    return render(request, 'task/admin.html', context)
+    return render(request, 'task/admin/admin.html', context)
     # context = {
     #     'owners': Owner.objects.filter(is_verified=False),
     #     'listings': Listing.objects.all(),
@@ -360,6 +361,48 @@ def admin_view(request):
     # }
     # return render(request, 'task/admin.html', context)
 
+@staff_member_required
+def admin_listing_detail(request, listing_id):
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        status__in=["pending", "approved", "rejected"]
+    )
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        admin_note = request.POST.get("admin_note", "").strip()
+
+        if action == "approve":
+            listing.status = "approved"
+            listing.admin_note = ""
+            listing.save()
+
+        elif action == "reject":
+            if not admin_note:
+                return render(request, "task/admin/admin_listing_detail.html", {
+                    "listing": listing,
+                    "error": "Rejection reason is required."
+                })
+            listing.status = "rejected"
+            listing.admin_note = admin_note
+            listing.save()
+
+        return redirect("admin_dashboard")
+
+    return render(request, "task/admin/admin_listing_detail.html", {
+        "listing": listing
+    })
+
+@staff_member_required
+def admin_listings(request):
+    listings = Listing.objects.filter(
+        status__in=["pending", "approved", "rejected"]
+    ).order_by("-created_at")
+
+    return render(request, "task/admin/admin_listings.html", {
+        "listings": listings
+    })
 
 def reset_password(request):
     if not request.session.get("otp_verified"):
@@ -480,15 +523,15 @@ def owner_add_listingstep1(request):
                 listing = form.save(commit=False)
 
             # attach owner
-            listing.owner = request.user  # adjust if you use a profile
-            listing.status = "draft"
+                listing.owner = request.user  # adjust if you use a profile
+                listing.status = "draft"
 
-            listing.save()
+                listing.save()
 
             # store listing id in session
-            request.session["listing_id"] = listing.id
+                request.session["listing_id"] = listing.id
 
-            return redirect("owner_add_listingstep2")
+                return redirect("owner_add_listingstep2")
         else:
             form = ListingStep1Form()
         return render(request, "task/owner_add_listing/owner_add_listingstep1.html" , {"form": form})
@@ -699,15 +742,30 @@ def owner_edit_listing(request, pk):
         owner=request.user
     )
 
-    # Optional rule (recommended)
+    # Prevent editing after approval (good business rule)
     if listing.status == "approved":
+        messages.warning(
+            request,
+            "Approved listings cannot be edited. Please contact admin."
+        )
         return redirect("owner_listing_detail", pk=pk)
 
     if request.method == "POST":
-        form = ListingForm(request.POST, request.FILES, instance=listing)
+        form = ListingForm(request.POST, instance=listing)
+
         if form.is_valid():
             form.save()
+
+            # Handle new photo upload (OPTIONAL but safe)
+            if "image" in request.FILES:
+                ListingPhoto.objects.create(
+                    listing=listing,
+                    image=request.FILES["image"]
+                )
+
+            messages.success(request, "Listing updated successfully.")
             return redirect("owner_listing_detail", pk=pk)
+
     else:
         form = ListingForm(instance=listing)
 
@@ -723,7 +781,20 @@ def owner_edit_listing(request, pk):
 @login_required
 def start_chat(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id)
+    # print("Logged in:", request.user)
+    # print("Listing owner:", listing.owner)
+    # if request.user == listing.owner:
+    #     print("Owner clicked chat → redirecting")
+    #     return redirect("chat_list")
 
+    # conversation, created = Conversation.objects.get_or_create(
+    #     listing=listing,
+    #     buyer=request.user,
+    #     owner=listing.owner,
+    # )
+
+    # print("Conversation created:", conversation.id)
+    # return redirect("chat_room", conversation_id=conversation.id)
     # Prevent owner chatting with themselves
     if request.user == listing.owner:
         return redirect("chat_list")
@@ -775,4 +846,64 @@ def chat_room(request, conversation_id):
         "conversation": conversation,
         "messages": messages,
         "form": form,
+    })
+
+def buyer_search_room(request):
+    query = request.GET.get("q", "")
+
+    listings = Listing.objects.filter(status="approved").prefetch_related("photos")
+
+    if query:
+        listings = listings.filter(
+            city__icontains=query
+        ) | listings.filter(
+            area__icontains=query
+        )
+
+    context = {
+        "listings": listings,
+        "query": query,
+    }
+
+    return render(request, "task/buyer_search_room/buyer_search_room.html", context)
+
+def buyer_listing_detail(request, listing_id):
+    listing = get_object_or_404(
+        Listing.objects.prefetch_related("photos"),
+        id=listing_id,
+        status="approved"
+    )
+
+    is_saved = False
+    if request.user.is_authenticated:
+        is_saved = SavedListing.objects.filter(
+            user=request.user, listing=listing
+        ).exists()
+
+    return render(request, "task/buyer_search_room/buyer_listing_detail.html", {
+        "listing": listing,
+        "is_saved": is_saved
+    })
+
+
+# 3️⃣ Save Listing
+@login_required
+def save_listing(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id, status="approved")
+    SavedListing.objects.get_or_create(
+        user=request.user,
+        listing=listing
+    )
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
+
+# 4️⃣ Saved Listings Page
+@login_required
+def saved_listings(request):
+    saved = SavedListing.objects.filter(
+        user=request.user
+    ).select_related("listing").prefetch_related("listing__photos")
+
+    return render(request, "task/buyer_search_room/saved_listings.html", {
+        "saved_listings": saved
     })

@@ -6,8 +6,9 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('task', '0014_listing_created_at_alter_listing_owner_and_more'),
-        ('task', '0018_rename_created_at_listingphoto_uploaded_at_and_more'),
+            ('task', '0002_conversation_message'),
+        # ('task', '0014_listing_created_at_alter_listing_owner_and_more'),
+        # ('task', '0018_rename_created_at_listingphoto_uploaded_at_and_more'),
     ]
 
     operations = [

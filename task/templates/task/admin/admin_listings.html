@@ -1,0 +1,61 @@
+{% extends "task/admin/admin_base.html" %}
+
+{% block title %}Manage Listings{% endblock %}
+
+{# Optional: highlight sidebar if you later add nav_listings block #}
+{# {% block nav_listings %}sidebar-active{% endblock %} #}
+
+{% block content %}
+
+<!-- ================= PAGE HEADER ================= -->
+<div class="mb-8">
+    <h1 class="text-2xl font-semibold text-gray-700">
+        Manage Listings
+    </h1>
+    <p class="text-sm text-gray-400 mt-1">
+        Review, approve, or reject property listings
+    </p>
+</div>
+
+<!-- ================= LISTINGS CARD ================= -->
+<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
+
+    {% for listing in listings %}
+    <div class="flex justify-between items-center py-5
+                {% if not forloop.last %}border-b border-gray-100{% endif %}">
+
+        <div>
+            <p class="font-medium text-gray-700">
+                {{ listing.title }}
+            </p>
+
+            <p class="text-sm mt-1">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold
+                    {% if listing.status == 'approved' %}
+                        bg-green-100 text-green-600
+                    {% elif listing.status == 'rejected' %}
+                        bg-red-100 text-red-600
+                    {% else %}
+                        bg-yellow-100 text-yellow-600
+                    {% endif %}
+                ">
+                    {{ listing.get_status_display }}
+                </span>
+            </p>
+        </div>
+
+        <a href="{% url 'admin_listing_detail' listing.id %}"
+           class="bg-[#4a86e8] text-white px-5 py-2 rounded-xl text-sm font-semibold shadow hover:bg-blue-600 transition">
+            Manage
+        </a>
+
+    </div>
+    {% empty %}
+        <p class="text-gray-400 italic text-center py-10">
+            No listings to review.
+        </p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

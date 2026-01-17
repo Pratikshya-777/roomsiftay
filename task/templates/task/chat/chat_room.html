@@ -22,25 +22,35 @@
 
     <!-- Messages -->
     <div class="flex-1 overflow-y-auto p-6 space-y-3 bg-gray-50">
+
       {% for message in messages %}
-      <div class="{% if message.sender == request.user %}text-right{% endif %}">
-        <div class="inline-block px-4 py-2 rounded-xl text-sm max-w-[70%]
-          {% if message.sender == request.user %}
-            bg-indigo-600 text-white
-          {% else %}
-            bg-white border
-          {% endif %}">
-          {{ message.text }}
+        <div class="{% if message.sender == request.user %}text-right{% endif %}">
+          <div class="inline-block px-4 py-2 rounded-xl text-sm max-w-[70%]
+            {% if message.sender == request.user %}
+              bg-indigo-600 text-white
+            {% else %}
+              bg-white border
+            {% endif %}">
+            {{ message.text }}
+          </div>
         </div>
-      </div>
+
+      {% empty %}
+        <div class="h-full flex items-center justify-center">
+          <p class="text-gray-400 italic text-sm">
+            No messages yet. Start the conversation 👋
+          </p>
+        </div>
       {% endfor %}
+
     </div>
 
-    <!-- Message form -->
+    <!-- Message Form -->
     <form method="post" class="border-t p-4 flex gap-2">
       {% csrf_token %}
       {{ form.text }}
-      <button class="px-5 py-2 bg-indigo-600 text-white rounded-xl font-semibold">
+      <button type="submit"
+              class="px-5 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">
         Send
       </button>
     </form>

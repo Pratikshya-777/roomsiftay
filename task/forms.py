@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm,PasswordResetForm
 from django.contrib.auth import get_user_model
-from .models import UserProfile, Listing,Message
+from .models import UserProfile, Listing,Message,Listing, ListingPhoto
 
 User = get_user_model()
 
@@ -52,17 +52,18 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 
 class ListingStep1Form(forms.ModelForm):
-    ROOM_TYPE_CHOICES = [
-        ("private", "Private Room"),
-        ("entire", "Entire Place"),
-        ("shared", "Shared Room"),
-    ]
+    # ROOM_TYPE_CHOICES = [
+    #     ("private", "Private Room"),
+    #     ("entire", "Entire Place"),
+    #     ("shared", "Shared Room"),
+    # ]
 
-    room_type = forms.ChoiceField(
-        choices=ROOM_TYPE_CHOICES,
-        widget=forms.RadioSelect,
-        required=True
-        )
+    # room_type = forms.CharField(
+    #     max_length=50,
+    #     choices=ROOM_TYPE_CHOICES,
+    #     # widget=forms.RadioSelect,
+    #     # required=True
+        # )
     class Meta:
         model = Listing
         fields = [
@@ -77,6 +78,9 @@ class ListingStep1Form(forms.ModelForm):
             "title": forms.TextInput(attrs={
                 "class": "w-full px-4 py-3 rounded-xl border",
                 "placeholder": "Listing title"
+            }),
+            "room_type": forms.RadioSelect(attrs={
+            "class": "peer hidden"
             }),
             # "room_type": forms.TextInput(attrs={
             #     "class": "w-full px-4 py-3 rounded-xl border",
@@ -173,6 +177,11 @@ class ListingForm(forms.ModelForm):
             "created_at",
             "updated_at",
         ]
+
+class ListingPhotoForm(forms.ModelForm):
+    class Meta:
+        model = ListingPhoto
+        fields = ["image"]
 
 class MessageForm(forms.ModelForm):
     class Meta:

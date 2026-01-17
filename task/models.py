@@ -155,6 +155,16 @@ class Review(models.Model):
         return f"Review by {self.user.username}"
     
 class Listing(models.Model):
+    ROOM_TYPE_CHOICES = [
+        ("private", "Private Room"),
+        ("entire", "Entire Place"),
+        ("shared", "Shared Room"),
+    ]
+
+    room_type = models.CharField(
+        max_length=50,
+        choices=ROOM_TYPE_CHOICES
+    )
 
     STATUS_CHOICES = [
         ("draft", "Draft"),
@@ -172,7 +182,7 @@ class Listing(models.Model):
 
     # STEP 1 — Basic Info
     title = models.CharField(max_length=200)
-    room_type = models.CharField(max_length=50)
+    # room_type = models.CharField(max_length=50)
     city = models.CharField(max_length=100, null=True, blank=True)
     area = models.CharField(max_length=100, null=True, blank=True)
     full_address = models.TextField(blank=True)
@@ -280,3 +290,14 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender}"
+    
+class SavedListing(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "listing")
+
+    def __str__(self):
+        return f"{self.user} saved {self.listing}"

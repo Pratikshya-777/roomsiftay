@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}RoomSiftay Admin{% endblock %}</title>
+
+    <!-- Tailwind (CDN for now) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Fonts & global styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f3f6;
+        }
+        .sidebar-active {
+            border-left: 3px solid white;
+            color: white;
+            background: rgba(255,255,255,0.05);
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="min-h-screen">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="fixed top-0 z-50 w-full bg-[#0f172a] text-white h-14 flex justify-between items-center px-6">
+    <div class="flex items-center gap-2">
+        <span class="text-lg font-medium tracking-wide">
+            RoomSiftay <span class="font-light">Admin</span>
+        </span>
+    </div>
+    <div class="text-gray-400 hover:text-white cursor-pointer">
+        <i class="fa-solid fa-circle-user text-2xl"></i>
+    </div>
+</nav>
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="fixed top-14 left-0 z-40 w-20 h-full bg-[#0f172a] flex flex-col items-center py-6 gap-8">
+    <a href="{% url 'admin_dashboard' %}"
+       class="flex flex-col items-center gap-1 w-full py-3
+       {% block nav_dashboard %}{% endblock %}">
+        <i class="fa-solid fa-house-chimney text-lg"></i>
+        <span class="text-[8px] uppercase font-bold tracking-tighter">Dashboard</span>
+    </a>
+
+    <a href="#"
+       class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition w-full py-3">
+        <i class="fa-solid fa-user-check text-lg"></i>
+        <span class="text-[8px] uppercase font-bold tracking-tighter">Verifications</span>
+    </a>
+
+    <a href="{% url 'admin_listings' %}"
+       class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition w-full py-3">
+        <i class="fa-solid fa-layer-group text-lg"></i>
+        <span class="text-[8px] uppercase font-bold tracking-tighter">Listings</span>
+    </a>
+
+    <a href="#"
+       class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition w-full py-3">
+        <i class="fa-solid fa-location-dot text-lg"></i>
+        <span class="text-[8px] uppercase font-bold tracking-tighter">Reports</span>
+    </a>
+
+    <a href="#"
+       class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition w-full py-3">
+        <i class="fa-solid fa-gear text-lg"></i>
+        <span class="text-[8px] uppercase font-bold tracking-tighter">Settings</span>
+    </a>
+</aside>
+
+<!-- ================= MAIN ================= -->
+<main class="ml-20 pt-20 p-8 lg:px-16">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ================= GLOBAL JS ================= -->
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

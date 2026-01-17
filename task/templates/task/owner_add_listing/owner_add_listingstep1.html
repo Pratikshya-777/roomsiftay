@@ -34,66 +34,130 @@
       </div>
 
       <!-- ROOM TYPE -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-3">
-          🏠 Room Type <span class="text-red-500">*</span>
+
+    <!-- <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+  {% for radio in form.room_type %}
+    <!-- RADIO INPUT (Django-generated) -->
+    <!-- {{ radio.tag|safe }} -->
+
+    <!-- CLICKABLE CARD -->
+    <!-- <label
+      for="{{ radio.id_for_label }}"
+      class="flex items-start gap-3 p-4 border rounded-xl cursor-pointer
+             transition hover:border-gray-400
+             peer-checked:border-indigo-600
+             peer-checked:bg-indigo-50"> -->
+
+      <!-- ICON -->
+      <!-- <span class="text-xl mt-0.5">
+        {% if radio.choice_value == "private" %}
+          🚪
+        {% elif radio.choice_value == "entire" %}
+          🏠
+        {% else %}
+          🛋️
+        {% endif %}
+      </span> -->
+
+      <!-- TEXT -->
+      <!-- <div>
+        <p class="font-medium text-gray-800">
+          {{ radio.choice_label }}
+        </p>
+        <p class="text-xs text-gray-500 mt-0.5">
+          {% if radio.choice_value == "private" %}
+            Private room in a shared home
+          {% elif radio.choice_value == "entire" %}
+            Entire flat or house
+          {% else %}
+            Shared sleeping space
+          {% endif %}
+        </p>
+      </div> -->
+
+    <!-- </label>
+  {% endfor %} -->
+
+<!-- </div> --> 
+ <div>
+    <label class="block text-sm font-medium text-gray-700 mb-2">
+        Room Type <span class="text-red-500">*</span>
+    </label>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+        <!-- Private -->
+        <label class="cursor-pointer">
+            <input
+                type="radio"
+                name="room_type"
+                value="private"
+                class="peer hidden"
+                {% if form.room_type.value == "private" %}checked{% endif %}
+            />
+            <div class="p-4 rounded-xl border bg-white
+                        peer-checked:border-indigo-600
+                        peer-checked:ring-2 peer-checked:ring-indigo-500
+                        transition">
+                <p class="font-semibold">🚪 Private Room</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    Private room in a shared home
+                </p>
+            </div>
         </label>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-
-          {% for radio in form.room_type %}
-          <label
-            class="flex items-start gap-3 p-4 border rounded-xl cursor-pointer
-                   transition hover:border-gray-400
-                   peer-checked:border-indigo-600
-                   peer-checked:bg-indigo-50">
-
+        <!-- Shared -->
+        <label class="cursor-pointer">
             <input
-              type="radio"
-              name="{{ radio.name }}"
-              value="{{ radio.choice_value }}"
-              class="hidden peer"
-              {% if radio.choice_value == form.room_type.value %}checked{% endif %}
-            >
-
-            <!-- ICON -->
-            <span class="text-xl mt-0.5">
-              {% if radio.choice_value == "private" %}
-                🚪
-              {% elif radio.choice_value == "entire" %}
-                🏠
-              {% else %}
-                🛋️
-              {% endif %}
-            </span>
-
-            <!-- TEXT -->
-            <div>
-              <p class="font-medium text-gray-800">
-                {{ radio.choice_label }}
-              </p>
-              <p class="text-xs text-gray-500 mt-0.5">
-                {% if radio.choice_value == "private" %}
-                  Private room in a shared home
-                {% elif radio.choice_value == "entire" %}
-                  Entire flat or house
-                {% else %}
-                  Shared sleeping space
-                {% endif %}
-              </p>
+                type="radio"
+                name="room_type"
+                value="shared"
+                class="peer hidden"
+                {% if form.room_type.value == "shared" %}checked{% endif %}
+            />
+            <div class="p-4 rounded-xl border bg-white
+                        peer-checked:border-indigo-600
+                        peer-checked:ring-2 peer-checked:ring-indigo-500
+                        transition">
+                <p class="font-semibold">👥 Shared Room</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    Shared with others
+                </p>
             </div>
+        </label>
 
-          </label>
-          {% endfor %}
+        <!-- Entire -->
+        <label class="cursor-pointer">
+            <input
+                type="radio"
+                name="room_type"
+                value="entire"
+                class="peer hidden"
+                {% if form.room_type.value == "entire" %}checked{% endif %}
+            />
+            <div class="p-4 rounded-xl border bg-white
+                        peer-checked:border-indigo-600
+                        peer-checked:ring-2 peer-checked:ring-indigo-500
+                        transition">
+                <p class="font-semibold">🏠 Entire Flat</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    Whole apartment
+                </p>
+            </div>
+        </label>
 
-        </div>
+    </div>
 
-        {% if form.room_type.errors %}
-          <p class="text-red-500 text-sm mt-2">
-            {{ form.room_type.errors|striptags }}
-          </p>
-        {% endif %}
-      </div>
+    {% if form.room_type.errors %}
+        <p class="text-red-500 text-sm mt-2">
+            {{ form.room_type.errors.0 }}
+        </p>
+    {% endif %}
+</div>
+
+ 
+
 
       <!-- LOCATION -->
       <div>

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Saved Listings{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-8">
+
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800">Saved Listings</h1>
+        <p class="text-gray-500 mt-1">
+            Rooms you bookmarked
+        </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {% for saved in saved_listings %}
+        {% with listing=saved.listing %}
+        <a href="{% url 'buyer_listing_detail' listing.id %}"
+           class="group bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+
+            <!-- IMAGE -->
+            <div class="h-44 bg-gray-200 relative">
+                {% if listing.photos.first %}
+                    <img src="{{ listing.photos.first.image.url }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                        <i class="fa-solid fa-image text-3xl"></i>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- CONTENT -->
+            <div class="p-4 space-y-2">
+                <h3 class="font-semibold text-gray-800 truncate">
+                    {{ listing.title }}
+                </h3>
+
+                <p class="text-sm text-gray-500">
+                    {{ listing.city }} {{ listing.area }}
+                </p>
+
+                <p class="font-bold text-indigo-600">
+                    रु {{ listing.monthly_rent }} / month
+                </p>
+
+                <div class="pt-2 flex justify-between items-center text-sm">
+                    <span class="text-indigo-600 font-semibold">
+                        View →
+                    </span>
+
+                    <span class="flex gap-3 text-gray-500">
+                        ❤️
+                        🗨
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endwith %}
+        {% empty %}
+        <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
+            No saved listings yet.
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endblock %}

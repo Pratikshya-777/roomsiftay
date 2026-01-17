@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('task', 'merge_0012_conflict'),
+        ('task', '0002_conversation_message'),
     ]
 
     operations = [

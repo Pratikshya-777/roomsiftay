@@ -74,13 +74,22 @@ urlpatterns = [
     path("owner/listings/<int:pk>/", views.owner_listing_details, name="owner_listing_details"),
     path("owner/listings/<int:pk>/edit/", views.owner_edit_listing, name="owner_edit_listing"),
     path("owner/listings/<int:pk>/submit/", views.submit_listing, name="submit_listing"),
+
     path("chats/", views.chat_list, name="chat_list"),
     path("chat/start/<int:listing_id>/", views.start_chat, name="start_chat"),
     path("chat/<int:conversation_id>/", views.chat_room, name="chat_room"),
-
+    path("admin-dashboard/listing/<int:listing_id>/",views.admin_listing_detail,name="admin_listing_detail"),
+    
+    path("admin-dashboard/listings/",views.admin_listings,name="admin_listings"),
+     path("buyer/search-room/",views.buyer_search_room, name="buyer_search_room"),
     path('provide-review/', views.provide_review, name='provide_review'),
     path('all-reviews/', views.all_reviews, name='all_reviews'),
     path('resolve-report/<int:report_id>/', views.resolve_report, name='resolve_report'),
+    path("buyer/search/", views.buyer_search_room, name="buyer_search_room"),
+    path("buyer/listing/<int:listing_id>/", views.buyer_listing_detail, name="buyer_listing_detail"),
+    path("buyer/save/<int:listing_id>/", views.save_listing, name="save_listing"),
+    path("buyer/saved/", views.saved_listings, name="saved_listings"),
+
 ]
 
 
