@@ -27,17 +27,13 @@ class User(AbstractUser):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     image = models.ImageField(default='default.jpg', upload_to='profile_pics')
 
-# Add this to task/models.py
-class OwnerProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    auth_document = models.FileField(upload_to='documents/', null=True, blank=True)
-    is_verified = models.BooleanField(default=False)
 
 class OldListing(models.Model):
     title = models.CharField(max_length=200)
     # Status: use a red icon/dot in the template for 'Pending'
     status = models.CharField(max_length=20, default='Pending') 
-# Add this to task/models.py
+
+
 class OwnerProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     auth_document = models.FileField(upload_to='documents/', null=True, blank=True)
@@ -57,59 +53,41 @@ class OwnerProfile(models.Model):
 #         return f"Owner: {self.name}"
 
 
-class Listing(models.Model):
-    STATUS_CHOICES = [
-        ('Pending', 'Pending'),
-        ('Approved', 'Approved'),
-        ('Rejected', 'Rejected'),
-    ]
-
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='listings',
-        null=True,
-        blank=True
-    )
-    title = models.CharField(max_length=200)
-    def __str__(self):
-        return f"Profile for {self.user.email}"
-
-# class Owner(models.Model):
+class Owner(models.Model):
     
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='owner_profile')
-#     name = models.CharField(max_length=100) 
-#     is_verified = models.BooleanField(default=False)
-#     auth_proof = models.FileField(upload_to='owner_verifications/', null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='owner_profile')
+    name = models.CharField(max_length=100) 
+    is_verified = models.BooleanField(default=False)
+    auth_proof = models.FileField(upload_to='owner_verifications/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Owner: {self.name}"
+
+
+# class Listing(models.Model):
+#     STATUS_CHOICES = [
+#         ('Pending', 'Pending'),
+#         ('Approved', 'Approved'),
+#         ('Rejected', 'Rejected'),
+#     ]
+
+#     owner = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.CASCADE,
+#         related_name='listings',
+#         null=True,
+#         blank=True
+#     )
+#     title = models.CharField(max_length=200)
+#     is_available = models.BooleanField(default=True)
+#     status = models.CharField(
+#         max_length=20,
+#         choices=STATUS_CHOICES,
+#         default='Pending'
+#     )
+#     created_at = models.DateTimeField(auto_now_add=True)
 
 #     def __str__(self):
-#         return f"Owner: {self.name}"
-
-
-class Listing(models.Model):
-    STATUS_CHOICES = [
-        ('Pending', 'Pending'),
-        ('Approved', 'Approved'),
-        ('Rejected', 'Rejected'),
-    ]
-
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='listings',
-        null=True,
-        blank=True
-    )
-    title = models.CharField(max_length=200)
-    is_available = models.BooleanField(default=True)
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='Pending'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
         return self.title
 
 
