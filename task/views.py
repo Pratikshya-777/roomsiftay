@@ -17,7 +17,6 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 
-
 # @login_required
 def generate_otp():
     return str(random.randint(100000, 999999))
