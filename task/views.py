@@ -336,8 +336,7 @@ def report_issue(request):
 
     return render(request, 'task/report_issue.html')
 
-
-# @login_required
+@staff_member_required
 def admin_view(request):
     owners = Owner.objects.all() # Or however you fetch owners
     listings = Listing.objects.filter(
@@ -375,6 +374,7 @@ def admin_listing_detail(request, listing_id):
 
         if action == "approve":
             listing.status = "approved"
+            listing.is_active = True
             listing.admin_note = ""
             listing.save()
 
@@ -385,6 +385,7 @@ def admin_listing_detail(request, listing_id):
                     "error": "Rejection reason is required."
                 })
             listing.status = "rejected"
+            listing.is_active = False
             listing.admin_note = admin_note
             listing.save()
 
@@ -397,7 +398,7 @@ def admin_listing_detail(request, listing_id):
 @staff_member_required
 def admin_listings(request):
     listings = Listing.objects.filter(
-        status__in=["pending", "approved", "rejected"]
+        status__in=["pending"]
     ).order_by("-created_at")
 
     return render(request, "task/admin/admin_listings.html", {
@@ -683,17 +684,20 @@ def all_reviews(request):
 def owner_listing(request):
     drafts = Listing.objects.filter(
         owner=request.user,
-        status="draft"
+        status="draft",
+        is_active=True
     )
 
     pending = Listing.objects.filter(
         owner=request.user,
-        status="pending"
+        status="pending",
+        is_active=True
     )
 
     approved = Listing.objects.filter(
         owner=request.user,
-        status="approved"
+        status="approved",
+        is_active=True
     )
 
     return render(
@@ -705,6 +709,7 @@ def owner_listing(request):
             "approved": approved,
         }
     )
+
 
 @login_required
 def owner_listing_details(request, pk):
@@ -732,7 +737,7 @@ def submit_listing(request, pk):
     listing.status = "pending"
     listing.save()
 
-    return redirect("owner_listing_detail", pk=pk)
+    return redirect("owner_listing_details", pk=pk)
 
 @login_required
 def owner_edit_listing(request, pk):
@@ -886,7 +891,7 @@ def buyer_listing_detail(request, listing_id):
     })
 
 
-# 3️⃣ Save Listing
+#  Save Listing
 @login_required
 def save_listing(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id, status="approved")
@@ -897,7 +902,7 @@ def save_listing(request, listing_id):
     return redirect(request.META.get("HTTP_REFERER", "/"))
 
 
-# 4️⃣ Saved Listings Page
+# 4 Saved Listings Page
 @login_required
 def saved_listings(request):
     saved = SavedListing.objects.filter(
@@ -907,3 +912,18 @@ def saved_listings(request):
     return render(request, "task/buyer_search_room/saved_listings.html", {
         "saved_listings": saved
     })
+
+@login_required
+def delete_listing(request, listing_id):
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        owner=request.user
+    )
+
+    if request.method == "POST":
+        listing.soft_delete()
+
+    return redirect("owner_listing")
+
+

@@ -211,7 +211,18 @@ class Listing(models.Model):
 
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def is_visible_to_public(self):
+        return self.status == "approved" and self.is_active
+
+    def can_owner_edit(self):
+        return self.status in ["draft", "rejected"]
+
+    def soft_delete(self):
+        self.is_active = False
+        self.save()
 
     def __str__(self):
         return f"{self.title} ({self.get_status_display()})"

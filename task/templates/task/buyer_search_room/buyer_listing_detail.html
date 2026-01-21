@@ -17,12 +17,17 @@
 
     <!-- DETAILS -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-600 mb-10">
-        <p><span class="font-medium">Room Type:</span> {{ listing.get_room_type_display }}</p>
+        <p><span class="font-medium">Room Type:</span> {{ listing.room_type }}</p>
         <p><span class="font-medium">City:</span> {{ listing.city }}</p>
         <p><span class="font-medium">Area:</span> {{ listing.area }}</p>
         <p><span class="font-medium">Monthly Rent:</span> {{ listing.monthly_rent }}</p>
-        <p><span class="font-medium">Bedrooms:</span> {{ listing.bedrooms }}</p>
-        <p><span class="font-medium">Bathrooms:</span> {{ listing.bathrooms }}</p>
+        <p><span class="font-medium">Security Deposit:</span> {{ listing.security_deposit }}</p>
+        <p><span class="font-medium">Bedroom:</span> {{ listing.bedrooms }}</p>
+        <p><span class="font-medium">Bathroom:</span> {{ listing.bathrooms }}</p>
+        <p><span>🪑 Furnished: {{ listing.is_furnished|yesno:"Yes,No" }}</span></p>
+        <p><span>📶 WiFi: {{ listing.wifi_available|yesno:"Yes,No" }}</span></p>
+        <p><span>🚗 Parking: {{ listing.parking_available|yesno:"Yes,No" }}</span></p>
+        <p><span>💡 Utilities Included: {{ listing.utilities_included|yesno:"Yes,No" }}</span></p>
     </div>
 
     <!-- PHOTOS (SAME AS ADMIN) -->

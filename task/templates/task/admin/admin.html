@@ -4,6 +4,7 @@
 {% block nav_dashboard %}sidebar-active{% endblock %}
 
 {% block content %}
+<main>
 
 <!-- ================= OWNER + LISTINGS ================= -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -13,16 +14,12 @@
         <h3 class="text-2xl font-medium text-gray-600 mb-1">Owner Verification</h3>
         <div class="h-[2px] w-48 bg-orange-100 mb-8"></div>
 
-        <div class="flex justify-between text-gray-400 text-xs font-semibold mb-4 uppercase tracking-wider">
-            <span>Owner Name</span>
-            <span>Action</span>
-        </div>
-
         <div class="divide-y divide-gray-50">
             {% for owner in owners %}
             <div class="flex justify-between items-center py-5">
                 <span class="text-gray-500 text-lg">{{ owner.name }}</span>
-                <button class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold shadow-md hover:bg-blue-600">
+                <button type="button"
+                        class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold">
                     View Proof
                 </button>
             </div>
@@ -35,79 +32,109 @@
         <h3 class="text-2xl font-medium text-gray-600 mb-1">Manage Listings</h3>
         <div class="h-[2px] w-48 bg-blue-100 mb-8"></div>
 
-        <div class="flex justify-between text-gray-400 text-xs font-semibold mb-4 uppercase tracking-wider">
-            <div class="flex gap-12">
-                <span>Property Title</span>
-                <span>Status</span>
-            </div>
-            <span>Action</span>
-        </div>
-
         <div class="divide-y divide-gray-50">
             {% for listing in listings %}
             <div class="flex justify-between items-center py-5">
-                <div class="flex gap-12 items-center">
-                    <span class="text-gray-500 text-lg">{{ listing.title }}</span>
-                    <span class="w-3 h-3 bg-[#e06666] rounded-full border-4 border-red-100"></span>
-                </div>
+                <span class="text-gray-500 text-lg">{{ listing.title }}</span>
                 <a href="{% url 'admin_listings' %}"
-                   class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold shadow-md hover:bg-blue-600">
+                   class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold">
                     Manage
                 </a>
             </div>
             {% endfor %}
         </div>
     </div>
-
 </div>
 
 <!-- ================= REPORTS ================= -->
 <div class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-gray-100 mb-8">
     <h3 class="text-2xl font-medium text-gray-600 mb-1">Active Reports</h3>
-    <div class="h-[2px] w-64 bg-red-100 mb-2"></div>
+    <p class="text-gray-400 text-xs mb-8">Issues requiring immediate action</p>
 
     <div class="divide-y divide-gray-50">
         {% for report in pending_reports %}
-        <div class="flex justify-between items-center py-8">
+        <div class="flex justify-between items-center py-6">
             <div>
-                <span class="text-gray-800 font-semibold text-lg">{{ report.title }}</span>
+                <p class="font-semibold text-gray-800">{{ report.title }}</p>
                 <p class="text-gray-500">{{ report.description }}</p>
             </div>
-            <button onclick="resolveReport('{{ report.id }}')"
-                    class="bg-[#4a86e8] text-white px-6 py-2 rounded-xl text-xs font-bold uppercase">
+            <button
+                type="button"
+                onclick="resolveReport('{{ report.id }}')"
+                class="bg-[#4a86e8] text-white px-6 py-2 rounded-xl text-xs font-bold">
                 Verify
             </button>
         </div>
         {% empty %}
-        <div class="py-10 text-center text-gray-400 italic">No pending reports!</div>
+        <p class="text-gray-400 italic">No pending reports.</p>
         {% endfor %}
     </div>
 </div>
 
-{% endblock %}
+<!-- ================= ARCHIVE ================= -->
+<div class="bg-gray-50 p-8 rounded-[2rem] border border-gray-200">
+    <div class="flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-500">Verified History</h3>
+        <button type="button" onclick="toggleArchive()" id="archive-btn"
+                class="text-[#4a86e8] text-sm font-semibold">
+            Show Archive
+        </button>
+    </div>
 
-{% block extra_js %}
+    <div id="archive-content" class="hidden mt-6 divide-y divide-gray-200">
+        {% for report in verified_reports %}
+        <div class="py-4 opacity-70">
+            <p class="font-medium text-gray-600">{{ report.title }}</p>
+            <p class="text-gray-400 text-sm">{{ report.description }}</p>
+        </div>
+        {% empty %}
+        <p class="text-gray-400 text-sm">Archive is empty.</p>
+        {% endfor %}
+    </div>
+</div>
+
+</main>
+
+<!-- ================= SCRIPTS ================= -->
 <script>
-function resolveReport(reportId) {
-    if (!confirm("Confirm verification for this report?")) return;
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(cookie => {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        });
+    }
+    return cookieValue;
+}
 
-    fetch(`/resolve-report/${reportId}/`, {
-        method: 'POST',
+function resolveReport(reportId) {
+    if (!confirm("Confirm verification?")) return;
+
+        fetch("/resolve-report/" + reportId + "/", {
+        method: "POST",
         headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
         },
         body: JSON.stringify({ id: reportId })
     })
-    .then(r => r.json())
+    .then(res => res.json())
     .then(data => {
-        if (data.status === 'success') {
+        if (data.status === "success") {
             window.location.reload();
         } else {
-            alert("Error occurred");
+            alert("Verification failed");
         }
-    })
+    });
+}
+
+function toggleArchive() {
+    document.getElementById("archive-content").classList.toggle("hidden");
 }
 </script>
+
 {% endblock %}

@@ -89,6 +89,8 @@ urlpatterns = [
     path("buyer/listing/<int:listing_id>/", views.buyer_listing_detail, name="buyer_listing_detail"),
     path("buyer/save/<int:listing_id>/", views.save_listing, name="save_listing"),
     path("buyer/saved/", views.saved_listings, name="saved_listings"),
+        path("listing/delete/<int:listing_id>/",views.delete_listing,name="delete_listing"
+    ),
 
 ]
 
