@@ -6,12 +6,6 @@ from django.conf import settings
 
 
 class User(AbstractUser):
-    # username = models.CharField(
-    #     max_length=150,
-    #     unique=True,
-    #     null=True,
-    #     blank=True,
-    #             )
     email = models.EmailField(unique=True) # Email must be unique
     is_owner = models.BooleanField(default=False)
     is_user = models.BooleanField(default=False)
@@ -42,16 +36,6 @@ class OwnerProfile(models.Model):
     def __str__(self):
         return f"Profile for {self.user.email}"
 
-# class Owner(models.Model):
-    
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='owner_profile')
-#     name = models.CharField(max_length=100) 
-#     is_verified = models.BooleanField(default=False)
-#     auth_proof = models.FileField(upload_to='owner_verifications/', null=True, blank=True)
-
-#     def __str__(self):
-#         return f"Owner: {self.name}"
-
 
 class Owner(models.Model):
     
@@ -62,34 +46,6 @@ class Owner(models.Model):
 
     def __str__(self):
         return f"Owner: {self.name}"
-
-
-# class Listing(models.Model):
-#     STATUS_CHOICES = [
-#         ('Pending', 'Pending'),
-#         ('Approved', 'Approved'),
-#         ('Rejected', 'Rejected'),
-#     ]
-
-#     owner = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#         related_name='listings',
-#         null=True,
-#         blank=True
-#     )
-#     title = models.CharField(max_length=200)
-#     is_available = models.BooleanField(default=True)
-#     status = models.CharField(
-#         max_length=20,
-#         choices=STATUS_CHOICES,
-#         default='Pending'
-#     )
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-        return self.title
-
 
 class BuyerReport(models.Model):
     STATUS_CHOICES = [
@@ -186,6 +142,8 @@ class Listing(models.Model):
     city = models.CharField(max_length=100, null=True, blank=True)
     area = models.CharField(max_length=100, null=True, blank=True)
     full_address = models.TextField(blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     # STEP 2 — Pricing & Details
     monthly_rent = models.PositiveIntegerField(null=True, blank=True)

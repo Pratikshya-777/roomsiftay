@@ -6,215 +6,213 @@
 
   <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-8">
 
-    <!-- Header -->
+    <!-- HEADER -->
     <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900">
-        🏷️ Add New Listing
-      </h1>
-      <p class="text-sm text-gray-600 mt-1">
-        Step 1 of 4 · Basic Information
-      </p>
+      <h1 class="text-2xl font-bold text-gray-900">🏷️ Add New Listing</h1>
+      <p class="text-sm text-gray-600 mt-1">Step 1 of 4 · Basic Information</p>
 
       <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
         <div class="bg-indigo-600 h-2 rounded-full w-1/4"></div>
       </div>
     </div>
 
-    <!-- FORM -->
-    <form method="post" class="space-y-6">
+    <form method="post" class="space-y-8">
       {% csrf_token %}
-      {{ form.non_field_errors }}
 
-      <!-- Listing Title -->
+      <!-- LISTING TITLE -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <label class="text-sm font-medium text-gray-700 mb-1 block">
           📝 Listing Title <span class="text-red-500">*</span>
         </label>
         {{ form.title }}
       </div>
 
       <!-- ROOM TYPE -->
+<!-- ROOM TYPE -->
+<div>
+  <label class="text-sm font-medium text-gray-700 mb-3 block">
+    🚪 Room Type <span class="text-red-500">*</span>
+  </label>
 
-    <!-- <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-  {% for radio in form.room_type %}
-    RADIO INPUT (Django-generated) -->
-    <!-- {{ radio.tag|safe }} -->
-
-    <!-- CLICKABLE CARD -->
-    <!-- <label
-      for="{{ radio.id_for_label }}"
-      class="flex items-start gap-3 p-4 border rounded-xl cursor-pointer
-             transition hover:border-gray-400
-             peer-checked:border-indigo-600
-             peer-checked:bg-indigo-50"> -->
-
-      <!-- ICON -->
-      <!-- <span class="text-xl mt-0.5">
-        {% if radio.choice_value == "private" %}
-          🚪
-        {% elif radio.choice_value == "entire" %}
-          🏠
-        {% else %}
-          🛋️
-        {% endif %}
-      </span> -->
-
-      <!-- TEXT -->
-      <!-- <div>
-        <p class="font-medium text-gray-800">
-          {{ radio.choice_label }}
+    <!-- Private -->
+    <label class="cursor-pointer">
+      <input type="radio" name="room_type" value="private"
+             class="peer hidden"
+             {% if form.room_type.value == "private" %}checked{% endif %}>
+      <div class="p-4 rounded-xl border bg-white
+                  peer-checked:border-indigo-600
+                  peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+        <p class="font-semibold">🚪 Private Room</p>
+        <p class="text-xs text-gray-500 mt-1">
+          Private room in a shared home
         </p>
-        <p class="text-xs text-gray-500 mt-0.5">
-          {% if radio.choice_value == "private" %}
-            Private room in a shared home
-          {% elif radio.choice_value == "entire" %}
-            Entire flat or house
-          {% else %}
-            Shared sleeping space
-          {% endif %}
-        </p>
-      </div> -->
-
-    <!-- </label>
-  {% endfor %} -->
-
-<!-- </div> --> 
- <div>
-    <label class="block text-sm font-medium text-gray-700 mb-2">
-        Room Type <span class="text-red-500">*</span>
+      </div>
     </label>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-
-        <!-- Private -->
-        <label class="cursor-pointer">
-            <input
-                type="radio"
-                name="room_type"
-                value="private"
-                class="peer hidden"
-                {% if form.room_type.value == "private" %}checked{% endif %}
-            />
-            <div class="p-4 rounded-xl border bg-white
-                        peer-checked:border-indigo-600
-                        peer-checked:ring-2 peer-checked:ring-indigo-500
-                        transition">
-                <p class="font-semibold">🚪 Private Room</p>
-                <p class="text-xs text-gray-500 mt-1">
-                    Private room in a shared home
-                </p>
-            </div>
-        </label>
-
-        <!-- Shared -->
-        <label class="cursor-pointer">
-            <input
-                type="radio"
-                name="room_type"
-                value="shared"
-                class="peer hidden"
-                {% if form.room_type.value == "shared" %}checked{% endif %}
-            />
-            <div class="p-4 rounded-xl border bg-white
-                        peer-checked:border-indigo-600
-                        peer-checked:ring-2 peer-checked:ring-indigo-500
-                        transition">
-                <p class="font-semibold">👥 Shared Room</p>
-                <p class="text-xs text-gray-500 mt-1">
-                    Shared with others
-                </p>
-            </div>
-        </label>
-
-        <!-- Entire -->
-        <label class="cursor-pointer">
-            <input
-                type="radio"
-                name="room_type"
-                value="entire"
-                class="peer hidden"
-                {% if form.room_type.value == "entire" %}checked{% endif %}
-            />
-            <div class="p-4 rounded-xl border bg-white
-                        peer-checked:border-indigo-600
-                        peer-checked:ring-2 peer-checked:ring-indigo-500
-                        transition">
-                <p class="font-semibold">🏠 Entire Flat</p>
-                <p class="text-xs text-gray-500 mt-1">
-                    Whole apartment
-                </p>
-            </div>
-        </label>
-
-    </div>
-
-    {% if form.room_type.errors %}
-        <p class="text-red-500 text-sm mt-2">
-            {{ form.room_type.errors.0 }}
+    <!-- Shared -->
+    <label class="cursor-pointer">
+      <input type="radio" name="room_type" value="shared"
+             class="peer hidden"
+             {% if form.room_type.value == "shared" %}checked{% endif %}>
+      <div class="p-4 rounded-xl border bg-white
+                  peer-checked:border-indigo-600
+                  peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+        <p class="font-semibold">👥 Shared Room</p>
+        <p class="text-xs text-gray-500 mt-1">
+          Shared with others
         </p>
-    {% endif %}
+      </div>
+    </label>
+
+    <!-- Entire -->
+    <label class="cursor-pointer">
+      <input type="radio" name="room_type" value="entire"
+             class="peer hidden"
+             {% if form.room_type.value == "entire" %}checked{% endif %}>
+      <div class="p-4 rounded-xl border bg-white
+                  peer-checked:border-indigo-600
+                  peer-checked:ring-2 peer-checked:ring-indigo-500 transition">
+        <p class="font-semibold">🏠 Entire Flat</p>
+        <p class="text-xs text-gray-500 mt-1">
+          Whole apartment
+        </p>
+      </div>
+    </label>
+
+  </div>
 </div>
 
- 
 
+      <!-- LOCATION (SAME BOX) -->
+      <div class="pt-6 border-t space-y-5">
 
-      <!-- LOCATION -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          📍 Location <span class="text-red-500">*</span>
-        </label>
+        <div class="flex items-center gap-2">
+          <span class="text-lg">📍</span>
+          <h2 class="font-semibold text-gray-900">Location</h2>
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm text-gray-600 mb-1">
-              City
-            </label>
+            <label class="text-sm text-gray-600 mb-1 block">City</label>
             {{ form.city }}
           </div>
 
           <div>
-            <label class="block text-sm text-gray-600 mb-1">
-              Area / Neighborhood
-            </label>
+            <label class="text-sm text-gray-600 mb-1 block">Area / Neighborhood</label>
             {{ form.area }}
           </div>
         </div>
-      </div>
 
-      <!-- FULL ADDRESS -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-          🗺️ Full Address (Optional)
-        </label>
-        {{ form.full_address }}
-        <p class="text-xs text-gray-500 mt-1">
-          This will not be shown publicly.
-        </p>
+        <!-- ADDRESS SEARCH -->
+        <div class="relative">
+          <label class="text-sm text-gray-600 mb-1 block">Full Address</label>
+          {{ form.full_address }}
+
+          <ul id="address-suggestions"
+              class="absolute z-30 w-full bg-white border rounded-xl mt-1
+                     shadow-lg hidden max-h-52 overflow-y-auto"></ul>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Start typing and select your address
+          </p>
+        </div>
+
+        <!-- MAP (SMALL & CLEAN) -->
+        <div id="map-section" class="hidden">
+          <div class="rounded-xl overflow-hidden border">
+            <div class="px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50">
+              📌 Adjust pin if needed
+            </div>
+            <div id="map" style="height: 160px;"></div>
+          </div>
+        </div>
+
       </div>
 
       <!-- FOOTER -->
       <div class="flex items-center justify-between pt-6 border-t">
         <a href="{% url 'owner_dashboard' %}"
-           class="text-sm text-gray-600 hover:text-gray-900">
+           class="text-sm text-gray-500 hover:text-gray-800">
           Cancel
         </a>
 
-        <button
-          type="submit"
-          class="inline-flex items-center px-6 py-3 rounded-xl
-                 bg-indigo-600 text-white font-semibold
+        <button type="submit"
+          class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold
                  hover:bg-indigo-700 transition">
           Save & Continue →
         </button>
       </div>
 
-      <p class="text-xs text-gray-500 text-center mt-4">
-        You can edit all details later.
+      <p class="text-xs text-gray-400 text-center">
+        You can edit everything later.
       </p>
 
     </form>
-
   </div>
 </div>
+
+<script>
+const addressInput = document.getElementById("id_full_address");
+const suggestions = document.getElementById("address-suggestions");
+const mapSection = document.getElementById("map-section");
+
+let map, marker;
+
+async function searchPlaces(q) {
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
+  return r.json();
+}
+
+async function reverseGeocode(lat, lon) {
+  const r = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+  );
+  const data = await r.json();
+  if (data.display_name) addressInput.value = data.display_name;
+}
+
+addressInput.addEventListener("input", async () => {
+  if (addressInput.value.length < 3) {
+    suggestions.classList.add("hidden");
+    return;
+  }
+
+  const places = await searchPlaces(addressInput.value);
+  suggestions.innerHTML = "";
+
+  places.slice(0,5).forEach(p => {
+    const li = document.createElement("li");
+    li.textContent = p.display_name;
+    li.className = "px-4 py-2 text-sm cursor-pointer hover:bg-gray-100";
+    li.onclick = () => selectPlace(p);
+    suggestions.appendChild(li);
+  });
+
+  suggestions.classList.remove("hidden");
+});
+
+function selectPlace(place) {
+  addressInput.value = place.display_name;
+  suggestions.classList.add("hidden");
+
+  const lat = +place.lat, lon = +place.lon;
+  mapSection.classList.remove("hidden");
+
+  if (!map) {
+    map = L.map("map").setView([lat, lon], 15);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+
+    marker.on("dragend", () => {
+      const pos = marker.getLatLng();
+      reverseGeocode(pos.lat, pos.lng);
+    });
+  } else {
+    map.setView([lat, lon], 15);
+    marker.setLatLng([lat, lon]);
+  }
+}
+</script>
 {% endblock %}

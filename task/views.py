@@ -1,18 +1,16 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout
+from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout as auth_logout
 from .forms import CustomUserCreationForm, ListingForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form,MessageForm
 from django.conf import settings
 from django.contrib import messages
-from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message,SavedListing
+from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message,SavedListing,Review
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from .models import Review
 from django.core.paginator import Paginator
 
 
@@ -78,16 +76,13 @@ def login_view(request):
             else:
                 request.session.set_expiry(0)  # Browser close
 
-            # IMPORTANT: This redirect MUST be inside the 'if user' block
             return redirect("role_redirect")
 
         else:
-            # If authentication fails, show the error
             return render(request, "task/login.html", {
                 "error": "Invalid email or password"
             })
 
-    # If it's a GET request, just show the login page
     return render(request, "task/login.html")
 
 
@@ -216,9 +211,6 @@ def resend_otp(request):
     messages.success(request, "A new OTP has been sent to your email.")
     return redirect("verify_otp")
 
-# def user_dashboard(request):
-#     return render(request, "task/user_dashboard.html")
-
 def register(request):
     if request.method == "POST":
         data = request.POST.copy()
@@ -305,10 +297,6 @@ def buyer(request):
 def saved_listings(request):
     # Logic to fetch user's saved items will go here later
     return render(request, 'task/saved_listings.html')
-
-# @login_required
-# def submit_review(request):
-#     return render(request, 'task/review.html')
 
 @login_required
 def report_issue(request):
@@ -486,8 +474,6 @@ def buyer_profile(request):
 def forgot_password(request):
     return render(request, "task/forgot_password.html")
 
-
-
 def reset_password(request):
     return render(request, "task/reset_password.html")
 
@@ -518,15 +504,19 @@ def logout(request):
 
 @login_required
 def owner_add_listingstep1(request):
+    listing_id = request.session.get("listing_id")
+    listing = None
+
+    if listing_id:
+        listing = Listing.objects.filter(
+            id=listing_id, owner=request.user
+        ).first()
         if request.method == "POST":
-            form = ListingStep1Form(request.POST)
+            form = ListingStep1Form(request.POST, instance=listing)
             if form.is_valid():
                 listing = form.save(commit=False)
-
-            # attach owner
                 listing.owner = request.user  # adjust if you use a profile
                 listing.status = "draft"
-
                 listing.save()
 
             # store listing id in session
@@ -534,7 +524,7 @@ def owner_add_listingstep1(request):
 
                 return redirect("owner_add_listingstep2")
         else:
-            form = ListingStep1Form()
+            form = ListingStep1Form( initial=listing)
         return render(request, "task/owner_add_listing/owner_add_listingstep1.html" , {"form": form})
 
 def owner_add_listingstep2(request):
@@ -571,7 +561,6 @@ def owner_add_listingstep3(request):
         proof = request.FILES.get("proof_photo")
         confirm = request.POST.get("confirm_photos")
 
-        # 🔍 Debug (remove later)
         print("FILES:", request.FILES)
 
         if len(photos) < 3:

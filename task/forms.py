@@ -52,18 +52,14 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 
 class ListingStep1Form(forms.ModelForm):
-    # ROOM_TYPE_CHOICES = [
-    #     ("private", "Private Room"),
-    #     ("entire", "Entire Place"),
-    #     ("shared", "Shared Room"),
-    # ]
-
-    # room_type = forms.CharField(
-    #     max_length=50,
-    #     choices=ROOM_TYPE_CHOICES,
-    #     # widget=forms.RadioSelect,
-    #     # required=True
-        # )
+    latitude = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    longitude = forms.DecimalField(
+        required=False,
+        widget=forms.HiddenInput()
+    )
     class Meta:
         model = Listing
         fields = [
@@ -72,6 +68,8 @@ class ListingStep1Form(forms.ModelForm):
             "city",
             "area",
             "full_address",
+            "latitude",
+            "longitude",
         ]
 
         widgets = {
