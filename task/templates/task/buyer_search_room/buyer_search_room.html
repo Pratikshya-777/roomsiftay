@@ -1,100 +1,107 @@
 {% extends "base.html" %}
 {% block title %}Search Rooms{% endblock %}
-
 {% block content %}
 
-<!-- Header -->
 <div class="mb-10">
-    <h1 class="text-4xl font-bold">Find rooms</h1>
-    <p class="text-gray-500 mt-2">
-        Verified rooms from trusted owners
-    </p>
+    <h1 class="text-3xl font-bold">Find rooms</h1>
+    <p class="text-gray-500">Search rooms by price, location or map</p>
 </div>
 
-<!-- Search and Filters Form -->
-<form id="filtersForm" method="get" action="{% url 'buyer_search_room' %}" class="mb-12 space-y-6">
-    <!-- Search Bar -->
-    <div class="relative max-w-xl">
-        <input
-            type="text"
-            name="q"
-            value="{{ request.GET.q }}"
-            placeholder="Search city or area (Pokhara, Lakeside...)"
-            class="w-full pl-12 pr-4 py-4 rounded-full border shadow-sm focus:ring-2 focus:ring-slate-900 outline-none"
-        >
+<form id="filtersForm" method="get" action="{% url 'buyer_search_room' %}" class="mb-10 space-y-5">
+
+    <!-- SEARCH BAR -->
+    <div class="relative max-w-2xl">
+        <input type="text" name="q" value="{{ q }}"
+               placeholder="Search city or area"
+               class="w-full pl-12 pr-4 py-4 rounded-full border shadow-sm focus:ring-2 focus:ring-slate-900 outline-none">
         <span class="absolute left-4 top-4 text-gray-400 text-xl">🔍</span>
     </div>
 
-    <!-- Filters as Dropdowns -->
-    <div class="flex flex-wrap gap-3">
-        <!-- Location Dropdown -->
-        <div class="relative">
-            <button type="button" onclick="toggleDropdown('locationDropdown')" class="bg-white border px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
-                Location
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="locationDropdown" class="hidden absolute z-10 mt-2 bg-white border rounded-lg shadow-lg p-4 w-64">
-                <select name="location" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-slate-900 outline-none mb-2">
-                    <option value="">Select location</option>
-                    <option value="Pokhara" {% if request.GET.location == 'Pokhara' %}selected{% endif %}>Pokhara</option>
-                    <option value="Lakeside" {% if request.GET.location == 'Lakeside' %}selected{% endif %}>Lakeside</option>
-                    <option value="Kathmandu" {% if request.GET.location == 'Kathmandu' %}selected{% endif %}>Kathmandu</option>
-                    <option value="Butwal" {% if request.GET.location == 'Butwal' %}selected{% endif %}>Butwal</option>
-                </select>
-                <button type="button" class="text-sm text-blue-600 hover:underline">📍 Use my location</button>
-            </div>
-        </div>
+    <!-- FILTER BAR -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border">
+        <div class="flex flex-wrap gap-3 items-center">
 
-        <!-- Price Range Dropdown -->
-        <div class="relative">
-            <button type="button" onclick="toggleDropdown('priceDropdown')" class="bg-white border px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
-                Price Range
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="priceDropdown" class="hidden absolute z-10 mt-2 bg-white border rounded-lg shadow-lg p-4 w-64">
-                <div class="flex gap-2 items-center">
-                    <input type="number" name="min_price" id="min_price" value="{{ request.GET.min_price }}" placeholder="Min"
-                        class="w-1/2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-slate-900 outline-none" oninput="updatePriceRange()">
-                    <span>-</span>
-                    <input type="number" name="max_price" id="max_price" value="{{ request.GET.max_price }}" placeholder="Max"
-                        class="w-1/2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-slate-900 outline-none" oninput="updatePriceRange()">
-                </div>
-                <div id="priceRangeDisplay" class="mt-2 text-sm text-gray-500"></div>
-            </div>
-        </div>
+            <!-- Location -->
+            <select name="location"
+                    class="border px-4 py-2 rounded-lg hover:border-slate-900 cursor-pointer">
+                <option value="">Location</option>
+                <option value="Pokhara" {% if location == "Pokhara" %}selected{% endif %}>Pokhara</option>
+                <option value="Lakeside" {% if location == "Lakeside" %}selected{% endif %}>Lakeside</option>
+                <option value="Kathmandu" {% if location == "Kathmandu" %}selected{% endif %}>Kathmandu</option>
+                <option value="Butwal" {% if location == "Butwal" %}selected{% endif %}>Butwal</option>
+            </select>
 
-        <!-- Room Type Dropdown -->
-        <div class="relative">
-            <button type="button" onclick="toggleDropdown('roomTypeDropdown')" class="bg-white border px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
-                Room Type
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div id="roomTypeDropdown" class="hidden absolute z-10 mt-2 bg-white border rounded-lg shadow-lg p-4 w-56">
-                <div class="space-y-2">
-                    <label class="flex items-center">
-                        <input type="radio" name="room_type" value="single" {% if request.GET.room_type == 'single' %}checked{% endif %} class="mr-2">
-                        <span class="text-sm">Single Room</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="radio" name="room_type" value="private" {% if request.GET.room_type == 'private' %}checked{% endif %} class="mr-2">
-                        <span class="text-sm">Private Room</span>
-                    </label>
-                    <label class="flex items-center">
-                        <input type="radio" name="room_type" value="shared" {% if request.GET.room_type == 'shared' %}checked{% endif %} class="mr-2">
-                        <span class="text-sm">Shared Room</span>
-                    </label>
-                </div>
-            </div>
-        </div>
+            <!-- Price -->
+            <input type="number" name="min_price" value="{{ min_price }}"
+                   placeholder="Min price"
+                   class="border px-4 py-2 rounded-lg hover:border-slate-900">
 
-        <!-- Apply Filters Button -->
-        <button type="submit" class="bg-slate-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-slate-800">
-            Apply Filters
-        </button>
+            <input type="number" name="max_price" value="{{ max_price }}"
+                   placeholder="Max price"
+                   class="border px-4 py-2 rounded-lg hover:border-slate-900">
+
+            <!-- Room type -->
+            <select name="room_type"
+                    class="border px-4 py-2 rounded-lg hover:border-slate-900 cursor-pointer">
+                <option value="">Room type</option>
+                <option value="private" {% if room_type == "private" %}selected{% endif %}>Private</option>
+                <option value="entire" {% if room_type == "entire" %}selected{% endif %}>Entire</option>
+                <option value="shared" {% if room_type == "shared" %}selected{% endif %}>Shared</option>
+            </select>
+
+            <!-- Map buttons -->
+            <button type="button" id="openMapBtn"
+                class="border px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                Search through map
+            </button>
+
+            <button type="button" id="useMyLocationBtn"
+                class="border px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                Use my location
+            </button>
+
+            <button type="submit"
+                class="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-black transition">
+                Apply Filters
+            </button>
+
+            <button type="button" id="clearFiltersBtn"
+                class="border px-4 py-2 rounded-lg hover:bg-red-50 hover:border-red-400 transition">
+                Clear filters
+            </button>
+
+        </div>
     </div>
+
+    <input type="hidden" name="lat" id="latInput" value="{{ lat }}">
+    <input type="hidden" name="lng" id="lngInput" value="{{ lng }}">
+    <input type="hidden" name="radius_km" id="radiusInput" value="{{ radius_km|default:'3' }}">
 </form>
 
-<!-- Listings -->
+
+<!-- MAP MODAL -->
+<div id="mapModal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white w-[90%] max-w-4xl rounded-xl overflow-hidden">
+
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="font-semibold">Search through map</h3>
+            <button id="closeMapBtn" class="text-xl hover:text-red-500">✕</button>
+        </div>
+
+        <div id="map" class="h-[500px]"></div>
+
+        <div class="p-4 border-t text-right">
+            <button id="applyMapFilterBtn"
+                class="bg-slate-900 text-white px-5 py-2 rounded-lg hover:bg-black transition">
+                Apply Map Filter
+            </button>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- LISTINGS GRID -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
 {% for listing in listings %}
@@ -102,75 +109,97 @@
 
     {% with listing.photos.first as photo %}
         {% if photo %}
-            <img src="{{ photo.image.url }}" class="h-56 w-full object-cover">
+            <img src="{{ photo.image.url }}"
+                 class="h-56 w-full object-cover">
         {% else %}
-            <div class="h-56 bg-gray-200 flex items-center justify-center text-gray-400">
+            <div class="h-56 bg-gray-200 flex items-center justify-center">
                 No Image
             </div>
         {% endif %}
     {% endwith %}
 
     <div class="p-5">
-        <h3 class="text-lg font-semibold">
-            {{ listing.title }}
-        </h3>
+        <h3 class="font-semibold text-lg">{{ listing.title }}</h3>
 
-        <p class="text-sm text-gray-500">
-            📍 {{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}
+        <p class="text-gray-500">
+            {{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}
         </p>
 
-        <p class="text-xl font-bold mt-2">
-            Rs. {{ listing.monthly_rent }}
-        </p>
+        <p class="font-bold mt-2 text-lg">Rs. {{ listing.monthly_rent }}</p>
 
-        <div class="mt-4 flex justify-between items-center">
-            <a href="{% url 'buyer_listing_detail' listing.id %}"
-               class="font-semibold hover:underline">
-                View →
-            </a>
-
-            <a href="{% url 'save_listing' listing.id %}"
-               class="text-xl hover:text-red-500">
-                ❤️
-            </a>
-        </div>
+        <a href="{% url 'buyer_listing_detail' listing.id %}"
+           class="inline-block mt-3 text-slate-900 font-semibold hover:underline">
+            View details →
+        </a>
     </div>
 </div>
 {% endfor %}
 
 </div>
 
+
 <script>
-function updatePriceRange() {
-    const min = document.getElementById('min_price').value;
-    const max = document.getElementById('max_price').value;
-    let text = '';
-    if (min && max) {
-        text = `Showing rooms from Rs. ${min} to Rs. ${max}`;
-    } else if (min) {
-        text = `Showing rooms from Rs. ${min}`;
-    } else if (max) {
-        text = `Showing rooms up to Rs. ${max}`;
-    }
-    document.getElementById('priceRangeDisplay').textContent = text;
+let map=null, marker=null, markers=[];
+
+function openMap(){
+    mapModal.classList.remove('hidden');
+
+    setTimeout(()=>{
+        if(!map){
+            map=L.map('map').setView([28.2096,83.9856],12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            map.on('click',e=>{
+                if(marker) marker.setLatLng(e.latlng);
+                else marker=L.marker(e.latlng).addTo(map);
+
+                latInput.value=e.latlng.lat.toFixed(6);
+                lngInput.value=e.latlng.lng.toFixed(6);
+            });
+
+            /* LISTING MARKERS WITH IMAGE POPUP */
+            {% for listing in listings %}
+            {% if listing.latitude and listing.longitude %}
+            markers.push(
+                L.marker([{{listing.latitude}}, {{listing.longitude}}]).addTo(map)
+                .bindPopup(`
+                    <a href="{% url 'buyer_listing_detail' listing.id %}">
+                        {% with listing.photos.first as photo %}
+                            {% if photo %}
+                                <img src="{{ photo.image.url }}"
+                                     style="width:200px;height:140px;object-fit:cover;border-radius:12px;">
+                            {% endif %}
+                        {% endwith %}
+                    </a>
+                `)
+            );
+            {% endif %}
+            {% endfor %}
+
+            if(markers.length){
+                const group=L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.2));
+            }
+
+        } else map.invalidateSize();
+    },300);
 }
 
-function toggleDropdown(id) {
-    document.querySelectorAll('.relative .absolute').forEach(el => {
-        if (el.id !== id) el.classList.add('hidden');
+openMapBtn.onclick=openMap;
+closeMapBtn.onclick=()=>mapModal.classList.add('hidden');
+applyMapFilterBtn.onclick=()=>filtersForm.submit();
+
+useMyLocationBtn.onclick=function(){
+    if(!navigator.geolocation){ alert("Geolocation not supported"); return; }
+
+    navigator.geolocation.getCurrentPosition(pos=>{
+        latInput.value=pos.coords.latitude.toFixed(6);
+        lngInput.value=pos.coords.longitude.toFixed(6);
+        filtersForm.submit();
     });
-    const dropdown = document.getElementById(id);
-    if (dropdown) dropdown.classList.toggle('hidden');
 }
 
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.relative')) {
-        document.querySelectorAll('.relative .absolute').forEach(el => el.classList.add('hidden'));
-    }
-});
-
-// Initialize price range display on page load
-window.addEventListener('DOMContentLoaded', updatePriceRange);
+clearFiltersBtn.onclick=()=>window.location.href="{% url 'buyer_search_room' %}";
 </script>
 
 {% endblock %}

@@ -11,8 +11,9 @@ from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.db.models import Q
 from django.core.paginator import Paginator
-
+import math
 
 @login_required
 def generate_otp():
@@ -22,7 +23,6 @@ User = get_user_model()
 
 def home(request):
     return render(request, 'task/index.html')
-
 
 def contact(request):
     if request.method == "POST":
@@ -58,7 +58,6 @@ def contact(request):
 def about(request):
     return render(request, 'task/about.html')
 
-
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -84,7 +83,6 @@ def login_view(request):
             })
 
     return render(request, "task/login.html")
-
 
 @login_required
 def owner_dashboard(request):
@@ -156,7 +154,6 @@ def verification_page(request):
 
 def forgot_password(request):
     return render(request, "task/forgot_password.html")
-
 
 def verify_otp(request):
     # user id stored in session during registration
@@ -492,8 +489,6 @@ def resolve_report(request, report_id):
         #     text=f"Hello! Your report on '{report.title}' has been verified by the admin."
         # )
 
-
-
         return JsonResponse({'status': 'success'})
     except BuyerReport.DoesNotExist:
         return JsonResponse({'status': 'error'}, status=404)
@@ -511,21 +506,36 @@ def owner_add_listingstep1(request):
         listing = Listing.objects.filter(
             id=listing_id, owner=request.user
         ).first()
-        if request.method == "POST":
-            form = ListingStep1Form(request.POST, instance=listing)
-            if form.is_valid():
-                listing = form.save(commit=False)
-                listing.owner = request.user  # adjust if you use a profile
-                listing.status = "draft"
-                listing.save()
+
+    if request.method == "POST":
+        form = ListingStep1Form(request.POST, instance=listing)
+
+    if form.is_valid():
+        listing = form.save(commit=False)
+
+    # attach owner
+        listing.owner = request.user
+        listing.status = "draft"
+
+        listing.latitude = form.cleaned_data.get("latitude")
+        listing.longitude = form.cleaned_data.get("longitude")
+
+        listing.save()
+
 
             # store listing id in session
-                request.session["listing_id"] = listing.id
+        request.session["listing_id"] = listing.id
 
-                return redirect("owner_add_listingstep2")
-        else:
-            form = ListingStep1Form( initial=listing)
-        return render(request, "task/owner_add_listing/owner_add_listingstep1.html" , {"form": form})
+        return redirect("owner_add_listingstep2")
+
+    else:
+        form = ListingStep1Form(instance=listing)
+
+    return render(request,
+        "task/owner_add_listing/owner_add_listingstep1.html",
+        {"form": form},
+    )
+
 
 def owner_add_listingstep2(request):
     listing_id = request.session.get("listing_id")
@@ -570,16 +580,12 @@ def owner_add_listingstep3(request):
         if not confirm:
             messages.error(request, "Please confirm the photos.")
             return redirect("owner_add_listingstep3")
-
-        # Save room photos
         for image in photos:
             ListingPhoto.objects.create(
                 listing=listing,
                 image=image,
                 is_proof=False
             )
-
-        # Save proof photo (optional)
         if proof:
             ListingPhoto.objects.create(
                 listing=listing,
@@ -843,20 +849,97 @@ def chat_room(request, conversation_id):
     })
 
 def buyer_search_room(request):
-    query = request.GET.get("q", "")
+    query = request.GET.get("q", "").strip()
+    location = request.GET.get("location", "").strip()
+    room_type = request.GET.get("room_type", "").strip()
+    min_price = request.GET.get("min_price", "").strip()
+    max_price = request.GET.get("max_price", "").strip()
 
-    listings = Listing.objects.filter(status="approved").prefetch_related("photos")
+    lat = request.GET.get("lat", "").strip()
+    lng = request.GET.get("lng", "").strip()
+    radius_km = request.GET.get("radius_km", "").strip()
+
+    listings = Listing.objects.filter(
+        status="approved",
+        is_active=True
+    ).prefetch_related("photos")
 
     if query:
         listings = listings.filter(
-            city__icontains=query
-        ) | listings.filter(
-            area__icontains=query
-        )
+        Q(city__icontains=query) | Q(area__icontains=query)
+    )
+
+    if location:
+        listings = listings.filter(
+        Q(city__icontains=location) | Q(area__icontains=location)
+    )
+
+
+    if room_type:
+        listings = listings.filter(room_type=room_type)
+
+    if min_price:
+        try:
+            listings = listings.filter(monthly_rent__gte=int(min_price))
+        except ValueError:
+            pass
+
+    if max_price:
+        try:
+            listings = listings.filter(monthly_rent__lte=int(max_price))
+        except ValueError:
+            pass
+
+    # Map-based filtering (lat/lng + radius_km)
+    def haversine_km(lat1, lon1, lat2, lon2):
+        r = 6371
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+        return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    if lat and lng and radius_km:
+        try:
+            lat_f = float(lat)
+            lng_f = float(lng)
+            radius_f = float(radius_km)
+
+            # rough bounding box first (faster)
+            lat_delta = radius_f / 111.0
+            lng_delta = radius_f / (111.0 * math.cos(math.radians(lat_f)) or 1)
+
+            listings = listings.filter(
+                latitude__isnull=False,
+                longitude__isnull=False,
+                latitude__gte=lat_f - lat_delta,
+                latitude__lte=lat_f + lat_delta,
+                longitude__gte=lng_f - lng_delta,
+                longitude__lte=lng_f + lng_delta,
+            )
+
+            filtered = []
+            for l in listings:
+                if l.latitude is None or l.longitude is None:
+                    continue
+                dist = haversine_km(lat_f, lng_f, float(l.latitude), float(l.longitude))
+                if dist <= radius_f:
+                    filtered.append(l)
+            listings = filtered
+
+        except ValueError:
+            pass
 
     context = {
         "listings": listings,
-        "query": query,
+        "q": query,
+        "location": location,
+        "room_type": room_type,
+        "min_price": min_price,
+        "max_price": max_price,
+        "lat": lat,
+        "lng": lng,
+        "radius_km": radius_km,
     }
 
     return render(request, "task/buyer_search_room/buyer_search_room.html", context)
