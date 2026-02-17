@@ -451,6 +451,10 @@ def buyer_profile(request):
             )
             if profile_form.is_valid():
                 profile_form.save()
+                request.user.first_name = request.POST.get("first_name")
+                request.user.last_name = request.POST.get("last_name")
+                request.user.save()
+
                 return redirect("buyer_profile")
 
         # CHANGE password
@@ -849,12 +853,13 @@ def chat_room(request, conversation_id):
     })
 
 def buyer_search_room(request):
-    query = request.GET.get("q", "").strip()
+    # .strip() removes spaces. So if user types " Pokhara " → becomes "Pokhara".
+    query = request.GET.get("q", "").strip() 
     location = request.GET.get("location", "").strip()
     room_type = request.GET.get("room_type", "").strip()
     min_price = request.GET.get("min_price", "").strip()
     max_price = request.GET.get("max_price", "").strip()
-
+    sort = request.GET.get("sort", "").strip()
     lat = request.GET.get("lat", "").strip()
     lng = request.GET.get("lng", "").strip()
     radius_km = request.GET.get("radius_km", "").strip()
@@ -866,7 +871,7 @@ def buyer_search_room(request):
 
     if query:
         listings = listings.filter(
-        Q(city__icontains=query) | Q(area__icontains=query)
+        Q(city__icontains=query) | Q(area__icontains=query) #Q is OR condition without Q city and area must match but with Q city or area match
     )
 
     if location:
@@ -890,7 +895,6 @@ def buyer_search_room(request):
         except ValueError:
             pass
 
-    # Map-based filtering (lat/lng + radius_km)
     def haversine_km(lat1, lon1, lat2, lon2):
         r = 6371
         phi1, phi2 = math.radians(lat1), math.radians(lat2)
@@ -905,7 +909,6 @@ def buyer_search_room(request):
             lng_f = float(lng)
             radius_f = float(radius_km)
 
-            # rough bounding box first (faster)
             lat_delta = radius_f / 111.0
             lng_delta = radius_f / (111.0 * math.cos(math.radians(lat_f)) or 1)
 
@@ -929,6 +932,15 @@ def buyer_search_room(request):
 
         except ValueError:
             pass
+            # SORTING
+    if sort == "newest":
+            listings = listings.order_by("-created_at")
+
+    elif sort == "price_low":
+            listings = listings.order_by("monthly_rent")
+
+    elif sort == "price_high":
+            listings = listings.order_by("-monthly_rent")
 
     context = {
         "listings": listings,
@@ -940,6 +952,7 @@ def buyer_search_room(request):
         "lat": lat,
         "lng": lng,
         "radius_km": radius_km,
+        "sort": sort,        
     }
 
     return render(request, "task/buyer_search_room/buyer_search_room.html", context)

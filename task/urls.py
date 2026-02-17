@@ -22,7 +22,7 @@ urlpatterns = [
         'forgot_password/',
         auth_views.PasswordResetView.as_view(
             template_name='task/forgot_password.html',
-            success_url="/password-reset-done/",
+            success_url="password_reset/password-reset-done/",
 
             # email_template_name='task/password_reset_email.html',
             # from_email='RoomSiftay <roomsiftay@gmail.com>',
@@ -34,7 +34,7 @@ urlpatterns = [
     path(
         'password-reset-done/',
         auth_views.PasswordResetDoneView.as_view(
-            template_name='task/password_reset_done.html',
+            template_name='task/password_reset/password_reset_done.html',
         ),
         name='password_reset_done'
     ),
@@ -42,7 +42,7 @@ urlpatterns = [
     path(
         'reset/<uidb64>/<token>/',
         auth_views.PasswordResetConfirmView.as_view(
-            template_name='task/password_reset_confirm.html',
+            template_name='task/password_reset/password_reset_confirm.html',
             success_url="/password-reset-complete/",
         ),
         name='password_reset_confirm'
@@ -51,7 +51,7 @@ urlpatterns = [
     path(
         'password-reset-complete/',
         auth_views.PasswordResetCompleteView.as_view(
-            template_name='task/password_reset_complete.html'
+            template_name='task/password_reset/password_reset_complete.html'
         ),
         name='password_reset_complete'
     ),

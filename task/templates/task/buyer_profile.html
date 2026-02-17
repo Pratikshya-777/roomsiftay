@@ -1,17 +1,16 @@
 {% extends "base.html" %}
-
 {% block content %}
+
 <div class="min-h-screen bg-gray-100 px-4">
+<div class="max-w-4xl mx-auto space-y-8">
 
-  <div class="max-w-4xl mx-auto space-y-8">
+<!-- ================= HEADER CARD ================= -->
+<div class="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
 
-    <!-- ================= HEADER ================= -->
-    <div class="bg-white rounded-2xl shadow p-6 flex items-center justify-between">
+  <div class="flex items-center gap-6">
 
-      <div class="flex items-center gap-6">
-
-        <!-- Avatar -->
-        <label class="relative group cursor-pointer w-24 h-24 flex-shrink-0">
+    <!-- Avatar Upload Form -->
+      <label class="relative group cursor-pointer w-24 h-24 flex-shrink-0">
 
           <img
             id="avatarPreview"
@@ -38,16 +37,14 @@
                  onchange="previewAvatar(event)">
         </label>
 
-        <!-- User info -->
-        <div>
-          <h2 class="text-xl font-semibold text-gray-800">
-            {{ request.user.get_full_name|default:request.user.username }}
-          </h2>
-          <p class="text-sm text-gray-500">{{ request.user.email }}</p>
-        </div>
-      </div>
-
-      <form method="POST" class="text-center mt-2">
+    <div>
+      <h2 class="text-xl font-semibold">
+        {{ user.first_name|default:user.username }} {{ user.last_name }}
+      </h2>
+      <p class="text-gray-500">{{ user.email }}</p>
+    </div>
+  </div>
+        <form method="POST" class="text-center mt-2">
   {% csrf_token %}
   <button type="submit"
           name="delete_photo"
@@ -57,53 +54,50 @@
   </button>
 </form>
 
-
-
-      <!-- Completion -->
-      <div class="text-right">
-        <p class="text-xs text-gray-500 mb-1">Profile Completion</p>
-        <div class="w-40 bg-gray-200 rounded-full h-2">
-          <div class="bg-indigo-600 h-2 rounded-full"
-               style=`width: {{ completion }}%`></div>
-        </div>
-        <p class="text-xs font-semibold mt-1">{{ completion }}%</p>
-      </div>
+  <!-- Profile Completion -->
+  <div class="text-right">
+    <p class="text-xs text-gray-500">Profile Completion</p>
+    <div class="w-40 bg-gray-200 rounded-full h-2 mt-1">
+      <div class="bg-indigo-600 h-2 rounded-full" style="width:{{ completion }}%"></div>
     </div>
+    <p class="text-xs font-semibold mt-1">{{ completion }}%</p>
+  </div>
+</div>
 
-    <!-- ================= PERSONAL INFO ================= -->
-    <div class="bg-white rounded-2xl shadow p-6">
-      <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
+<!-- ================= PERSONAL INFO FORM ================= -->
+<form id="profileForm" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow p-6 space-y-4">
+{% csrf_token %}
+<input type="hidden" name="update_profile">
 
-      <form id="profileForm"
-            method="POST"
-            enctype="multipart/form-data"
-            class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<h3 class="text-lg font-semibold">Personal Information</h3>
 
-        {% csrf_token %}
+<div class="grid md:grid-cols-2 gap-4">
 
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">Full Name</label>
-          <input type="text"
-                 value="{{ request.user.get_full_name }}"
-                 disabled
-                 class="w-full p-2 border rounded-lg bg-gray-100">
-        </div>
+  <div>
+    <label class="text-sm text-gray-600">First Name</label>
+    <input type="text" name="first_name" value="{{ user.first_name }}"
+           class="w-full p-2 border rounded-lg ">
+  </div>
 
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">Email</label>
-          <input type="email"
-                 value="{{ request.user.email }}"
-                 disabled
-                 class="w-full p-2 border rounded-lg bg-gray-100">
-        </div>
+  <div>
+    <label class="text-sm text-gray-600">Last Name</label>
+    <input type="text" name="last_name" value="{{ user.last_name }}"
+           class="w-full p-2 border rounded-lg">
+  </div>
 
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">Phone Number</label>
-          <input type="text"
-                 name="phone_number"
-                 value="{{ profile.phone_number }}"
-                 class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-        </div>
+  <div>
+    <label class="text-sm text-gray-600">Email</label>
+    <input type="email" value="{{ user.email }}" disabled
+           class="w-full p-2 border rounded-lg bg-gray-100">
+  </div>
+
+  <div>
+    <label class="text-sm text-gray-600">Phone Number</label>
+    <input type="text" name="phone_number" value="{{ profile.phone_number }}"
+           class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+  </div>
+
+</div>
 
         <div class="flex items-end">
           <button type="submit"
@@ -113,78 +107,52 @@
             Save Changes
           </button>
         </div>
-      </form>
-    </div>
+</form>
 
-    <!-- ================= ROOM PREFERENCES ================= -->
-    <div class="bg-white rounded-2xl shadow p-6">
-      <h3 class="text-lg font-semibold mb-2">Room Preferences</h3>
-      <p class="text-sm text-gray-500 mb-4">
-        Help us show rooms that match your needs.
-      </p>
+<!-- ================= PASSWORD SECTION ================= -->
+<div class="bg-white rounded-2xl shadow p-6">
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+{% if user.has_usable_password %}
+<!-- Manual user -->
+<form method="POST" class="space-y-4">
+{% csrf_token %}
+<input type="hidden" name="change_password">
 
-        <input type="text"
-               name="preferred_location"
-               placeholder="Preferred Location"
-               class="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+<h3 class="text-lg font-semibold">Change Password</h3>
 
-        <input type="number"
-               name="budget"
-               placeholder="Budget (NPR)"
-               class="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
+{% for field in password_form %}
+<div>
+<label class="text-sm text-gray-600">{{ field.label }}</label>
+<input type="{{ field.field.widget.input_type }}" name="{{ field.name }}"
+       class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500">
+</div>
+{% endfor %}
 
-        <select name="room_type"
-                class="p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500">
-          <option value="">Room Type</option>
-          <option>Single</option>
-          <option>Shared</option>
-          <option>Flat</option>
-        </select>
+<button class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-500">
+Update Password
+</button>
+</form>
 
-      </div>
-    </div>
+{% else %}
+<!-- Google user -->
+<div class="text-center space-y-3">
+  <h3 class="text-lg font-semibold">Create Password</h3>
+  <p class="text-gray-500 text-sm">
+    You signed in with Google. Create a password to login using email too.
+  </p>
 
-    <!-- ================= CHANGE PASSWORD ================= -->
-    <div class="bg-white rounded-2xl shadow p-6">
-      <h3 class="text-lg font-semibold mb-4">Change Password</h3>
+  <a href="{% url 'reset_password' %}"
+     class="bg-indigo-600 text-white px-6 py-2 rounded-lg inline-block">
+     Create Password
+  </a>
+</div>
+{% endif %}
 
-      <form method="POST" class="space-y-4">
-        {% csrf_token %}
-        <input type="hidden" name="change_password">
-
-        {% for field in password_form %}
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">
-              {{ field.label }}
-            </label>
-
-            <input type="{{ field.field.widget.input_type }}"
-                   name="{{ field.name }}"
-                   class="w-full p-2 border rounded-lg
-                          focus:ring-2 focus:ring-red-500">
-
-            {% if field.errors %}
-              <p class="text-sm text-red-600 mt-1">
-                {{ field.errors|striptags }}
-              </p>
-            {% endif %}
-          </div>
-        {% endfor %}
-
-        <button type="submit"
-          class="bg-red-600 text-white px-6 py-2 rounded-lg
-                 hover:bg-red-500 transition">
-          Update Password
-        </button>
-      </form>
-    </div>
-
-  </div>
 </div>
 
-<!-- ================= PREVIEW SCRIPT ================= -->
+</div>
+</div>
+
 <script>
 function previewAvatar(event) {
     const file = event.target.files[0];

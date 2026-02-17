@@ -10,7 +10,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
 <!-- Leaflet JS -->
@@ -22,7 +22,6 @@
 
 <body class="bg-gray-100 flex flex-col min-h-screen">
 
-<!-- ================= OVERLAY ================= -->
 <div id="overlay" class="fixed inset-0 bg-black/40 hidden z-30"></div>
 
 <!-- ================= NAVBAR ================= -->
@@ -41,21 +40,43 @@
     
      <!-- Right -->
     <div class="flex items-center gap-4">
-        <span class="text-sm text-gray-300">Welcome, {{ user.username }}</span>
+        <!-- Right -->
+<div class="flex items-center gap-4">
 
-        <!-- Navbar Avatar -->
-        <div class="relative group">
-            <img
-                src="{% if profile.profile_photo %}
-                        {{ profile.profile_photo.url }}
-                     {% else %}
-                        https://static.vecteezy.com/system/resources/previews/002/318/271/original/user-profile-icon-free-vector.jpg
-                     {% endif %}"
-                alt="Profile"
-                class="w-10 h-10 rounded-full object-cover border border-white/40
-                       shadow-md transition-transform duration-200 group-hover:scale-105"
-            >
+    <!-- User Name -->
+    <span class="text-sm text-gray-300">
+        Welcome, {{ user.first_name|default:user.username }}
+    </span>
+
+    <!-- Avatar + Dropdown -->
+    <div class="relative group cursor-pointer">
+
+        <img
+        src="{% if profile.profile_photo %}{{ profile.profile_photo.url }}{% else %}https://static.vecteezy.com/system/resources/previews/002/318/271/original/user-profile-icon-free-vector.jpg{% endif %}"
+        class="w-10 h-10 rounded-full object-cover border border-white/40 shadow">
+
+        <!-- Dropdown menu -->
+        <div class="absolute right-0 mt-3 w-48 bg-white text-gray-700 rounded-xl shadow-lg
+                    opacity-0 group-hover:opacity-100 invisible group-hover:visible
+                    transition-all duration-200">
+
+            <a href="{% url 'buyer_profile' %}"
+               class="block px-4 py-3 hover:bg-gray-100 rounded-t-xl">
+               <i class="fa fa-user mr-2"></i> My Profile
+            </a>
+
+            <div class="border-t"></div>
+
+            <a href="{% url 'logout' %}"
+               class="block px-4 py-3 text-red-500 hover:bg-red-50 rounded-b-xl">
+               <i class="fa fa-right-from-bracket mr-2"></i> Logout
+            </a>
+
         </div>
+    </div>
+
+</div>
+
     </div> 
 
 
