@@ -2,10 +2,10 @@
 {% block title %}Search Rooms{% endblock %}
 {% block content %}
 
-<form id="filtersForm" method="get" action="{% url 'buyer_search_room' %}" class="mb-10 space-y-5 ">
+<form id="filtersForm" method="get" action="{% url 'buyer_search_room' %}">
 
-<!-- HEADER -->
-<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6 ">
+<!-- PAGE HEADER -->
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
 
     <div>
         <h1 class="text-3xl font-bold">Find rooms</h1>
@@ -13,8 +13,9 @@
     </div>
 
     <!-- SEARCH BAR -->
-    <div class="relative w-full md:max-w-md">
+    <div class="relative w-full lg:max-w-md">
         <input type="text" name="q" value="{{ q }}"
+               onchange="this.form.submit()"
                placeholder="Search city or area"
                class="w-full pl-12 pr-4 py-3 rounded-full border shadow-md focus:ring-2 focus:ring-slate-900 outline-none">
         <i class="fa-solid fa-magnifying-glass text-gray-500 absolute left-4 top-1/2 -translate-y-1/2"></i>
@@ -22,87 +23,83 @@
 
 </div>
 
-<!-- FILTER BAR -->
-<div class="bg-white p-4 rounded-2xl border">
-<div class="flex flex-wrap gap-3 items-center">
+
+<!-- MAIN GRID -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+<!-- SIDEBAR -->
+<aside class="lg:col-span-1">
+<div class="bg-white p-6 rounded-2xl border sticky top-24 space-y-6">
 
     <!-- SORT -->
-    <div class="relative">
-        <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-        <select name="sort"
-            class="pl-11 pr-8 py-3 rounded-full border bg-white shadow-sm focus:ring-2 focus:ring-slate-900 outline-none appearance-none">
-            <option value="">Sort</option>
-            <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>
+    <div>
+        <label class="font-semibold mb-2 block">Sort</label>
+        <select name="sort" onchange="this.form.submit()"
+            class="w-full p-3 rounded-xl border">
+            <option value="">Newest First</option>
             <option value="price_low" {% if sort == "price_low" %}selected{% endif %}>Price low → high</option>
             <option value="price_high" {% if sort == "price_high" %}selected{% endif %}>Price high → low</option>
         </select>
-        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-500"></i>
     </div>
 
-    <!-- MIN PRICE -->
-    <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rs</span>
-        <input type="number" name="min_price" value="{{ min_price }}"
-            placeholder="Min price"
-            class="pl-12 pr-4 py-3 rounded-full border shadow-sm focus:ring-2 focus:ring-slate-900 outline-none">
-    </div>
-
-    <!-- MAX PRICE -->
-    <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">Rs</span>
-        <input type="number" name="max_price" value="{{ max_price }}"
-            placeholder="Max price"
-            class="pl-12 pr-4 py-3 rounded-full border shadow-sm focus:ring-2 focus:ring-slate-900 outline-none">
+    <!-- PRICE -->
+    <div>
+        <label class="font-semibold mb-2 block">Price Range (Rs)</label>
+        <div class="flex gap-3">
+            <input type="number" name="min_price" value="{{ min_price }}"
+                placeholder="Min" onchange="this.form.submit()"
+                class="w-1/2 p-3 rounded-xl border">
+            <input type="number" name="max_price" value="{{ max_price }}"
+                placeholder="Max" onchange="this.form.submit()"
+                class="w-1/2 p-3 rounded-xl border">
+        </div>
     </div>
 
     <!-- ROOM TYPE -->
-    <div class="relative">
-        <i class="fa-solid fa-door-open absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-        <select name="room_type"
-            class="pl-11 pr-8 py-3 rounded-full border bg-white shadow-sm focus:ring-2 focus:ring-slate-900 outline-none appearance-none">
-            <option value="">Room type</option>
+    <div>
+        <label class="font-semibold mb-2 block">Room Type</label>
+        <select name="room_type" onchange="this.form.submit()"
+            class="w-full p-3 rounded-xl border">
+            <option value="">All types</option>
             <option value="private" {% if room_type == "private" %}selected{% endif %}>Private</option>
             <option value="entire" {% if room_type == "entire" %}selected{% endif %}>Entire</option>
             <option value="shared" {% if room_type == "shared" %}selected{% endif %}>Shared</option>
         </select>
-        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-500"></i>
+    </div>
+
+    <!-- AMENITIES -->
+    <div>
+        <label class="font-semibold mb-3 block">Amenities</label>
+
+        <label class="flex items-center gap-2 mb-2">
+            <input type="checkbox" name="wifi" value="1" {% if request.GET.wifi %}checked{% endif %} onchange="this.form.submit()"> WiFi
+        </label>
+
+        <label class="flex items-center gap-2 mb-2">
+            <input type="checkbox" name="parking" value="1" {% if request.GET.parking %}checked{% endif %} onchange="this.form.submit()"> Parking
+        </label>
+
+        <label class="flex items-center gap-2 mb-2">
+            <input type="checkbox" name="furnished" value="1" {% if request.GET.furnished %}checked{% endif %} onchange="this.form.submit()"> Furnished
+        </label>
+
+        <label class="flex items-center gap-2">
+            <input type="checkbox" name="utilities" value="1" {% if request.GET.utilities %}checked{% endif %} onchange="this.form.submit()"> Utilities included
+        </label>
     </div>
 
     <!-- MAP -->
     <button type="button" id="openMapBtn"
-        class="px-5 py-3 rounded-full border shadow-sm hover:bg-gray-100 transition">
-        <i class="fa-solid fa-map mr-1"></i> Map
+        class="w-full py-3 rounded-xl border hover:bg-gray-100">
+        <i class="fa-solid fa-map mr-1"></i> Search on map
     </button>
 
-    <!-- MY LOCATION -->
+    <!-- LOCATION -->
     <button type="button" id="useMyLocationBtn"
-        class="px-5 py-3 rounded-full border shadow-sm hover:bg-gray-100 transition">
-        <i class="fa-solid fa-location-crosshairs mr-1"></i> My location
+        class="w-full py-3 rounded-xl border hover:bg-gray-100">
+        <i class="fa-solid fa-location-crosshairs mr-1"></i> Use my location
     </button>
 
-    <!-- APPLY -->
-    <button type="submit"
-        class="bg-slate-900 text-white px-6 py-3 rounded-full hover:bg-black transition shadow">
-        Apply
-    </button>
-
-    <!-- CLEAR -->
-    <button type="button" id="clearFiltersBtn"
-        class="px-5 py-3 rounded-full border hover:bg-red-50 hover:border-red-400 transition">
-        <i class="fa-solid fa-xmark mr-1"></i> Clear
-    </button>
-
-</div>
-</div>
-
-<input type="hidden" name="lat" id="latInput" value="{{ lat }}">
-<input type="hidden" name="lng" id="lngInput" value="{{ lng }}">
-<input type="hidden" name="radius_km" id="radiusInput" value="{{ radius_km|default:'3' }}">
-
-</form>
-
-
-<!-- MAP MODAL -->
 <div id="mapModal" class="fixed inset-0 bg-black/50 hidden z-50 items-center justify-center">
     <div class="bg-white w-[90%] max-w-4xl rounded-xl overflow-hidden">
         <div class="flex justify-between items-center p-4 border-b">
@@ -119,11 +116,22 @@
     </div>
 </div>
 
+    <a href="{% url 'buyer_search_room' %}"
+       class="block text-center py-3 rounded-xl border text-red-500 hover:bg-red-50">
+       Clear filters
+    </a>
 
-<!-- LISTINGS GRID -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+</div>
+</aside>
+
+
+<!-- RESULTS -->
+<div class="lg:col-span-3">
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
 {% for listing in listings %}
 <div class="bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden">
+
     {% with listing.photos.first as photo %}
         {% if photo %}
             <img src="{{ photo.image.url }}" class="h-56 w-full object-cover">
@@ -131,10 +139,12 @@
             <div class="h-56 bg-gray-200 flex items-center justify-center">No Image</div>
         {% endif %}
     {% endwith %}
+
     <div class="p-5">
         <h3 class="font-semibold text-lg">{{ listing.title }}</h3>
         <p class="text-gray-500">{{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}</p>
         <p class="font-bold mt-2 text-lg">Rs. {{ listing.monthly_rent }}</p>
+
         <a href="{% url 'buyer_listing_detail' listing.id %}"
            class="inline-block mt-3 text-slate-900 font-semibold hover:underline">
             View details →
@@ -143,6 +153,16 @@
 </div>
 {% endfor %}
 </div>
+
+</div>
+</div>
+
+<input type="hidden" name="lat" id="latInput" value="{{ lat }}">
+<input type="hidden" name="lng" id="lngInput" value="{{ lng }}">
+<input type="hidden" name="radius_km" id="radiusInput" value="{{ radius_km|default:'3' }}">
+
+</form>
+
 
 <script>
 let map=null, marker=null, markers=[];

@@ -15,11 +15,10 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 import math
 
-@login_required
+User = get_user_model()
+
 def generate_otp():
     return str(random.randint(100000, 999999))
-
-User = get_user_model()
 
 def home(request):
     return render(request, 'task/index.html')
@@ -178,7 +177,7 @@ def verify_otp(request):
             del request.session["otp_user_id"]
 
             messages.success(request, "Email verified successfully. You can now login.")
-            return redirect("login")
+            return redirect("buyer")
 
         else:
             messages.error(request, "Invalid OTP. Please try again.")
@@ -882,6 +881,20 @@ def buyer_search_room(request):
 
     if room_type:
         listings = listings.filter(room_type=room_type)
+
+    # AMENITIES FILTERS (independent filters)
+    if request.GET.get("wifi"):
+        listings = listings.filter(wifi_available=True)
+
+    if request.GET.get("parking"):
+        listings = listings.filter(parking_available=True)
+
+    if request.GET.get("furnished"):
+        listings = listings.filter(is_furnished=True)
+
+    if request.GET.get("utilities"):
+        listings = listings.filter(utilities_included=True)
+
 
     if min_price:
         try:
