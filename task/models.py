@@ -60,17 +60,17 @@ class BuyerReport(models.Model):
         return f"{self.title} by {self.user.username}"
 
 
-# class Notification(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
-#     message = models.TextField()
-#     is_read = models.BooleanField(default=False)
-#     created_at = models.DateTimeField(auto_now_add=True)
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-#     class Meta:
-#         ordering = ['-created_at']
+    class Meta:
+        ordering = ['-created_at']
 
-#     def __str__(self):
-#         return f"Notification for {self.user.username}"
+    def __str__(self):
+        return f"Notification for {self.user.username}"
 
 # class PasswordResetOTP(models.Model):
 #     user = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -123,6 +123,7 @@ class Listing(models.Model):
         ("pending", "Pending Verification"),
         ("approved", "Approved"),
         ("rejected", "Rejected"),
+        ("rented", "Rented"),
     ]
 
     # Ownership
@@ -147,12 +148,31 @@ class Listing(models.Model):
     bedrooms = models.PositiveIntegerField(null=True, blank=True)
     bathrooms = models.PositiveIntegerField(null=True, blank=True)
     floor_number = models.IntegerField(blank=True, null=True)
+    total_area = models.PositiveIntegerField(null=True, blank=True)
+    has_balcony = models.BooleanField(default=False)
+
+    KITCHEN_CHOICES = [
+    ("attached", "Attached Kitchen"),
+    ("shared", "Shared Kitchen"),
+    ("none", "No Kitchen"),
+    ]
+
+    kitchen_type = models.CharField(
+    max_length=20,
+    choices=KITCHEN_CHOICES,
+    blank=True,
+    )
 
     # Facilities
     is_furnished = models.BooleanField(default=False)
     utilities_included = models.BooleanField(default=False)
     wifi_available = models.BooleanField(default=False)
     parking_available = models.BooleanField(default=False)
+    ac_available = models.BooleanField(default=False)
+    water_24hrs = models.BooleanField(default=False)
+    lift_available = models.BooleanField(default=False)
+    pet_allowed = models.BooleanField(default=False)
+
 
     # STEP 3 — Verification
     status = models.CharField(

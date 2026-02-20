@@ -1,79 +1,86 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Add Listing · Step 4</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
 
-<body class="bg-gray-100">
 
-<div class="min-h-screen flex items-center justify-center px-4 py-10">
+<!-- Preview Card -->
+<div class="border rounded-2xl p-6 bg-gray-50 mb-6">
 
-    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-8">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">
+        👁 Listing Preview
+    </h2>
 
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-900">
-                Review & Submit Listing
-            </h1>
-            <p class="text-sm text-gray-600 mt-1">
-                Step 4 of 4 · Preview & Confirm
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Photos -->
+        <div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                {% for photo in photos %}
+                    <img
+                        src="{{ photo.image.url }}"
+                        class="w-full h-40 object-cover rounded-lg"
+                    >
+                {% empty %}
+                    <div class="bg-gray-200 rounded-xl h-40 flex items-center justify-center text-gray-500">
+                        No photos uploaded
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if proof_photo %}
+            <div>
+                <p class="text-sm font-semibold text-gray-700 mb-2">
+                    📝 Proof Photo
+                </p>
+                <img
+                    src="{{ proof_photo.image.url }}"
+                    class="w-40 h-40 object-cover rounded-lg border"
+                >
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Info -->
+        <div class="space-y-2 text-sm text-gray-700">
+
+            <p><strong>Title:</strong> {{ listing.title }}</p>
+            <p><strong>Room Type:</strong> {{ listing.get_room_type_display }}</p>
+            <p><strong>Location:</strong> {{ listing.city }} · {{ listing.area }}</p>
+
+            <hr class="my-3">
+
+            <p><strong>Rent:</strong> NPR {{ listing.monthly_rent }}</p>
+            <p><strong>Deposit:</strong> NPR {{ listing.security_deposit }}</p>
+
+            <hr class="my-3">
+
+            <p><strong>Bedrooms:</strong> {{ listing.bedrooms }}</p>
+            <p><strong>Bathrooms:</strong> {{ listing.bathrooms }}</p>
+            <p><strong>Floor:</strong> {{ listing.floor_number }}</p>
+            <p><strong>Total Area:</strong> {{ listing.total_area }} sq.ft</p>
+            <p><strong>Balcony:</strong> 
+                {% if listing.has_balcony %} Yes {% else %} No {% endif %}
             </p>
+            <p><strong>Kitchen:</strong> {{ listing.get_kitchen_type_display }}</p>
 
-            <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
-                <div class="bg-indigo-600 h-2 rounded-full w-full"></div>
-            </div>
+            <hr class="my-3">
+
+            <p><strong>Facilities:</strong></p>
+            <ul class="list-disc ml-5 space-y-1">
+                {% if listing.is_furnished %}<li>Furnished</li>{% endif %}
+                {% if listing.wifi_available %}<li>Wi-Fi</li>{% endif %}
+                {% if listing.parking_available %}<li>Parking</li>{% endif %}
+                {% if listing.utilities_included %}<li>Utilities Included</li>{% endif %}
+                {% if listing.ac_available %}<li>Air Conditioning</li>{% endif %}
+                {% if listing.water_24hrs %}<li>24/7 Water Supply</li>{% endif %}
+                {% if listing.lift_available %}<li>Lift / Elevator</li>{% endif %}
+                {% if listing.pet_allowed %}<li>Pet Allowed</li>{% endif %}
+            </ul>
+
         </div>
 
-        <!-- Preview Card -->
-        <div class="border rounded-2xl p-6 bg-gray-50 mb-6">
-
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">
-                👁 Listing Preview
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <!-- Photos -->
-                <div class="grid grid-cols-2 gap-2">
-                    {% for photo in photos %}
-                        <img
-                            src="{{ photo.image.url }}"
-                            class="w-full h-40 object-cover rounded-lg"
-                        >
-                    {% empty %}
-                        <div class="bg-gray-200 rounded-xl h-48 flex items-center justify-center text-gray-500">
-                            No photos uploaded
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <!-- Info -->
-                <div class="space-y-2 text-sm text-gray-700">
-                    <p><strong>Title:</strong> {{ listing.title }}</p>
-                    <p><strong>Room Type:</strong> {{ listing.room_type }}</p>
-                    <p><strong>Location:</strong> {{ listing.city }} · {{ listing.area }}</p>
-                    <p><strong>Rent:</strong> NPR {{ listing.monthly_rent }}</p>
-                    <p><strong>Deposit:</strong> NPR {{ listing.security_deposit }}</p>
-                    <p><strong>Bedrooms:</strong> {{ listing.bedrooms }}</p>
-                    <p><strong>Bathrooms:</strong> {{ listing.bathrooms }}</p>
-
-                    <p>
-                        <strong>Facilities:</strong>
-                        {% if listing.is_furnished %} Furnished,{% endif %}
-                        {% if listing.wifi_available %} Wi-Fi,{% endif %}
-                        {% if listing.parking_available %} Parking,{% endif %}
-                        {% if listing.utilities_included %} Utilities Included{% endif %}
-                    </p>
-                </div>
-
-            </div>
-        </div>
+    </div>
+</div>
 
         <!-- Verification Info -->
         <div class="border border-indigo-200 bg-indigo-50 rounded-xl p-4 mb-6">
@@ -133,5 +140,4 @@
 </div>
 
 </body>
-</html>
 {% endblock %}

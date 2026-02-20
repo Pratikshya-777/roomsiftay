@@ -15,15 +15,19 @@
         <div class="h-[2px] w-48 bg-orange-100 mb-8"></div>
 
         <div class="divide-y divide-gray-50">
-            {% for owner in owners %}
+            {% for verification in pending_verifications %}
             <div class="flex justify-between items-center py-5">
-                <span class="text-gray-500 text-lg">{{ owner.name }}</span>
+                <span class="text-gray-500 text-lg">{{ verification.user.username }}</span>
                 <button type="button"
                         class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold">
                     View Proof
                 </button>
             </div>
-            {% endfor %}
+                {% empty %}
+        <p class="text-gray-400 italic py-4">
+            No owners pending verification.
+        </p>
+    {% endfor %}
         </div>
     </div>
 
@@ -33,16 +37,21 @@
         <div class="h-[2px] w-48 bg-blue-100 mb-8"></div>
 
         <div class="divide-y divide-gray-50">
-            {% for listing in listings %}
-            <div class="flex justify-between items-center py-5">
-                <span class="text-gray-500 text-lg">{{ listing.title }}</span>
-                <a href="{% url 'admin_listings' %}"
-                   class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold">
-                    Manage
-                </a>
-            </div>
-            {% endfor %}
+    {% for listing in listings %}
+        <div class="flex justify-between items-center py-5">
+            <span class="text-gray-500 text-lg">{{ listing.title }}</span>
+            <a href="{% url 'admin_listings'  %}"
+               class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold">
+                Manage
+            </a>
         </div>
+    {% empty %}
+        <div class="py-6 text-gray-400 text-sm">
+            No listings pending verification.
+        </div>
+    {% endfor %}
+</div>
+
     </div>
 </div>
 

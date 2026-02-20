@@ -49,39 +49,63 @@
             multiple
             accept="image/*"
             class="hidden"
-            required
+          
           >
         </div>
 
         <!-- Preview -->
-        <div id="photo-preview"
-             class="grid grid-cols-3 gap-3 mt-4"></div>
-      </div>
+        <!-- Existing Photos -->
+{% if listing.photos.all %}
+<div class="grid grid-cols-3 gap-3 mt-4">
+  {% for photo in listing.photos.all %}
+    {% if not photo.is_proof %}
+      <img src="{{ photo.image.url }}"
+           class="w-full h-32 object-cover rounded-lg border">
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
 
-      <!-- 📝 Proof Photo -->
-            <div>
-                <h2 class="text-lg font-semibold text-gray-800 mb-2">
-                    📝 Proof Photo (Optional)
-                </h2>
+<!-- New Preview -->
+<div id="photo-preview"
+     class="grid grid-cols-3 gap-3 mt-4"></div>
 
-                <div class="border border-gray-300 rounded-xl p-4 bg-white">
-                    <p class="text-sm text-gray-600 mb-2">
-                        Upload one photo with today’s date written on paper inside the room.
-                    </p>
+     <!-- 📝 Proof Photo -->
+<div>
+    <h2 class="text-lg font-semibold text-gray-800 mb-2">
+        📝 Proof Photo (Optional)
+    </h2>
 
-                    <p class="text-xs text-indigo-600 font-medium mb-3">
-                        ⚡ Faster verification if provided
-                    </p>
+    <div class="border border-gray-300 rounded-xl p-4 bg-white mb-4">
+        <p class="text-sm text-gray-600 mb-2">
+            Upload one photo with today’s date written on paper inside the room.
+        </p>
 
-                </div>
+        <p class="text-xs text-indigo-600 font-medium">
+            ⚡ Faster verification if provided
+        </p>
+    </div>
 
-        <input
-          type="file"
-          name="proof_photo"
-          accept="image/*"
-          class="block w-full text-sm text-gray-700"
-        >
-      </div>
+    <!-- EXISTING PROOF PHOTO (SHOW WHEN GOING BACK) -->
+    {% if proof_photo %}
+<div class="mb-4">
+    <p class="text-sm font-medium text-gray-700 mb-2">
+        Uploaded Proof Photo:
+    </p>
+    <img src="{{ proof_photo.image.url }}"
+         class="w-40 h-40 object-cover rounded-lg border">
+</div>
+{% endif %}
+
+
+    <!-- FILE INPUT -->
+    <input
+      type="file"
+      name="proof_photo"
+      accept="image/*"
+      class="block w-full text-sm text-gray-700"
+    >
+</div>
 
       <!-- Confirmation -->
       <div class="bg-gray-50 border rounded-xl p-4">

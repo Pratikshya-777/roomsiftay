@@ -1,12 +1,11 @@
 {% extends "task/admin/admin_base.html" %}
-
-{% block title %} Listing{% endblock %}
+{% block title %}Listing{% endblock %}
 
 {% block content %}
 
 <div class="max-w-6xl mx-auto bg-white rounded-[2.5rem] p-10 shadow-sm border border-gray-100">
 
-    <!-- ================= HEADER ================= -->
+    <!-- HEADER -->
     <div class="mb-8">
         <h1 class="text-2xl font-semibold text-gray-700">
             {{ listing.title }}
@@ -16,54 +15,102 @@
         </p>
     </div>
 
-    <!-- ================= DETAILS ================= -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-600 mb-10">
-        <p><span class="font-medium">Room Type:</span> {{ listing.room_type }}</p>
-        <p><span class="font-medium">City:</span> {{ listing.city }}</p>
-        <p><span class="font-medium">Area:</span> {{ listing.area }}</p>
-        <p><span class="font-medium">Monthly Rent:</span> {{ listing.monthly_rent }}</p>
-        <p><span class="font-medium">Security Deposit:</span> {{ listing.security_deposit }}</p>
-        <p><span class="font-medium">Bedroom:</span> {{ listing.bedrooms }}</p>
-        <p><span class="font-medium">Bathroom:</span> {{ listing.bathrooms }}</p>
-        <p><span class="font-medium">Furnished:</span> {{ listing.is_furnished }}</p>
-        <p><span class="font-medium">Utilities:</span> {{ listing.utilities_included }}</p>
-        <p><span class="font-medium">Wifi Available:</span> {{ listing.wifi_available }}</p>
-        <p><span class="font-medium">Parking:</span> {{ listing.parking_available }}</p>
-        <p>
-            <span class="font-medium">Status:</span>
-            <span class="px-3 py-1 rounded-full text-xs font-semibold
-                {% if listing.status == 'approved' %}
-                    bg-green-100 text-green-600
-                {% elif listing.status == 'rejected' %}
-                    bg-red-100 text-red-600
-                {% else %}
-                    bg-yellow-100 text-yellow-600
-                {% endif %}
-            ">
-                {{ listing.get_status_display }}
-            </span>
-        </p>
-    </div>
+    <!-- DETAILS -->
+     <!-- ================= DETAILS ================= -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-600 mb-10">
 
-    <!-- ================= PHOTOS ================= -->
+    <!-- BASIC -->
+    <p><span class="font-medium">Room Type:</span> {{ listing.get_room_type_display }}</p>
+    <p><span class="font-medium">City:</span> {{ listing.city }}</p>
+    <p><span class="font-medium">Area:</span> {{ listing.area }}</p>
+
+    <!-- PRICING -->
+    <p><span class="font-medium">Monthly Rent:</span> NPR {{ listing.monthly_rent }}</p>
+    <p><span class="font-medium">Security Deposit:</span> NPR {{ listing.security_deposit }}</p>
+
+    <!-- ROOM INFO -->
+    <p><span class="font-medium">Bedrooms:</span> {{ listing.bedrooms }}</p>
+    <p><span class="font-medium">Bathrooms:</span> {{ listing.bathrooms }}</p>
+    <p><span class="font-medium">Floor:</span> {{ listing.floor_number }}</p>
+    <p><span class="font-medium">Total Area:</span> {{ listing.total_area }} sq.ft</p>
+    <p><span class="font-medium">Kitchen Type:</span> {{ listing.get_kitchen_type_display }}</p>
+    <p><span class="font-medium">Balcony:</span> {{ listing.has_balcony|yesno:"Yes,No" }}</p>
+
+    <!-- FACILITIES -->
+    <p><span class="font-medium">Furnished:</span> {{ listing.is_furnished|yesno:"Yes,No" }}</p>
+    <p><span class="font-medium">Utilities Included:</span> {{ listing.utilities_included|yesno:"Yes,No" }}</p>
+    <p><span class="font-medium">WiFi:</span> {{ listing.wifi_available|yesno:"Yes,No" }}</p>
+    <p><span class="font-medium">Parking:</span> {{ listing.parking_available|yesno:"Yes,No" }}</p>
+    <p><span class="font-medium">Air Conditioning:</span> {{ listing.ac_available|yesno:"Yes,No" }}</p>
+    <p><span class="font-medium">24/7 Water:</span> {{ listing.water_24hrs|yesno:"Yes,No" }}</p>
+    <p><span class="font-medium">Lift Available:</span> {{ listing.lift_available|yesno:"Yes,No" }}</p>
+    <p><span class="font-medium">Pet Allowed:</span> {{ listing.pet_allowed|yesno:"Yes,No" }}</p>
+
+    <!-- STATUS -->
+    <p>
+        <span class="font-medium">Status:</span>
+        <span class="px-3 py-1 rounded-full text-xs font-semibold
+            {% if listing.status == 'approved' %}
+                bg-green-100 text-green-600
+            {% elif listing.status == 'rejected' %}
+                bg-red-100 text-red-600
+            {% else %}
+                bg-yellow-100 text-yellow-600
+            {% endif %}
+        ">
+            {{ listing.get_status_display }}
+        </span>
+    </p>
+
+</div>
+
+
+
+    <!-- ROOM PHOTOS -->
     <div class="mb-10">
         <h3 class="text-lg font-semibold text-gray-700 mb-4">
-            Property Photos
+            🏠 Room Photos
         </h3>
 
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             {% for photo in listing.photos.all %}
+                {% if not photo.is_proof %}
                 <img src="{{ photo.image.url }}"
-                     class="rounded-xl border border-gray-200 object-cover h-48 w-full">
+                     onclick="openModal('{{ photo.image.url }}')"
+                     class="rounded-xl border object-cover h-48 w-full cursor-pointer hover:scale-105 transition">
+                {% endif %}
             {% empty %}
                 <p class="text-gray-400 italic col-span-full">
-                    No photos uploaded.
+                    No room photos uploaded.
                 </p>
             {% endfor %}
         </div>
     </div>
 
-    <!-- ================= ACTION FORM ================= -->
+
+    <!-- PROOF PHOTO -->
+    <div class="mb-10">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">
+            📝 Proof Photo
+        </h3>
+
+        {% with proof=listing.photos.all|dictsort:"is_proof" %}
+        {% for photo in listing.photos.all %}
+            {% if photo.is_proof %}
+                <img src="{{ photo.image.url }}"
+                     onclick="openModal('{{ photo.image.url }}')"
+                     class="rounded-xl border object-cover h-48 w-48 cursor-pointer hover:scale-105 transition">
+            {% endif %}
+        {% empty %}
+            <p class="text-gray-400 italic">
+                No proof photo uploaded.
+            </p>
+        {% endfor %}
+        {% endwith %}
+    </div>
+
+
+    <!-- ACTION FORM -->
     <form method="post" class="border-t pt-8">
         {% csrf_token %}
 
@@ -71,7 +118,7 @@
             Rejection Reason
         </label>
         <textarea name="admin_note"
-                  class="w-full border border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                  class="w-full border rounded-xl p-4 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                   rows="4"
                   placeholder="Required only if rejecting the listing..."></textarea>
 
@@ -83,17 +130,45 @@
 
         <div class="flex gap-4 mt-6">
             <button name="action" value="approve"
-                    class="bg-green-600 text-white px-6 py-2 rounded-xl text-sm font-semibold shadow hover:bg-green-700 transition">
+                    class="bg-green-600 text-white px-6 py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition">
                 ✅ Approve
             </button>
 
             <button name="action" value="reject"
-                    class="bg-red-600 text-white px-6 py-2 rounded-xl text-sm font-semibold shadow hover:bg-red-700 transition">
+                    class="bg-red-600 text-white px-6 py-2 rounded-xl text-sm font-semibold hover:bg-red-700 transition">
                 ❌ Reject
             </button>
         </div>
     </form>
 
 </div>
+
+
+<!-- IMAGE MODAL -->
+<div id="imageModal"
+     class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
+
+    <span onclick="closeModal()"
+          class="absolute top-6 right-8 text-white text-3xl cursor-pointer">
+        ✕
+    </span>
+
+    <img id="modalImage"
+         class="max-h-[90%] max-w-[90%] rounded-xl shadow-2xl">
+</div>
+
+
+<script>
+function openModal(src){
+    document.getElementById("modalImage").src = src;
+    document.getElementById("imageModal").classList.remove("hidden");
+    document.getElementById("imageModal").classList.add("flex");
+}
+
+function closeModal(){
+    document.getElementById("imageModal").classList.add("hidden");
+    document.getElementById("imageModal").classList.remove("flex");
+}
+</script>
 
 {% endblock %}

@@ -1,74 +1,160 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="space-y-6 p-4">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-center min-h-[350px]">
-            <h2 class="font-bold text-2xl mb-6 text-gray-800">Search Rooms</h2>
-            <div class="space-y-4">
-                <div class="flex">
-                    <input type="text" placeholder="Find your next home" class="w-full p-3 border border-gray-200 rounded-l-xl outline-none focus:ring-1 focus:ring-blue-500">
-                    <button class="bg-blue-600 px-4 rounded-r-xl text-white"><i class="fa-solid fa-magnifying-glass"></i></button>
-                </div>
-                <input type="text" placeholder="Where your looking?" class="w-full p-3 border border-gray-200 rounded-xl outline-none focus:ring-1 focus:ring-blue-500">
-                <select class="w-full p-3 border border-gray-200 rounded-xl text-gray-400 bg-white outline-none">
-                    <option>All Property Types</option>
-                </select>
-            </div>
-        </div>
 
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center flex flex-col items-center justify-center">
-            <h2 class="font-bold text-2xl mb-4 self-start text-gray-800">My Profile</h2>
-            <h3 class="font-bold text-lg text-gray-800">{{ user.username }}</h3>
-            <p class="text-sm text-gray-400 mb-6">{{ user.email }}</p>
-            <a href="{% url 'buyer_profile' %}" class="px-8 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">View Profile</a>
-        </div>
+<div class="max-w-7xl mx-auto px-6 py-8 space-y-12">
+
+<!-- ================= HEADER ================= -->
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">
+            Good evening, {{ user.username }} 👋
+        </h1>
+        <p class="text-gray-500 mt-1">
+            Here’s what’s happening with your room search.
+        </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
-            <h3 class="font-bold text-gray-700 mb-4 text-xl">Saved Listings</h3>
-            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                <i class="fa-solid fa-heart text-blue-500 text-xl"></i>
-            </div>
-            <a href="{% url 'saved_listings' %}" class="text-blue-600 text-sm font-semibold hover:underline">View Saved Listings</a>
-        </div>
+    <a href="{% url 'buyer_search_room' %}"
+       class="mt-5 lg:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-medium hover:bg-black transition">
+        Search Rooms →
+    </a>
 
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
-            <h3 class="font-bold text-gray-700 mb-4 text-xl">Website Review</h3>
-            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                <i class="fa-solid fa-star text-blue-500 text-xl"></i>
-            </div>
-            <a href="{% url 'provide_review' %}" class="text-blue-600 text-sm font-semibold hover:underline">Submit a Website Review</a>
-        </div>
-
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
-            <h3 class="font-bold text-gray-700 mb-4 text-xl">Report Issue</h3>
-            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                <i class="fa-solid fa-flag text-blue-500 text-xl"></i>
-            </div>
-            <a href="{% url 'report_issue' %}" class="text-blue-600 text-sm font-semibold hover:underline">Report an Issue</a>
-        </div>
-    </div>
-
-<div class="notifications-section">
-    <h3>Notifications</h3>
-    <ul>
-        {% for note in notifications %}
-            <li class="{% if not note.is_read %}font-bold bg-blue-50{% endif %} p-3 border-b">
-                {{ note.message }}
-                <span class="text-xs text-gray-400">{{ note.created_at|timesince }} ago</span>
-            </li>
-        {% empty %}
-            <li>No new notifications.</li>
-        {% endfor %}
-    </ul>
 </div>
 
 
 
+<!-- ================= ACTION STRIP ================= -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
+        <p class="text-sm text-gray-500">Saved Listings</p>
+        <p class="text-3xl font-bold mt-2">12</p>
+        <p class="text-xs text-gray-400 mt-1">Rooms you liked</p>
+    </div>
+
+    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
+        <p class="text-sm text-gray-500">Owner Replies</p>
+        <p class="text-3xl font-bold mt-2">3</p>
+        <p class="text-xs text-gray-400 mt-1">Unread messages</p>
+    </div>
+
+    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
+        <p class="text-sm text-gray-500">New Listings</p>
+        <p class="text-3xl font-bold mt-2">5</p>
+        <p class="text-xs text-gray-400 mt-1">Added this week</p>
+    </div>
+
+    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
+        <p class="text-sm text-gray-500">Active Alerts</p>
+        <p class="text-3xl font-bold mt-2">2</p>
+        <p class="text-xs text-gray-400 mt-1">Based on your searches</p>
+    </div>
+
 </div>
+
+
+
+<!-- ================= RECOMMENDED ================= -->
+<div>
+
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Recommended for you</h2>
+        <a href="{% url 'buyer_search_room' %}" class="text-sm text-gray-500 hover:underline">
+            View all →
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        <!-- Card -->
+        <div class="bg-white border rounded-2xl overflow-hidden hover:shadow-xl transition group">
+            <img src="https://images.unsplash.com/photo-1560185127-6ed189bf02f4"
+                 class="h-52 w-full object-cover group-hover:scale-105 transition duration-300">
+
+            <div class="p-5">
+                <h3 class="font-semibold text-lg">Sunny Private Room in Kathmandu</h3>
+                <p class="text-gray-500 text-sm">Kathmandu</p>
+                <p class="font-bold mt-2 text-lg">NPR 8,000 /mo</p>
+            </div>
+        </div>
+
+        <div class="bg-white border rounded-2xl overflow-hidden hover:shadow-xl transition group">
+            <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85"
+                 class="h-52 w-full object-cover group-hover:scale-105 transition duration-300">
+
+            <div class="p-5">
+                <h3 class="font-semibold text-lg">Shared Room near Pulchowk</h3>
+                <p class="text-gray-500 text-sm">Lalitpur</p>
+                <p class="font-bold mt-2 text-lg">NPR 4,500 /mo</p>
+            </div>
+        </div>
+
+        <div class="bg-white border rounded-2xl overflow-hidden hover:shadow-xl transition group">
+            <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858"
+                 class="h-52 w-full object-cover group-hover:scale-105 transition duration-300">
+
+            <div class="p-5">
+                <h3 class="font-semibold text-lg">Entire Flat in Baneshwor</h3>
+                <p class="text-gray-500 text-sm">Kathmandu</p>
+                <p class="font-bold mt-2 text-lg">NPR 25,000 /mo</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ================= RECENTLY SAVED ================= -->
+<div>
+
+    <h2 class="text-2xl font-bold mb-6">Recently saved</h2>
+
+    <div class="bg-white border rounded-2xl p-6 flex justify-between items-center">
+        <div>
+            <p class="font-medium">Cozy Single Room in Bhaktapur</p>
+            <p class="text-gray-500 text-sm">Saved 2 days ago</p>
+        </div>
+
+        <a href="#" class="text-slate-900 font-medium hover:underline">
+            View →
+        </a>
+    </div>
+
+</div>
+
+
+
+<!-- ================= NOTIFICATIONS ================= -->
+<div>
+
+    <h2 class="text-2xl font-bold mb-6">Notifications</h2>
+
+    <div class="bg-white border rounded-2xl divide-y">
+
+        <div class="p-5">
+            Owner of “Sunny Private Room” replied to your inquiry.
+            <span class="text-xs text-gray-400 ml-2">3 hours ago</span>
+        </div>
+
+        <div class="p-5">
+            A saved listing was marked as rented.
+            <span class="text-xs text-gray-400 ml-2">1 day ago</span>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ================= SUPPORT ================= -->
+<div class="bg-gray-50 rounded-2xl p-6 text-center text-sm text-gray-600">
+    Need help? <a href="#" class="font-medium text-slate-900 hover:underline">Contact Support</a>
+</div>
+
+</div>
+
 {% endblock %}
-

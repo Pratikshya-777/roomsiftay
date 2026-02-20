@@ -79,8 +79,10 @@ urlpatterns = [
     path("chat/start/<int:listing_id>/", views.start_chat, name="start_chat"),
     path("chat/<int:conversation_id>/", views.chat_room, name="chat_room"),
     path("admin-dashboard/listing/<int:listing_id>/",views.admin_listing_detail,name="admin_listing_detail"),
-    
     path("admin-dashboard/listings/",views.admin_listings,name="admin_listings"),
+    path("admin-verification/",views.admin_verification,name="admin_verification"),
+
+
      path("buyer/search-room/",views.buyer_search_room, name="buyer_search_room"),
     path('provide-review/', views.provide_review, name='provide_review'),
     path('all-reviews/', views.all_reviews, name='all_reviews'),

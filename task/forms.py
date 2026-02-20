@@ -109,10 +109,17 @@ class ListingStep2Form(forms.ModelForm):
             "bedrooms",
             "bathrooms",
             "floor_number",
+            "total_area",
+            "has_balcony",
+            "kitchen_type",
             "is_furnished",
             "utilities_included",
             "wifi_available",
             "parking_available",
+            "ac_available",
+            "water_24hrs",
+            "lift_available",
+            "pet_allowed",
 
         ]
 
@@ -137,10 +144,26 @@ class ListingStep2Form(forms.ModelForm):
                 "class": "w-full px-4 py-3 rounded-xl border",
                 "placeholder": "Floor number (optional)"
             }),
+            "total_area": forms.NumberInput(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border",
+                "placeholder": "Total area (sq.ft)"
+            }),
+            "kitchen_type": forms.Select(attrs={
+                "class": "w-full px-4 py-3 rounded-xl border bg-white"
+            }),
+            "has_balcony": forms.CheckboxInput(attrs={
+                 "class": "h-4 w-4 text-indigo-600"
+            }),
+
             "is_furnished": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
             "utilities_included": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
             "wifi_available": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
             "parking_available": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+            "ac_available": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+            "water_24hrs": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+            "lift_available": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+            "pet_allowed": forms.CheckboxInput(attrs={"class": "h-4 w-4 text-indigo-600"}),
+
         }
 
 class MultipleFileInput(forms.ClearableFileInput):

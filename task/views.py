@@ -85,6 +85,7 @@ def login_view(request):
 
 @login_required
 def owner_dashboard(request):
+    request.session["mode"] = "owner"
     # 1. Get or create the necessary profiles
     owner_profile, created = OwnerProfile.objects.get_or_create(user=request.user)
     
@@ -123,6 +124,7 @@ def owner_dashboard(request):
     return render(request, 'task/owner_dashboard.html', context)
 
 def verification_page(request):
+    request.session["mode"] = "owner"
     # Fetch both records
     verification, _ = OwnerVerification.objects.get_or_create(user=request.user)
     owner_profile, _ = OwnerProfile.objects.get_or_create(user=request.user)
@@ -289,10 +291,6 @@ def role_redirect(request):
 def buyer(request):
     return render(request, 'task/buyer_dashboard.html')
 
-@login_required
-def saved_listings(request):
-    # Logic to fetch user's saved items will go here later
-    return render(request, 'task/saved_listings.html')
 
 @login_required
 def report_issue(request):
@@ -322,16 +320,18 @@ def report_issue(request):
 
 @staff_member_required
 def admin_view(request):
-    owners = Owner.objects.all() # Or however you fetch owners
+    pending_verifications = OwnerVerification.objects.filter(
+    is_verified=False
+    ).select_related("user")
+
     listings = Listing.objects.filter(
-    status__in=["pending", "approved", "rejected"]
+    status__in=["pending"]
 )    
     reports = BuyerReport.objects.all().order_by('-id')
     
     context = {
-        'owners': owners,
+        'pending_verifications': pending_verifications,
         'listings': listings,
-        # 'reports': reports,
         'pending_reports': reports.filter(status='pending'),
         'verified_reports': reports.filter(status='verified'), 
         
@@ -502,45 +502,34 @@ def logout(request):
 
 @login_required
 def owner_add_listingstep1(request):
+    request.session["mode"] = "owner"
     listing_id = request.session.get("listing_id")
-    listing = None
+    listing = Listing.objects.filter(
+        id=listing_id,
+        owner=request.user
+    ).first() if listing_id else None
 
-    if listing_id:
-        listing = Listing.objects.filter(
-            id=listing_id, owner=request.user
-        ).first()
+    form = ListingStep1Form(request.POST or None, instance=listing)
 
-    if request.method == "POST":
-        form = ListingStep1Form(request.POST, instance=listing)
-
-    if form.is_valid():
+    if request.method == "POST" and form.is_valid():
         listing = form.save(commit=False)
-
-    # attach owner
         listing.owner = request.user
         listing.status = "draft"
-
-        listing.latitude = form.cleaned_data.get("latitude")
-        listing.longitude = form.cleaned_data.get("longitude")
-
         listing.save()
 
-
-            # store listing id in session
         request.session["listing_id"] = listing.id
-
         return redirect("owner_add_listingstep2")
 
-    else:
-        form = ListingStep1Form(instance=listing)
-
-    return render(request,
+    return render(
+        request,
         "task/owner_add_listing/owner_add_listingstep1.html",
         {"form": form},
     )
 
 
+
 def owner_add_listingstep2(request):
+    request.session["mode"] = "owner"
     listing_id = request.session.get("listing_id")
 
     if not listing_id:
@@ -558,7 +547,9 @@ def owner_add_listingstep2(request):
     return render(request, "task/owner_add_listing/owner_add_listingstep2.html",{"form": form})
 
 
+@login_required
 def owner_add_listingstep3(request):
+    request.session["mode"] = "owner"
     listing_id = request.session.get("listing_id")
     if not listing_id:
         return redirect("owner_add_listingstep1")
@@ -574,37 +565,52 @@ def owner_add_listingstep3(request):
         proof = request.FILES.get("proof_photo")
         confirm = request.POST.get("confirm_photos")
 
-        print("FILES:", request.FILES)
+        existing_count = listing.photos.filter(is_proof=False).count()
+        total_count = existing_count + len(photos)
 
-        if len(photos) < 3:
+        if total_count < 3:
             messages.error(request, "Upload at least 3 room photos.")
             return redirect("owner_add_listingstep3")
 
         if not confirm:
             messages.error(request, "Please confirm the photos.")
             return redirect("owner_add_listingstep3")
+
+        # Save room photos
         for image in photos:
             ListingPhoto.objects.create(
                 listing=listing,
                 image=image,
                 is_proof=False
             )
+
+        # Save proof photo (optional)
         if proof:
+            listing.photos.filter(is_proof=True).delete()
+
             ListingPhoto.objects.create(
                 listing=listing,
                 image=proof,
                 is_proof=True
             )
 
+        # IMPORTANT: redirect OUTSIDE proof condition
         return redirect("owner_add_listingstep4")
+
+    # GET request
+    proof_photo = listing.photos.filter(is_proof=True).first()
 
     return render(
         request,
-        "task/owner_add_listing/owner_add_listingstep3.html"
+        "task/owner_add_listing/owner_add_listingstep3.html",
+        {
+            "listing": listing,
+            "proof_photo": proof_photo,
+        }
     )
 
-
 def owner_add_listingstep4(request):
+    request.session["mode"] = "owner"
     listing_id = request.session.get("listing_id")
     if not listing_id:
         return redirect("owner_add_listingstep1")
@@ -680,6 +686,7 @@ def all_reviews(request):
 
 @login_required
 def owner_listing(request):
+    request.session["mode"] = "owner"
     drafts = Listing.objects.filter(
         owner=request.user,
         status="draft",
@@ -711,6 +718,7 @@ def owner_listing(request):
 
 @login_required
 def owner_listing_details(request, pk):
+    request.session["mode"] = "owner"
     listing = get_object_or_404(
         Listing,
         pk=pk,
@@ -725,6 +733,7 @@ def owner_listing_details(request, pk):
 
 @login_required
 def submit_listing(request, pk):
+    request.session["mode"] = "owner"
     listing = get_object_or_404(
         Listing,
         pk=pk,
@@ -739,6 +748,7 @@ def submit_listing(request, pk):
 
 @login_required
 def owner_edit_listing(request, pk):
+    request.session["mode"] = "owner"
     listing = get_object_or_404(
         Listing,
         pk=pk,
@@ -852,6 +862,7 @@ def chat_room(request, conversation_id):
     })
 
 def buyer_search_room(request):
+    request.session["mode"] = "buyer"
     # .strip() removes spaces. So if user types " Pokhara " → becomes "Pokhara".
     query = request.GET.get("q", "").strip() 
     location = request.GET.get("location", "").strip()
@@ -895,6 +906,20 @@ def buyer_search_room(request):
     if request.GET.get("utilities"):
         listings = listings.filter(utilities_included=True)
 
+    if request.GET.get("ac"):
+        listings = listings.filter(ac_available=True)
+
+    if request.GET.get("water"):
+        listings = listings.filter(water_24hrs=True)
+
+    if request.GET.get("lift"):
+        listings = listings.filter(lift_available=True)
+
+    if request.GET.get("pet"):
+        listings = listings.filter(pet_allowed=True)
+
+    if request.GET.get("balcony"):
+        listings = listings.filter(has_balcony=True)
 
     if min_price:
         try:
@@ -971,15 +996,15 @@ def buyer_search_room(request):
     return render(request, "task/buyer_search_room/buyer_search_room.html", context)
 
 def buyer_listing_detail(request, listing_id):
+    request.session["mode"] = "buyer"
     listing = get_object_or_404(
         Listing.objects.prefetch_related("photos"),
         id=listing_id,
-        status="approved"
+        status="approved",
+        is_active=True
     )
 
-    is_saved = False
-    if request.user.is_authenticated:
-        is_saved = SavedListing.objects.filter(
+    is_saved = SavedListing.objects.filter(
             user=request.user, listing=listing
         ).exists()
 
@@ -992,17 +1017,30 @@ def buyer_listing_detail(request, listing_id):
 #  Save Listing
 @login_required
 def save_listing(request, listing_id):
-    listing = get_object_or_404(Listing, id=listing_id, status="approved")
-    SavedListing.objects.get_or_create(
+    request.session["mode"] = "buyer"
+    listing = get_object_or_404(Listing, id=listing_id)
+
+    saved_obj, created = SavedListing.objects.get_or_create(
         user=request.user,
         listing=listing
     )
-    return redirect(request.META.get("HTTP_REFERER", "/"))
+    print("Save triggered")
+    print("Created:", created)
+
+    if not created:
+        saved_obj.delete()
+        messages.info(request, "Removed from saved listings.")
+    else:
+        messages.success(request, "Listing saved successfully ❤️")
+
+    return redirect("buyer_listing_detail", listing_id=listing_id)
+
 
 
 # 4 Saved Listings Page
 @login_required
 def saved_listings(request):
+    request.session["mode"] = "buyer"
     saved = SavedListing.objects.filter(
         user=request.user
     ).select_related("listing").prefetch_related("listing__photos")
@@ -1024,4 +1062,24 @@ def delete_listing(request, listing_id):
 
     return redirect("owner_listing")
 
+@staff_member_required
+def admin_verification(request, verification_id):
+    verification = OwnerVerification.objects.select_related("user").get(id=verification_id)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "approve":
+            verification.is_verified = True
+            verification.save()
+
+        elif action == "reject":
+            verification.is_verified = False
+            verification.save()
+
+        return redirect("admin_dashboard")
+
+    return render(request, "task/admin/admin_verification.html", {
+        "verification": verification
+    })
 

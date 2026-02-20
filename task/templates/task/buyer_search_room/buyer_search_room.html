@@ -68,25 +68,65 @@
     </div>
 
     <!-- AMENITIES -->
-    <div>
-        <label class="font-semibold mb-3 block">Amenities</label>
+    <!-- AMENITIES -->
+<div>
+    <label class="font-semibold mb-3 block">Amenities</label>
 
-        <label class="flex items-center gap-2 mb-2">
-            <input type="checkbox" name="wifi" value="1" {% if request.GET.wifi %}checked{% endif %} onchange="this.form.submit()"> WiFi
-        </label>
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="wifi" value="1"
+        {% if request.GET.wifi %}checked{% endif %}
+        onchange="this.form.submit()"> WiFi
+    </label>
 
-        <label class="flex items-center gap-2 mb-2">
-            <input type="checkbox" name="parking" value="1" {% if request.GET.parking %}checked{% endif %} onchange="this.form.submit()"> Parking
-        </label>
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="parking" value="1"
+        {% if request.GET.parking %}checked{% endif %}
+        onchange="this.form.submit()"> Parking
+    </label>
 
-        <label class="flex items-center gap-2 mb-2">
-            <input type="checkbox" name="furnished" value="1" {% if request.GET.furnished %}checked{% endif %} onchange="this.form.submit()"> Furnished
-        </label>
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="furnished" value="1"
+        {% if request.GET.furnished %}checked{% endif %}
+        onchange="this.form.submit()"> Furnished
+    </label>
 
-        <label class="flex items-center gap-2">
-            <input type="checkbox" name="utilities" value="1" {% if request.GET.utilities %}checked{% endif %} onchange="this.form.submit()"> Utilities included
-        </label>
-    </div>
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="utilities" value="1"
+        {% if request.GET.utilities %}checked{% endif %}
+        onchange="this.form.submit()"> Utilities included
+    </label>
+
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="ac" value="1"
+        {% if request.GET.ac %}checked{% endif %}
+        onchange="this.form.submit()"> Air Conditioning
+    </label>
+
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="water" value="1"
+        {% if request.GET.water %}checked{% endif %}
+        onchange="this.form.submit()"> 24/7 Water
+    </label>
+
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="lift" value="1"
+        {% if request.GET.lift %}checked{% endif %}
+        onchange="this.form.submit()"> Lift
+    </label>
+
+    <label class="flex items-center gap-2 mb-2">
+        <input type="checkbox" name="pet" value="1"
+        {% if request.GET.pet %}checked{% endif %}
+        onchange="this.form.submit()"> Pet Allowed
+    </label>
+
+    <label class="flex items-center gap-2">
+        <input type="checkbox" name="balcony" value="1"
+        {% if request.GET.balcony %}checked{% endif %}
+        onchange="this.form.submit()"> Balcony
+    </label>
+</div>
+
 
     <!-- MAP -->
     <button type="button" id="openMapBtn"
