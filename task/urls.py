@@ -12,11 +12,12 @@ urlpatterns = [
     path("resend-otp/", views.resend_otp, name="resend_otp"),
     path('about/', views.about, name='about'),
     path('owner/', views.owner_dashboard, name='owner_dashboard'),
-    path('buyer/', views.buyer, name='buyer_dashboard'),
+    path('buyer/', views.buyer_dashboard, name='buyer_dashboard'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register, name='register'),
     path("logout/", views.logout, name="logout"),
     path("verification/", views.verification_page, name='verification_page'),
+    path("nearby-listings/", views.nearby_listings, name="nearby_listings"),
     
     path(
         'forgot_password/',

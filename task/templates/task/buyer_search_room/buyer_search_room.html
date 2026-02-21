@@ -3,270 +3,583 @@
 {% block content %}
 
 <form id="filtersForm" method="get" action="{% url 'buyer_search_room' %}">
-
-<!-- PAGE HEADER -->
-<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
-
+  <!-- PAGE HEADER -->
+  <div
+    class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8"
+  >
     <div>
-        <h1 class="text-3xl font-bold">Find rooms</h1>
-        <p class="text-gray-500">Search rooms by price or map</p>
+      <h1 class="text-3xl font-bold">Find rooms</h1>
+      <p class="text-gray-500">Search rooms by price or map</p>
     </div>
 
     <!-- SEARCH BAR -->
     <div class="relative w-full lg:max-w-md">
-        <input type="text" name="q" value="{{ q }}"
-               onchange="this.form.submit()"
-               placeholder="Search city or area"
-               class="w-full pl-12 pr-4 py-3 rounded-full border shadow-md focus:ring-2 focus:ring-slate-900 outline-none">
-        <i class="fa-solid fa-magnifying-glass text-gray-500 absolute left-4 top-1/2 -translate-y-1/2"></i>
+      <input
+        type="text"
+        name="q"
+        value="{{ q }}"
+        onchange="this.form.submit()"
+        placeholder="Search city or area"
+        class="w-full pl-12 pr-4 py-3 rounded-full border shadow-md focus:ring-2 focus:ring-slate-900 outline-none"
+      />
+      <i
+        class="fa-solid fa-magnifying-glass text-gray-500 absolute left-4 top-1/2 -translate-y-1/2"
+      ></i>
     </div>
+  </div>
 
-</div>
-
-
-<!-- MAIN GRID -->
-<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
-<!-- SIDEBAR -->
-<aside class="lg:col-span-1">
-<div class="bg-white p-6 rounded-2xl border sticky top-24 space-y-6">
-
-    <!-- SORT -->
-    <div>
-        <label class="font-semibold mb-2 block">Sort</label>
-        <select name="sort" onchange="this.form.submit()"
-            class="w-full p-3 rounded-xl border">
+  <!-- MAIN GRID -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <!-- SIDEBAR -->
+    <aside class="lg:col-span-1">
+      <div class="bg-white p-6 rounded-2xl border sticky top-24 space-y-6">
+        <!-- SORT -->
+        <div>
+          <label class="font-semibold mb-2 block">Sort</label>
+          <select
+            name="sort"
+            onchange="this.form.submit()"
+            class="w-full p-3 rounded-xl border"
+          >
             <option value="">Newest First</option>
-            <option value="price_low" {% if sort == "price_low" %}selected{% endif %}>Price low → high</option>
-            <option value="price_high" {% if sort == "price_high" %}selected{% endif %}>Price high → low</option>
-        </select>
-    </div>
-
-    <!-- PRICE -->
-    <div>
-        <label class="font-semibold mb-2 block">Price Range (Rs)</label>
-        <div class="flex gap-3">
-            <input type="number" name="min_price" value="{{ min_price }}"
-                placeholder="Min" onchange="this.form.submit()"
-                class="w-1/2 p-3 rounded-xl border">
-            <input type="number" name="max_price" value="{{ max_price }}"
-                placeholder="Max" onchange="this.form.submit()"
-                class="w-1/2 p-3 rounded-xl border">
+            <option value="price_low" {% if sort == "price_low" %}selected{% endif %}>
+              Price low → high
+            </option>
+            <option value="price_high" {% if sort == "price_high" %}selected{% endif %}>
+              Price high → low
+            </option>
+          </select>
         </div>
-    </div>
 
-    <!-- ROOM TYPE -->
-    <div>
-        <label class="font-semibold mb-2 block">Room Type</label>
-        <select name="room_type" onchange="this.form.submit()"
-            class="w-full p-3 rounded-xl border">
+        <!-- PRICE -->
+        <div>
+          <label class="font-semibold mb-2 block">Price Range (Rs)</label>
+          <div class="flex gap-3">
+            <input
+              type="number"
+              name="min_price"
+              value="{{ min_price }}"
+              placeholder="Min"
+              onchange="this.form.submit()"
+              class="w-1/2 p-3 rounded-xl border"
+            />
+            <input
+              type="number"
+              name="max_price"
+              value="{{ max_price }}"
+              placeholder="Max"
+              onchange="this.form.submit()"
+              class="w-1/2 p-3 rounded-xl border"
+            />
+          </div>
+        </div>
+
+        <!-- ROOM TYPE -->
+        <div>
+          <label class="font-semibold mb-2 block">Room Type</label>
+          <select
+            name="room_type"
+            onchange="this.form.submit()"
+            class="w-full p-3 rounded-xl border"
+          >
             <option value="">All types</option>
-            <option value="private" {% if room_type == "private" %}selected{% endif %}>Private</option>
-            <option value="entire" {% if room_type == "entire" %}selected{% endif %}>Entire</option>
-            <option value="shared" {% if room_type == "shared" %}selected{% endif %}>Shared</option>
-        </select>
-    </div>
-
-    <!-- AMENITIES -->
-    <!-- AMENITIES -->
-<div>
-    <label class="font-semibold mb-3 block">Amenities</label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="wifi" value="1"
-        {% if request.GET.wifi %}checked{% endif %}
-        onchange="this.form.submit()"> WiFi
-    </label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="parking" value="1"
-        {% if request.GET.parking %}checked{% endif %}
-        onchange="this.form.submit()"> Parking
-    </label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="furnished" value="1"
-        {% if request.GET.furnished %}checked{% endif %}
-        onchange="this.form.submit()"> Furnished
-    </label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="utilities" value="1"
-        {% if request.GET.utilities %}checked{% endif %}
-        onchange="this.form.submit()"> Utilities included
-    </label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="ac" value="1"
-        {% if request.GET.ac %}checked{% endif %}
-        onchange="this.form.submit()"> Air Conditioning
-    </label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="water" value="1"
-        {% if request.GET.water %}checked{% endif %}
-        onchange="this.form.submit()"> 24/7 Water
-    </label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="lift" value="1"
-        {% if request.GET.lift %}checked{% endif %}
-        onchange="this.form.submit()"> Lift
-    </label>
-
-    <label class="flex items-center gap-2 mb-2">
-        <input type="checkbox" name="pet" value="1"
-        {% if request.GET.pet %}checked{% endif %}
-        onchange="this.form.submit()"> Pet Allowed
-    </label>
-
-    <label class="flex items-center gap-2">
-        <input type="checkbox" name="balcony" value="1"
-        {% if request.GET.balcony %}checked{% endif %}
-        onchange="this.form.submit()"> Balcony
-    </label>
-</div>
-
-
-    <!-- MAP -->
-    <button type="button" id="openMapBtn"
-        class="w-full py-3 rounded-xl border hover:bg-gray-100">
-        <i class="fa-solid fa-map mr-1"></i> Search on map
-    </button>
-
-    <!-- LOCATION -->
-    <button type="button" id="useMyLocationBtn"
-        class="w-full py-3 rounded-xl border hover:bg-gray-100">
-        <i class="fa-solid fa-location-crosshairs mr-1"></i> Use my location
-    </button>
-
-<div id="mapModal" class="fixed inset-0 bg-black/50 hidden z-50 items-center justify-center">
-    <div class="bg-white w-[90%] max-w-4xl rounded-xl overflow-hidden">
-        <div class="flex justify-between items-center p-4 border-b">
-            <h3 class="font-semibold">Search through map</h3>
-            <button id="closeMapBtn" class="text-xl hover:text-red-500">✕</button>
+            <option value="private" {% if room_type == "private" %}selected{% endif %}>
+              Private
+            </option>
+            <option value="entire" {% if room_type == "entire" %}selected{% endif %}>
+              Entire
+            </option>
+            <option value="shared" {% if room_type == "shared" %}selected{% endif %}>
+              Shared
+            </option>
+          </select>
         </div>
-        <div id="map" class="h-[500px]"></div>
-        <div class="p-4 border-t text-right">
-            <button id="applyMapFilterBtn"
-                class="bg-slate-900 text-white px-5 py-2 rounded-lg hover:bg-black transition">
-                Apply Map Filter
+
+        <!-- AMENITIES -->
+        <div>
+          <label class="font-semibold mb-3 block">Amenities</label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="wifi"
+              value="1"
+              {% if request.GET.wifi %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            WiFi
+          </label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="parking"
+              value="1"
+              {% if request.GET.parking %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            Parking
+          </label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="furnished"
+              value="1"
+              {% if request.GET.furnished %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            Furnished
+          </label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="utilities"
+              value="1"
+              {% if request.GET.utilities %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            Utilities included
+          </label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="ac"
+              value="1"
+              {% if request.GET.ac %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            Air Conditioning
+          </label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="water"
+              value="1"
+              {% if request.GET.water %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            24/7 Water
+          </label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="lift"
+              value="1"
+              {% if request.GET.lift %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            Lift
+          </label>
+
+          <label class="flex items-center gap-2 mb-2">
+            <input
+              type="checkbox"
+              name="pet"
+              value="1"
+              {% if request.GET.pet %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            Pet Allowed
+          </label>
+
+          <label class="flex items-center gap-2">
+            <input
+              type="checkbox"
+              name="balcony"
+              value="1"
+              {% if request.GET.balcony %}checked{% endif %}
+              onchange="this.form.submit()"
+            />
+            Balcony
+          </label>
+        </div>
+
+        <!-- MAP -->
+        <button
+          type="button"
+          id="openMapBtn"
+          class="w-full py-3 rounded-xl border hover:bg-gray-100"
+        >
+          <i class="fa-solid fa-map mr-1"></i> Search on map
+        </button>
+
+        <!-- LOCATION -->
+        <button
+          type="button"
+          id="useMyLocationBtn"
+          class="w-full py-3 rounded-xl border hover:bg-gray-100"
+        >
+          <i class="fa-solid fa-location-crosshairs mr-1"></i> Use my location
+        </button>
+
+        <!-- Location Active Indicator -->
+        <div
+          id="locationActiveIndicator"
+          class="hidden bg-green-50 border border-green-200 rounded-xl p-3"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-green-700">
+              <i class="fa-solid fa-check-circle mr-1"></i> Location active
+            </span>
+            <button
+              type="button"
+              id="clearLocationBtn"
+              class="text-red-500 text-sm hover:underline"
+            >
+              Clear
             </button>
+          </div>
         </div>
-    </div>
-</div>
 
-    <a href="{% url 'buyer_search_room' %}"
-       class="block text-center py-3 rounded-xl border text-red-500 hover:bg-red-50">
-       Clear filters
-    </a>
+        <!-- MAP MODAL -->
+        <div
+          id="mapModal"
+          class="fixed inset-0 bg-black/50 hidden z-50 items-center justify-center"
+        >
+          <div class="bg-white w-[90%] max-w-4xl rounded-xl overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b">
+              <h3 class="font-semibold">Search through map</h3>
+              <button
+                type="button"
+                id="closeMapBtn"
+                class="text-xl hover:text-red-500"
+              >
+                ✕
+              </button>
+            </div>
+            <div id="map" class="h-[500px]"></div>
+            <div class="p-4 border-t flex justify-between items-center">
+              <div id="mapLocationInfo" class="text-sm text-gray-500"></div>
+              <button
+                type="button"
+                id="applyMapFilterBtn"
+                class="bg-slate-900 text-white px-5 py-2 rounded-lg hover:bg-black transition"
+              >
+                Apply Map Filter
+              </button>
+            </div>
+          </div>
+        </div>
 
-</div>
-</aside>
-
-
-<!-- RESULTS -->
-<div class="lg:col-span-3">
-
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-{% for listing in listings %}
-<div class="bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden">
-
-    {% with listing.photos.first as photo %}
-        {% if photo %}
-            <img src="{{ photo.image.url }}" class="h-56 w-full object-cover">
-        {% else %}
-            <div class="h-56 bg-gray-200 flex items-center justify-center">No Image</div>
-        {% endif %}
-    {% endwith %}
-
-    <div class="p-5">
-        <h3 class="font-semibold text-lg">{{ listing.title }}</h3>
-        <p class="text-gray-500">{{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}</p>
-        <p class="font-bold mt-2 text-lg">Rs. {{ listing.monthly_rent }}</p>
-
-        <a href="{% url 'buyer_listing_detail' listing.id %}"
-           class="inline-block mt-3 text-slate-900 font-semibold hover:underline">
-            View details →
+        <a
+          href="{% url 'buyer_search_room' %}"
+          class="block text-center py-3 rounded-xl border text-red-500 hover:bg-red-50"
+        >
+          Clear filters
         </a>
+      </div>
+    </aside>
+
+    <!-- RESULTS -->
+    <div class="lg:col-span-3">
+      <!-- Results count and location info -->
+      <div class="mb-4 flex justify-between items-center">
+        <p class="text-gray-500">
+          {{ listings|length }} listing{{ listings|pluralize }} found
+          {% if lat and lng %}
+          <span class="ml-2 text-green-600">
+            <i class="fa-solid fa-location-dot"></i> Near your location
+          </span>
+          {% endif %}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+        {% for listing in listings %}
+        <div
+          class="bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden"
+        >
+          {% with listing.photos.first as photo %}
+          {% if photo %}
+          <img src="{{ photo.image.url }}" class="h-56 w-full object-cover" />
+          {% else %}
+          <div class="h-56 bg-gray-200 flex items-center justify-center">
+            No Image
+          </div>
+          {% endif %}
+          {% endwith %}
+
+          <div class="p-5">
+            <h3 class="font-semibold text-lg">{{ listing.title }}</h3>
+            <p class="text-gray-500">
+              {{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}
+            </p>
+            <p class="font-bold mt-2 text-lg">Rs. {{ listing.monthly_rent }}</p>
+
+            <a
+              href="{% url 'buyer_listing_detail' listing.id %}"
+              class="inline-block mt-3 text-slate-900 font-semibold hover:underline"
+            >
+              View details →
+            </a>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-12">
+          <i class="fa-solid fa-search text-4xl text-gray-300 mb-4"></i>
+          <p class="text-gray-500">
+            No listings found. Try adjusting your filters.
+          </p>
+        </div>
+        {% endfor %}
+      </div>
     </div>
+  </div>
+
+  <input type="hidden" name="lat" id="latInput" value="{{ lat }}" />
+  <input type="hidden" name="lng" id="lngInput" value="{{ lng }}" />
+  <input type="hidden" name="radius_km" id="radiusInput" value="{{ radius_km|default:'5' }}" />
+  <input type="hidden" name="open_map" id="openMapInput" value="{{ open_map }}" />
+</form>
+
+<!-- Listings data for JavaScript -->
+<div id="listingsData" style="display:none;">
+{% for listing in listings %}
+{% if listing.latitude and listing.longitude %}
+<div class="listing-marker-data"
+     data-id="{{ listing.id }}"
+     data-lat="{{ listing.latitude }}"
+     data-lng="{{ listing.longitude }}"
+     data-title="{{ listing.title }}"
+     data-city="{{ listing.city }}"
+     data-rent="{{ listing.monthly_rent }}"
+     data-url="{% url 'buyer_listing_detail' listing.id %}"
+     data-image="{% with listing.photos.first as photo %}{% if photo %}{{ photo.image.url }}{% endif %}{% endwith %}">
 </div>
+{% endif %}
 {% endfor %}
 </div>
 
-</div>
-</div>
-
-<input type="hidden" name="lat" id="latInput" value="{{ lat }}">
-<input type="hidden" name="lng" id="lngInput" value="{{ lng }}">
-<input type="hidden" name="radius_km" id="radiusInput" value="{{ radius_km|default:'3' }}">
-
-</form>
-
-
+{% verbatim %}
 <script>
-let map=null, marker=null, markers=[];
+document.addEventListener("DOMContentLoaded", function() {
 
-function openMap(){
-    mapModal.classList.remove('hidden');
+    var mapModal = document.getElementById("mapModal");
+    var openMapBtn = document.getElementById("openMapBtn");
+    var closeMapBtn = document.getElementById("closeMapBtn");
+    var applyMapFilterBtn = document.getElementById("applyMapFilterBtn");
+    var useMyLocationBtn = document.getElementById("useMyLocationBtn");
+    var clearLocationBtn = document.getElementById("clearLocationBtn");
+    var locationActiveIndicator = document.getElementById("locationActiveIndicator");
+    var mapLocationInfo = document.getElementById("mapLocationInfo");
+    var filtersForm = document.getElementById("filtersForm");
+    var latInput = document.getElementById("latInput");
+    var lngInput = document.getElementById("lngInput");
+    var radiusInput = document.getElementById("radiusInput");
+    var openMapInput = document.getElementById("openMapInput");
 
-    setTimeout(()=>{
-        if(!map){
-            map=L.map('map').setView([28.2096,83.9856],12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // Storage keys (same as dashboard)
+    var LOCATION_KEY = "user_location";
+    var LOCATION_ENABLED_KEY = "location_enabled";
 
-            map.on('click',e=>{
-                if(marker) marker.setLatLng(e.latlng);
-                else marker=L.marker(e.latlng).addTo(map);
+    var map = null;
+    var userMarker = null;
+    var listingMarkers = [];
 
-                latInput.value=e.latlng.lat.toFixed(6);
-                lngInput.value=e.latlng.lng.toFixed(6);
-            });
+    // Check if location is active in URL or localStorage
+    function checkLocationStatus() {
+        var urlLat = latInput.value;
+        var urlLng = lngInput.value;
 
-            /* LISTING MARKERS WITH IMAGE POPUP */
-            {% for listing in listings %}
-            {% if listing.latitude and listing.longitude %}
-            markers.push(
-                L.marker([{{listing.latitude}}, {{listing.longitude}}]).addTo(map)
-                .bindPopup(`
-                    <a href="{% url 'buyer_listing_detail' listing.id %}">
-                        {% with listing.photos.first as photo %}
-                            {% if photo %}
-                                <img src="{{ photo.image.url }}"
-                                     style="width:200px;height:140px;object-fit:cover;border-radius:12px;">
-                            {% endif %}
-                        {% endwith %}
-                    </a>
-                `)
-            );
-            {% endif %}
-            {% endfor %}
+        if (urlLat && urlLng) {
+            // Location is active via URL params
+            locationActiveIndicator.classList.remove("hidden");
+            useMyLocationBtn.classList.add("hidden");
+        } else {
+            locationActiveIndicator.classList.add("hidden");
+            useMyLocationBtn.classList.remove("hidden");
+        }
+    }
 
-            if(markers.length){
-                const group=L.featureGroup(markers);
+    // Initialize map
+    function initMap(centerLat, centerLng, showUserMarker) {
+        mapModal.classList.remove("hidden");
+        mapModal.classList.add("flex");
+
+        setTimeout(function() {
+            if (!map) {
+                var defaultLat = centerLat || 28.2096;
+                var defaultLng = centerLng || 83.9856;
+                map = L.map('map').setView([defaultLat, defaultLng], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+                // Click to set location
+                map.on('click', function(e) {
+                    var lat = e.latlng.lat.toFixed(6);
+                    var lng = e.latlng.lng.toFixed(6);
+
+                    if (userMarker) {
+                        userMarker.setLatLng(e.latlng);
+                    } else {
+                        userMarker = L.marker(e.latlng, {
+                            icon: L.divIcon({
+                                className: 'user-location-marker',
+                                html: '<div style="background:#3b82f6;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
+                                iconSize: [20, 20],
+                                iconAnchor: [10, 10]
+                            })
+                        }).addTo(map);
+                    }
+
+                    latInput.value = lat;
+                    lngInput.value = lng;
+                    mapLocationInfo.innerHTML = '<i class="fa-solid fa-location-dot text-blue-500 mr-1"></i> Selected: ' + lat + ', ' + lng;
+                });
+
+                // Add listing markers from data attributes
+                var listingElements = document.querySelectorAll('.listing-marker-data');
+                listingElements.forEach(function(el) {
+                    var lat = parseFloat(el.dataset.lat);
+                    var lng = parseFloat(el.dataset.lng);
+                    var title = el.dataset.title;
+                    var city = el.dataset.city;
+                    var rent = el.dataset.rent;
+                    var url = el.dataset.url;
+                    var image = el.dataset.image;
+
+                    var popupContent = '<div style="min-width:180px;">' +
+                        '<a href="' + url + '">';
+                    
+                    if (image) {
+                        popupContent += '<img src="' + image + '" style="width:100%;height:100px;object-fit:cover;border-radius:8px;margin-bottom:8px;">';
+                    }
+                    
+                    popupContent += '<p style="font-weight:600;margin:0;">' + title + '</p>' +
+                        '<p style="color:#666;font-size:12px;margin:4px 0;">' + city + '</p>' +
+                        '<p style="font-weight:700;color:#1e293b;">Rs. ' + rent + '</p>' +
+                        '</a></div>';
+
+                    var marker = L.marker([lat, lng]).addTo(map).bindPopup(popupContent);
+                    listingMarkers.push(marker);
+                });
+
+            } else {
+                map.invalidateSize();
+            }
+
+            // If we have coordinates, center on them and show user marker
+            if (centerLat && centerLng && showUserMarker) {
+                map.setView([centerLat, centerLng], 14);
+
+                if (!userMarker) {
+                    userMarker = L.marker([centerLat, centerLng], {
+                        icon: L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div style="background:#3b82f6;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
+                        })
+                    }).addTo(map);
+                } else {
+                    userMarker.setLatLng([centerLat, centerLng]);
+                }
+
+                mapLocationInfo.innerHTML = '<i class="fa-solid fa-location-dot text-blue-500 mr-1"></i> Your location: ' + centerLat + ', ' + centerLng;
+            }
+
+            // Fit bounds to show all markers if no specific location
+            if (!centerLat && !centerLng && listingMarkers.length) {
+                var group = L.featureGroup(listingMarkers);
                 map.fitBounds(group.getBounds().pad(0.2));
             }
 
-        } else map.invalidateSize();
-    },300);
-}
+        }, 300);
+    }
 
-openMapBtn.onclick=openMap;
-closeMapBtn.onclick=()=>mapModal.classList.add('hidden');
-applyMapFilterBtn.onclick=()=>filtersForm.submit();
+    // Open map button
+    openMapBtn.addEventListener("click", function() {
+        var lat = parseFloat(latInput.value) || null;
+        var lng = parseFloat(lngInput.value) || null;
+        initMap(lat, lng, !!(lat && lng));
+    });
 
-useMyLocationBtn.onclick=function(){
-    if(!navigator.geolocation){ alert("Geolocation not supported"); return; }
+    // Close map button
+    closeMapBtn.addEventListener("click", function() {
+        mapModal.classList.add("hidden");
+        mapModal.classList.remove("flex");
+    });
 
-    navigator.geolocation.getCurrentPosition(pos=>{
-        latInput.value=pos.coords.latitude.toFixed(6);
-        lngInput.value=pos.coords.longitude.toFixed(6);
+    // Apply map filter
+    applyMapFilterBtn.addEventListener("click", function() {
+        // Save to localStorage if location was set
+        var lat = latInput.value;
+        var lng = lngInput.value;
+
+        if (lat && lng) {
+            localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat: lat, lng: lng }));
+            localStorage.setItem(LOCATION_ENABLED_KEY, "true");
+        }
+
         filtersForm.submit();
     });
-}
 
-clearFiltersBtn.onclick=()=>window.location.href="{% url 'buyer_search_room' %}";
+    // Use my location button
+    useMyLocationBtn.addEventListener("click", function() {
+        if (!navigator.geolocation) {
+            alert("Geolocation not supported by your browser.");
+            return;
+        }
+
+        useMyLocationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Finding...';
+        useMyLocationBtn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                var lat = position.coords.latitude.toFixed(6);
+                var lng = position.coords.longitude.toFixed(6);
+
+                latInput.value = lat;
+                lngInput.value = lng;
+
+                // Save to localStorage
+                localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat: lat, lng: lng }));
+                localStorage.setItem(LOCATION_ENABLED_KEY, "true");
+
+                filtersForm.submit();
+            },
+            function() {
+                alert("Location access denied. Please enable location permissions.");
+                useMyLocationBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i> Use my location';
+                useMyLocationBtn.disabled = false;
+            }
+        );
+    });
+
+    // Clear location button
+    if (clearLocationBtn) {
+        clearLocationBtn.addEventListener("click", function() {
+            latInput.value = "";
+            lngInput.value = "";
+            radiusInput.value = "";
+
+            // Clear from localStorage
+            localStorage.removeItem(LOCATION_KEY);
+            localStorage.removeItem(LOCATION_ENABLED_KEY);
+
+            filtersForm.submit();
+        });
+    }
+
+    // Auto-open map if open_map=1 in URL (coming from dashboard)
+    if (openMapInput.value === "1") {
+        var lat = parseFloat(latInput.value) || null;
+        var lng = parseFloat(lngInput.value) || null;
+
+        if (lat && lng) {
+            initMap(lat, lng, true);
+        }
+    }
+
+    // Initialize
+    checkLocationStatus();
+
+});
 </script>
+{% endverbatim %}
 
 {% endblock %}
- 

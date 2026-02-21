@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout as auth_logout
@@ -5,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, ListingForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form,MessageForm
 from django.conf import settings
 from django.contrib import messages
-from .models import Listing,ListingPhoto, BuyerReport, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message,SavedListing,Review
+from .models import Listing,ListingPhoto, BuyerReport, Notification, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message,SavedListing,Review
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
@@ -13,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.core.paginator import Paginator
+from django.utils import timezone
 import math
 
 User = get_user_model()
@@ -288,8 +291,113 @@ def role_redirect(request):
     return redirect("buyer_dashboard")
 
 @login_required
-def buyer(request):
-    return render(request, 'task/buyer_dashboard.html')
+def buyer_dashboard(request):
+    request.session["mode"] = "buyer"
+
+    user = request.user
+
+    # 🔹 Stats
+    saved_count = SavedListing.objects.filter(user=user).count()
+
+    conversations = Conversation.objects.filter(buyer=user)
+    unread_messages = Message.objects.filter(
+        conversation__in=conversations,
+        is_read=False
+    ).exclude(sender=user).count()
+
+    unread_notifications = Notification.objects.filter(
+        user=user,
+        is_read=False
+    ).count()
+
+    one_week_ago = timezone.now() - timedelta(days=7)
+    new_listings_count = Listing.objects.filter(
+        status="approved",
+        is_active=True,
+        created_at__gte=one_week_ago
+    ).count()
+
+    # 🔹 Recently Saved
+    recent_saved = SavedListing.objects.filter(
+        user=user
+    ).select_related("listing").order_by("-saved_at")[:3]
+
+    # 🔹 Recent Conversations
+    recent_conversations = conversations[:3]
+
+    context = {
+        "saved_count": saved_count,
+        "unread_messages": unread_messages,
+        "unread_notifications": unread_notifications,
+        "new_listings_count": new_listings_count,
+        "recent_saved": recent_saved,
+        "recent_conversations": recent_conversations,
+    }
+
+    return render(request, "task/buyer_dashboard.html", context)
+
+@login_required
+def nearby_listings(request):
+    lat = request.GET.get("lat")
+    lng = request.GET.get("lng")
+    radius_km = request.GET.get("radius", 5)
+
+    if not lat or not lng:
+        return JsonResponse({"error": "Location required"}, status=400)
+
+    lat_f = float(lat)
+    lng_f = float(lng)
+    radius_f = float(radius_km)
+
+    def haversine_km(lat1, lon1, lat2, lon2):
+        r = 6371
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlambda = math.radians(lon2 - lon1)
+        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+        return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    # 🔹 First filter with bounding box
+    lat_delta = radius_f / 111.0
+    lng_delta = radius_f / (111.0 * math.cos(math.radians(lat_f)) or 1)
+
+    listings = Listing.objects.filter(
+        status="approved",
+        is_active=True,
+        latitude__isnull=False,
+        longitude__isnull=False,
+        latitude__gte=lat_f - lat_delta,
+        latitude__lte=lat_f + lat_delta,
+        longitude__gte=lng_f - lng_delta,
+        longitude__lte=lng_f + lng_delta,
+    )
+
+    # 🔹 Exact distance filtering
+    filtered = []
+    for l in listings:
+        dist = haversine_km(lat_f, lng_f, float(l.latitude), float(l.longitude))
+        if dist <= radius_f:
+            filtered.append((l, dist))
+
+    # Sort by distance
+    filtered.sort(key=lambda x: x[1])
+
+    # Take top 3
+    filtered = filtered[:3]
+
+    results = []
+    for listing, dist in filtered:
+        photo = listing.photos.filter(is_proof=False).first()
+        results.append({
+            "id": listing.id,
+            "title": listing.title,
+            "city": listing.city,
+            "rent": listing.monthly_rent,
+            "distance": round(dist, 2),
+            "image": photo.image.url if photo else ""
+        })
+
+    return JsonResponse({"listings": results})
 
 
 @login_required

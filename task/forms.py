@@ -53,10 +53,14 @@ class CustomPasswordResetForm(PasswordResetForm):
 
 class ListingStep1Form(forms.ModelForm):
     latitude = forms.DecimalField(
+        max_digits=18,
+        decimal_places=9,
         required=False,
         widget=forms.HiddenInput()
     )
     longitude = forms.DecimalField(
+        max_digits=18,
+        decimal_places=9,
         required=False,
         widget=forms.HiddenInput()
     )

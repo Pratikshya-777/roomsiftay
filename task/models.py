@@ -56,7 +56,7 @@ class BuyerReport(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     resolved_at = models.DateTimeField(null=True, blank=True)
 
-    def __clstr__(self):
+    def __str__(self):
         return f"{self.title} by {self.user.username}"
 
 
@@ -135,12 +135,11 @@ class Listing(models.Model):
 
     # STEP 1 — Basic Info
     title = models.CharField(max_length=200)
-    # room_type = models.CharField(max_length=50)
     city = models.CharField(max_length=100, null=True, blank=True)
     area = models.CharField(max_length=100, null=True, blank=True)
     full_address = models.TextField(blank=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=18, decimal_places=9, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=18, decimal_places=9, null=True, blank=True)
 
     # STEP 2 — Pricing & Details
     monthly_rent = models.PositiveIntegerField(null=True, blank=True)

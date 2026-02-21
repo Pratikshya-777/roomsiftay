@@ -1,19 +1,16 @@
-{% extends 'base.html' %}
-{% block title %}Add Listing · Step 1{% endblock %}
-
+{% extends 'base.html' %} 
+{% block title %}Add Listing · Step 1{% endblock %} 
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8 px-4">
-
-  <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-10">
-
+  <div
+    class="max-w-3xl mx-auto bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-10"
+  >
     <!-- HEADER -->
     <div class="mb-8">
       <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">
         🏷️ Add New Listing
       </h1>
-      <p class="text-sm text-gray-500 mt-1">
-        Step 1 of 4 · Basic Information
-      </p>
+      <p class="text-sm text-gray-500 mt-1">Step 1 of 4 · Basic Information</p>
 
       <div class="w-full bg-gray-200 rounded-full h-2 mt-4">
         <div class="bg-indigo-600 h-2 rounded-full w-1/4"></div>
@@ -21,7 +18,14 @@
     </div>
 
     <form method="post" class="space-y-10">
-      {% csrf_token %}
+      {% csrf_token %} 
+      {% if form.errors %}
+      <div
+        class="bg-red-50 border border-red-200 p-4 rounded-xl text-sm text-red-600"
+      >
+        {{ form.errors }}
+      </div>
+      {% endif %}
 
       <!-- TITLE -->
       <div>
@@ -38,15 +42,17 @@
         </label>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
           <label class="cursor-pointer">
-            <input type="radio" name="room_type" value="private"
-                   class="peer hidden"
-                   {% if form.room_type.value == "private" %}checked{% endif %}>
-            <div class="p-5 rounded-2xl border border-gray-200 bg-white
-                        peer-checked:border-indigo-600
-                        peer-checked:ring-2 peer-checked:ring-indigo-500
-                        hover:border-indigo-400 transition text-center">
+            <input
+              type="radio"
+              name="room_type"
+              value="private"
+              class="peer hidden"
+              {% if form.room_type.value == "private" %}checked{% endif %}
+            />
+            <div
+              class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
+            >
               <div class="text-2xl mb-2">🚪</div>
               <p class="font-semibold text-gray-800">Private Room</p>
               <p class="text-xs text-gray-500 mt-1">
@@ -56,57 +62,52 @@
           </label>
 
           <label class="cursor-pointer">
-            <input type="radio" name="room_type" value="shared"
-                   class="peer hidden"
-                   {% if form.room_type.value == "shared" %}checked{% endif %}>
-            <div class="p-5 rounded-2xl border border-gray-200 bg-white
-                        peer-checked:border-indigo-600
-                        peer-checked:ring-2 peer-checked:ring-indigo-500
-                        hover:border-indigo-400 transition text-center">
+            <input
+              type="radio"
+              name="room_type"
+              value="shared"
+              class="peer hidden"
+              {% if form.room_type.value == "shared" %}checked{% endif %}
+            />
+            <div
+              class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
+            >
               <div class="text-2xl mb-2">👥</div>
               <p class="font-semibold text-gray-800">Shared Room</p>
-              <p class="text-xs text-gray-500 mt-1">
-                Shared with others
-              </p>
+              <p class="text-xs text-gray-500 mt-1">Shared with others</p>
             </div>
           </label>
 
           <label class="cursor-pointer">
-            <input type="radio" name="room_type" value="entire"
-                   class="peer hidden"
-                   {% if form.room_type.value == "entire" %}checked{% endif %}>
-            <div class="p-5 rounded-2xl border border-gray-200 bg-white
-                        peer-checked:border-indigo-600
-                        peer-checked:ring-2 peer-checked:ring-indigo-500
-                        hover:border-indigo-400 transition text-center">
+            <input
+              type="radio"
+              name="room_type"
+              value="entire"
+              class="peer hidden"
+              {% if form.room_type.value == "entire" %}checked{% endif %}
+            />
+            <div
+              class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
+            >
               <div class="text-2xl mb-2">🏠</div>
               <p class="font-semibold text-gray-800">Entire Flat</p>
-              <p class="text-xs text-gray-500 mt-1">
-                Whole apartment
-              </p>
+              <p class="text-xs text-gray-500 mt-1">Whole apartment</p>
             </div>
           </label>
-
         </div>
       </div>
 
       <!-- LOCATION -->
       <div class="pt-8 border-t space-y-6">
-
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">
-            📍 Location
-          </h2>
+          <h2 class="text-lg font-semibold text-gray-900">📍 Location</h2>
           <p class="text-sm text-gray-500">
             Search and select your address. Pin will be placed automatically.
           </p>
         </div>
 
-        {{ form.city.as_hidden }}
-        {{ form.area.as_hidden }}
-        {{ form.latitude }}
-{{ form.longitude }}
-
+        {{ form.city.as_hidden }} {{ form.area.as_hidden }} {{ form.latitude }}
+        {{ form.longitude }}
 
         <!-- ADDRESS -->
         <div class="relative">
@@ -116,9 +117,10 @@
 
           {{ form.full_address }}
 
-          <ul id="address-suggestions"
-              class="absolute z-30 w-full bg-white border border-gray-200
-                     rounded-2xl mt-2 shadow-xl hidden max-h-56 overflow-y-auto"></ul>
+          <ul
+            id="address-suggestions"
+            class="absolute z-30 w-full bg-white border border-gray-200 rounded-2xl mt-2 shadow-xl hidden max-h-56 overflow-y-auto"
+          ></ul>
 
           <p class="text-xs text-gray-400 mt-2">
             Start typing and choose from suggestions.
@@ -127,29 +129,35 @@
 
         <!-- MAP -->
         <div id="map-section" class="hidden">
-          <div class="rounded-3xl overflow-hidden border border-gray-200 shadow-md">
-            <div class="px-4 py-3 text-sm font-medium text-gray-600 bg-gray-50 border-b">
+          <div
+            class="rounded-3xl overflow-hidden border border-gray-200 shadow-md"
+          >
+            <div
+              class="px-4 py-3 text-sm font-medium text-gray-600 bg-gray-50 border-b"
+            >
               📌 Drag the pin only if location is inaccurate
             </div>
             <div id="map" class="h-60 sm:h-72"></div>
           </div>
         </div>
-
       </div>
 
       <!-- FOOTER -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t">
-
-        <a href="{% url 'owner_dashboard' %}"
-           class="text-sm text-gray-500 hover:text-gray-800">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t"
+      >
+        <a
+          href="{% url 'owner_dashboard' %}"
+          class="text-sm text-gray-500 hover:text-gray-800"
+        >
           Cancel
         </a>
 
-        <button type="submit"
-         id="submitBtn"
-          class="w-full sm:w-auto px-8 py-3 rounded-2xl
-                 bg-indigo-600 text-white font-semibold
-                 hover:bg-indigo-700 transition shadow-md">
+        <button
+          type="submit"
+          id="submitBtn"
+          class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition shadow-md"
+        >
           Save & Continue →
         </button>
       </div>
@@ -157,104 +165,106 @@
       <p class="text-xs text-gray-400 text-center">
         You can edit everything later.
       </p>
-
     </form>
   </div>
 </div>
 
+{% verbatim %}
+<script>
+  const addressInput = document.getElementById("id_full_address");
+  const suggestions = document.getElementById("address-suggestions");
+  const mapSection = document.getElementById("map-section");
 
-  <script>
-const addressInput = document.getElementById("id_full_address");
-const suggestions = document.getElementById("address-suggestions");
-const mapSection = document.getElementById("map-section");
+  let map, marker;
 
-let map, marker;
-
-async function searchPlaces(q) {
-  const r = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`);
-  return r.json();
-}
-
-async function reverseGeocode(lat, lon) {
-  const r = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-  );
-  const data = await r.json();
-  if (!data.address) return;
-
-  addressInput.value = data.display_name || "";
-
-  document.getElementById("id_city").value =
-    data.address.city || data.address.town || data.address.village || "";
-
-  document.getElementById("id_area").value =
-    data.address.suburb || data.address.neighbourhood || "";
-
-  document.getElementById("id_latitude").value = lat;
-  document.getElementById("id_longitude").value = lon;
-}
-
-addressInput.addEventListener("input", async () => {
-  if (addressInput.value.length < 3) {
-    suggestions.classList.add("hidden");
-    return;
+  async function searchPlaces(q) {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${q}`
+    );
+    return r.json();
   }
 
-  const places = await searchPlaces(addressInput.value);
-  suggestions.innerHTML = "";
+  async function reverseGeocode(lat, lon) {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+    );
+    const data = await r.json();
+    if (!data.address) return;
 
-  places.slice(0,5).forEach(p => {
-    const li = document.createElement("li");
-    li.textContent = p.display_name;
-    li.className = "px-4 py-2 text-sm cursor-pointer hover:bg-gray-100";
+    addressInput.value = data.display_name || "";
 
-    li.addEventListener("click", function(e) {
-      e.stopPropagation();
-      selectPlace(p);
+    document.getElementById("id_city").value =
+      data.address.city || data.address.town || data.address.village || "";
+
+    document.getElementById("id_area").value =
+      data.address.suburb || data.address.neighbourhood || "";
+
+    document.getElementById("id_latitude").value = parseFloat(lat).toFixed(6);
+    document.getElementById("id_longitude").value = parseFloat(lon).toFixed(6);
+  }
+
+  addressInput.addEventListener("input", async () => {
+    if (addressInput.value.length < 3) {
+      suggestions.classList.add("hidden");
+      return;
+    }
+
+    const places = await searchPlaces(addressInput.value);
+    suggestions.innerHTML = "";
+
+    places.slice(0, 5).forEach((p) => {
+      const li = document.createElement("li");
+      li.textContent = p.display_name;
+      li.className = "px-4 py-2 text-sm cursor-pointer hover:bg-gray-100";
+
+      li.addEventListener("click", function (e) {
+        e.stopPropagation();
+        selectPlace(p);
+      });
+
+      suggestions.appendChild(li);
     });
 
-    suggestions.appendChild(li);
+    suggestions.classList.remove("hidden");
   });
 
-  suggestions.classList.remove("hidden");
-});
-
-function selectPlace(place) {
-  addressInput.value = place.display_name;
-  suggestions.classList.add("hidden");
-
-  const lat = +place.lat;
-  const lon = +place.lon;
-
-  document.getElementById("id_latitude").value = lat;
-  document.getElementById("id_longitude").value = lon;
-
-  reverseGeocode(lat, lon);
-
-  mapSection.classList.remove("hidden");
-
-  if (!map) {
-    map = L.map("map").setView([lat, lon], 15);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-
-    marker = L.marker([lat, lon], { draggable: true }).addTo(map);
-
-    marker.on("dragend", () => {
-      const pos = marker.getLatLng();
-      document.getElementById("id_latitude").value = pos.lat;
-      document.getElementById("id_longitude").value = pos.lng;
-      reverseGeocode(pos.lat, pos.lng);
-    });
-  } else {
-    map.setView([lat, lon], 15);
-    marker.setLatLng([lat, lon]);
-  }
-}
-
-/* Hide suggestions when clicking outside */
-document.addEventListener("click", function(e) {
-  if (!addressInput.contains(e.target)) {
+  function selectPlace(place) {
+    addressInput.value = place.display_name;
     suggestions.classList.add("hidden");
+
+    const lat = parseFloat(place.lat);
+    const lon = parseFloat(place.lon);
+
+    document.getElementById("id_latitude").value = lat.toFixed(6);
+    document.getElementById("id_longitude").value = lon.toFixed(6);
+
+    reverseGeocode(lat, lon);
+
+    mapSection.classList.remove("hidden");
+
+    if (!map) {
+      map = L.map("map").setView([lat, lon], 15);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+      marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        document.getElementById("id_latitude").value = pos.lat.toFixed(6);
+        document.getElementById("id_longitude").value = pos.lng.toFixed(6);
+        reverseGeocode(pos.lat, pos.lng);
+      });
+    } else {
+      map.setView([lat, lon], 15);
+      marker.setLatLng([lat, lon]);
+    }
   }
-});
+
+  document.addEventListener("click", function (e) {
+    if (!addressInput.contains(e.target)) {
+      suggestions.classList.add("hidden");
+    }
+  });
 </script>
+{% endverbatim %}
+{% endblock %}

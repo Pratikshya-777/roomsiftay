@@ -1,160 +1,407 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} 
+{% block title %}Buyer Dashboard{% endblock %} 
+{%block content %}
 
 <div class="max-w-7xl mx-auto px-6 py-8 space-y-12">
-
-<!-- ================= HEADER ================= -->
-<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-
+  <!-- ================= HEADER ================= -->
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
     <div>
-        <h1 class="text-3xl font-bold text-gray-900">
-            Good evening, {{ user.username }} 👋
-        </h1>
-        <p class="text-gray-500 mt-1">
-            Here’s what’s happening with your room search.
-        </p>
+      <h1 class="text-3xl font-bold text-gray-900">
+        Welcome back, {{ user.first_name|default:user.email }} 👋
+      </h1>
+      <p class="text-gray-500 mt-1">
+        Manage your saved rooms, chats and discover listings near you.
+      </p>
     </div>
 
-    <a href="{% url 'buyer_search_room' %}"
-       class="mt-5 lg:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-medium hover:bg-black transition">
-        Search Rooms →
+    <a
+      href="{% url 'buyer_search_room' %}"
+      class="mt-5 lg:mt-0 bg-slate-900 text-white px-6 py-3 rounded-xl font-medium hover:bg-black transition"
+    >
+      Search Rooms →
     </a>
+  </div>
 
-</div>
-
-
-
-<!-- ================= ACTION STRIP ================= -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-
-    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
-        <p class="text-sm text-gray-500">Saved Listings</p>
-        <p class="text-3xl font-bold mt-2">12</p>
-        <p class="text-xs text-gray-400 mt-1">Rooms you liked</p>
+  <!-- ================= STATS ================= -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-white border rounded-2xl p-6">
+      <p class="text-sm text-gray-500">Saved Listings</p>
+      <p class="text-3xl font-bold mt-2">{{ saved_count }}</p>
     </div>
 
-    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
-        <p class="text-sm text-gray-500">Owner Replies</p>
-        <p class="text-3xl font-bold mt-2">3</p>
-        <p class="text-xs text-gray-400 mt-1">Unread messages</p>
+    <div class="bg-white border rounded-2xl p-6">
+      <p class="text-sm text-gray-500">Unread Messages</p>
+      <p class="text-3xl font-bold mt-2">{{ unread_messages }}</p>
     </div>
 
-    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
-        <p class="text-sm text-gray-500">New Listings</p>
-        <p class="text-3xl font-bold mt-2">5</p>
-        <p class="text-xs text-gray-400 mt-1">Added this week</p>
+    <div class="bg-white border rounded-2xl p-6">
+      <p class="text-sm text-gray-500">Notifications</p>
+      <p class="text-3xl font-bold mt-2">{{ unread_notifications }}</p>
     </div>
 
-    <div class="bg-white border rounded-2xl p-6 hover:shadow-md transition">
-        <p class="text-sm text-gray-500">Active Alerts</p>
-        <p class="text-3xl font-bold mt-2">2</p>
-        <p class="text-xs text-gray-400 mt-1">Based on your searches</p>
+    <div class="bg-white border rounded-2xl p-6">
+      <p class="text-sm text-gray-500">New Listings (7 days)</p>
+      <p class="text-3xl font-bold mt-2">{{ new_listings_count }}</p>
     </div>
+  </div>
 
-</div>
+  <!-- ================= ROOMS NEAR YOU ================= -->
+  <div class="bg-white border rounded-2xl p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold">Rooms Near You</h2>
 
-
-
-<!-- ================= RECOMMENDED ================= -->
-<div>
-
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Recommended for you</h2>
-        <a href="{% url 'buyer_search_room' %}" class="text-sm text-gray-500 hover:underline">
-            View all →
+      <div class="flex items-center gap-3">
+        <!-- View All Button (hidden initially, shown after location is enabled) -->
+        <a
+          href="#"
+          id="viewAllNearbyBtn"
+          data-search-url="{% url 'buyer_search_room' %}"
+          class="hidden text-slate-900 font-medium hover:underline"
+        >
+          View All →
         </a>
+
+        <!-- Find Nearby Button (shown initially, hidden after location is enabled) -->
+        <button
+          id="findNearbyBtn"
+          class="bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-black transition"
+        >
+          <i class="fa-solid fa-location-crosshairs mr-2"></i>
+          Find rooms near me
+        </button>
+
+        <!-- Reset Location Button (hidden initially) -->
+        <button
+          id="resetLocationBtn"
+          class="hidden text-gray-500 hover:text-red-500 text-sm"
+        >
+          {% comment %} <i class="fa-solid fa-xmark mr-1"></i> {% endcomment %}
+        </button>
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-
-        <!-- Card -->
-        <div class="bg-white border rounded-2xl overflow-hidden hover:shadow-xl transition group">
-            <img src="https://images.unsplash.com/photo-1560185127-6ed189bf02f4"
-                 class="h-52 w-full object-cover group-hover:scale-105 transition duration-300">
-
-            <div class="p-5">
-                <h3 class="font-semibold text-lg">Sunny Private Room in Kathmandu</h3>
-                <p class="text-gray-500 text-sm">Kathmandu</p>
-                <p class="font-bold mt-2 text-lg">NPR 8,000 /mo</p>
-            </div>
-        </div>
-
-        <div class="bg-white border rounded-2xl overflow-hidden hover:shadow-xl transition group">
-            <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85"
-                 class="h-52 w-full object-cover group-hover:scale-105 transition duration-300">
-
-            <div class="p-5">
-                <h3 class="font-semibold text-lg">Shared Room near Pulchowk</h3>
-                <p class="text-gray-500 text-sm">Lalitpur</p>
-                <p class="font-bold mt-2 text-lg">NPR 4,500 /mo</p>
-            </div>
-        </div>
-
-        <div class="bg-white border rounded-2xl overflow-hidden hover:shadow-xl transition group">
-            <img src="https://images.unsplash.com/photo-1484154218962-a197022b5858"
-                 class="h-52 w-full object-cover group-hover:scale-105 transition duration-300">
-
-            <div class="p-5">
-                <h3 class="font-semibold text-lg">Entire Flat in Baneshwor</h3>
-                <p class="text-gray-500 text-sm">Kathmandu</p>
-                <p class="font-bold mt-2 text-lg">NPR 25,000 /mo</p>
-            </div>
-        </div>
-
+    <!-- Loading State -->
+    <div id="nearbyLoading" class="hidden text-center py-8">
+      <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-400"></i>
+      <p class="text-gray-500 mt-2">Finding rooms near you...</p>
     </div>
 
-</div>
+    <!-- Results Container -->
+    <div id="nearbyResults" class="grid grid-cols-1 sm:grid-cols-3 gap-6"></div>
 
+    <!-- First Time Message (shown when no location saved) -->
+    <div id="firstTimeMessage" class="hidden text-center py-8">
+      <i class="fa-solid fa-map-location-dot text-4xl text-gray-300 mb-3"></i>
+      <p class="text-gray-500">
+        Click "Find rooms near me" to discover listings in your area
+      </p>
+    </div>
 
+    <!-- Hidden data for JS -->
+    <input
+      type="hidden"
+      id="searchRoomUrl"
+      value="{% url 'buyer_search_room' %}"
+    />
+  </div>
 
-<!-- ================= RECENTLY SAVED ================= -->
-<div>
+  <!-- ================= RECENTLY SAVED ================= -->
+  <div class="bg-white border rounded-2xl p-6">
+    <h2 class="text-xl font-semibold mb-6">Recently Saved</h2>
 
-    <h2 class="text-2xl font-bold mb-6">Recently saved</h2>
+    {% if recent_saved %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {% for item in recent_saved %}
+      <div class="border rounded-xl overflow-hidden shadow-sm">
+        {% with item.listing.photos.first as photo %} {% if photo %}
+        <img src="{{ photo.image.url }}" class="h-40 w-full object-cover" />
+        {% endif %} {% endwith %}
 
-    <div class="bg-white border rounded-2xl p-6 flex justify-between items-center">
-        <div>
-            <p class="font-medium">Cozy Single Room in Bhaktapur</p>
-            <p class="text-gray-500 text-sm">Saved 2 days ago</p>
-        </div>
+        <div class="p-4">
+          <h3 class="font-semibold">{{ item.listing.title }}</h3>
+          <p class="text-sm text-gray-500">{{ item.listing.city }}</p>
+          <p class="font-bold mt-1">NPR {{ item.listing.monthly_rent }}</p>
 
-        <a href="#" class="text-slate-900 font-medium hover:underline">
+          {% if item.listing.status == "rented" %}
+          <p class="text-red-500 text-sm mt-2">Rented</p>
+          {% endif %}
+
+          <a
+            href="{% url 'buyer_listing_detail' item.listing.id %}"
+            class="text-slate-900 text-sm font-medium hover:underline mt-2 inline-block"
+          >
             View →
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500">No saved listings yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- ================= RECENT CONVERSATIONS ================= -->
+  <div class="bg-white border rounded-2xl p-6">
+    <h2 class="text-xl font-semibold mb-6">Recent Conversations</h2>
+
+    {% if recent_conversations %}
+    <div class="space-y-4">
+      {% for convo in recent_conversations %}
+      <div class="border rounded-xl p-4 flex justify-between items-center">
+        <div>
+          <p class="font-medium">{{ convo.listing.title }}</p>
+          <p class="text-sm text-gray-500">Owner: {{ convo.owner.email }}</p>
+        </div>
+        <a
+          href="{% url 'start_chat' convo.listing.id %}"
+          class="text-slate-900 font-medium hover:underline"
+        >
+          Open Chat →
         </a>
+      </div>
+      {% endfor %}
     </div>
+    {% else %}
+    <p class="text-gray-500">No conversations yet.</p>
+    {% endif %}
+  </div>
 
-</div>
+  <!-- ================= NOTIFICATIONS ================= -->
+  <div class="bg-white border rounded-2xl p-6">
+    <h2 class="text-xl font-semibold mb-6">Notifications</h2>
 
-
-
-<!-- ================= NOTIFICATIONS ================= -->
-<div>
-
-    <h2 class="text-2xl font-bold mb-6">Notifications</h2>
-
-    <div class="bg-white border rounded-2xl divide-y">
-
-        <div class="p-5">
-            Owner of “Sunny Private Room” replied to your inquiry.
-            <span class="text-xs text-gray-400 ml-2">3 hours ago</span>
-        </div>
-
-        <div class="p-5">
-            A saved listing was marked as rented.
-            <span class="text-xs text-gray-400 ml-2">1 day ago</span>
-        </div>
-
+    {% if user.notifications.all %}
+    <div class="space-y-3">
+      {% for notification in user.notifications.all|slice:":5" %}
+      <div
+        class="border rounded-xl p-4 {% if not notification.is_read %}bg-gray-50{% endif %}"
+      >
+        <p class="text-sm">{{ notification.message }}</p>
+        <p class="text-xs text-gray-400 mt-1">
+          {{ notification.created_at|timesince }} ago
+        </p>
+      </div>
+      {% endfor %}
     </div>
-
+    {% else %}
+    <p class="text-gray-500">No notifications.</p>
+    {% endif %}
+  </div>
 </div>
 
+{% verbatim %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const findNearbyBtn = document.getElementById("findNearbyBtn");
+    const viewAllNearbyBtn = document.getElementById("viewAllNearbyBtn");
+    const resetLocationBtn = document.getElementById("resetLocationBtn");
+    const container = document.getElementById("nearbyResults");
+    const loadingDiv = document.getElementById("nearbyLoading");
+    const firstTimeMessage = document.getElementById("firstTimeMessage");
+    const searchRoomUrl = document.getElementById("searchRoomUrl").value;
 
+    // Storage keys
+    const LOCATION_KEY = "user_location";
+    const LOCATION_ENABLED_KEY = "location_enabled";
 
-<!-- ================= SUPPORT ================= -->
-<div class="bg-gray-50 rounded-2xl p-6 text-center text-sm text-gray-600">
-    Need help? <a href="#" class="font-medium text-slate-900 hover:underline">Contact Support</a>
-</div>
+    // Check if user has already enabled location
+    function checkSavedLocation() {
+      const savedLocation = localStorage.getItem(LOCATION_KEY);
+      const locationEnabled = localStorage.getItem(LOCATION_ENABLED_KEY);
 
-</div>
+      if (locationEnabled === "true" && savedLocation) {
+        const { lat, lng } = JSON.parse(savedLocation);
 
-{% endblock %}
+        // Hide the find button, show view all and reset
+        findNearbyBtn.classList.add("hidden");
+        viewAllNearbyBtn.classList.remove("hidden");
+        resetLocationBtn.classList.remove("hidden");
+        firstTimeMessage.classList.add("hidden");
+
+        // Update View All link - includes open_map=1 to auto-open map
+        viewAllNearbyBtn.href =
+          searchRoomUrl +
+          "?lat=" +
+          lat +
+          "&lng=" +
+          lng +
+          "&radius_km=5&open_map=1";
+
+        // Auto-fetch nearby listings
+        fetchNearbyListings(lat, lng);
+      } else {
+        // First time user - show button and message
+        findNearbyBtn.classList.remove("hidden");
+        viewAllNearbyBtn.classList.add("hidden");
+        resetLocationBtn.classList.add("hidden");
+        firstTimeMessage.classList.remove("hidden");
+      }
+    }
+
+    // Fetch nearby listings
+    function fetchNearbyListings(lat, lng) {
+      loadingDiv.classList.remove("hidden");
+      container.innerHTML = "";
+      firstTimeMessage.classList.add("hidden");
+
+      fetch("/nearby-listings/?lat=" + lat + "&lng=" + lng + "&radius=5")
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          loadingDiv.classList.add("hidden");
+          container.innerHTML = "";
+
+          if (!data.listings || !data.listings.length) {
+            container.innerHTML =
+              '<div class="col-span-3 text-center py-8">' +
+              '<i class="fa-solid fa-map-marker-alt text-4xl text-gray-300 mb-3"></i>' +
+              '<p class="text-gray-500">No nearby listings found within 5 km.</p>' +
+              '<a href="' +
+              searchRoomUrl +
+              '" class="text-slate-900 font-medium hover:underline mt-2 inline-block">' +
+              "Browse all listings →" +
+              "</a>" +
+              "</div>";
+            return;
+          }
+
+          // Show only first 3 listings
+          data.listings.slice(0, 3).forEach(function (listing) {
+            var card = document.createElement("div");
+            card.className =
+              "border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition";
+
+            var imageHtml = listing.image
+              ? '<img src="' +
+                listing.image +
+                '" class="h-40 w-full object-cover">'
+              : '<div class="h-40 bg-gray-100 flex items-center justify-center">' +
+                '<i class="fa-solid fa-image text-gray-300 text-3xl"></i>' +
+                "</div>";
+
+            card.innerHTML =
+              imageHtml +
+              '<div class="p-4">' +
+              '<h3 class="font-semibold">' +
+              listing.title +
+              "</h3>" +
+              '<p class="text-sm text-gray-500">' +
+              listing.city +
+              "</p>" +
+              '<p class="font-bold mt-1">NPR ' +
+              listing.rent +
+              "</p>" +
+              '<p class="text-xs text-gray-400">' +
+              '<i class="fa-solid fa-location-dot mr-1"></i>' +
+              listing.distance +
+              " km away" +
+              "</p>" +
+              '<a href="/listing/' +
+              listing.id +
+              '/" class="text-slate-900 text-sm font-medium hover:underline mt-2 inline-block">' +
+              "View →" +
+              "</a>" +
+              "</div>";
+
+            container.appendChild(card);
+          });
+
+          // If more than 3, show a message
+          if (data.listings.length > 3) {
+            var moreDiv = document.createElement("div");
+            moreDiv.className = "col-span-3 text-center mt-4";
+            moreDiv.innerHTML =
+              '<p class="text-gray-500 text-sm">+' +
+              (data.listings.length - 3) +
+              " more listings nearby</p>";
+            container.appendChild(moreDiv);
+          }
+        })
+        .catch(function () {
+          loadingDiv.classList.add("hidden");
+          container.innerHTML =
+            '<div class="col-span-3 text-center py-8">' +
+            '<i class="fa-solid fa-exclamation-triangle text-4xl text-red-300 mb-3"></i>' +
+            '<p class="text-red-500">Something went wrong. Please try again.</p>' +
+            "</div>";
+        });
+    }
+
+    // Find Nearby Button Click
+    if (findNearbyBtn) {
+      findNearbyBtn.addEventListener("click", function () {
+        if (!navigator.geolocation) {
+          alert("Geolocation not supported by your browser.");
+          return;
+        }
+
+        findNearbyBtn.innerHTML =
+          '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Finding...';
+        findNearbyBtn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            var lat = position.coords.latitude.toFixed(6);
+            var lng = position.coords.longitude.toFixed(6);
+
+            // Save to localStorage
+            localStorage.setItem(
+              LOCATION_KEY,
+              JSON.stringify({ lat: lat, lng: lng }),
+            );
+            localStorage.setItem(LOCATION_ENABLED_KEY, "true");
+
+            // Update UI
+            findNearbyBtn.classList.add("hidden");
+            viewAllNearbyBtn.classList.remove("hidden");
+            resetLocationBtn.classList.remove("hidden");
+            viewAllNearbyBtn.href =
+              searchRoomUrl +
+              "?lat=" +
+              lat +
+              "&lng=" +
+              lng +
+              "&radius_km=5&open_map=1";
+
+            // Fetch listings
+            fetchNearbyListings(lat, lng);
+
+            findNearbyBtn.innerHTML =
+              '<i class="fa-solid fa-location-crosshairs mr-2"></i> Find rooms near me';
+            findNearbyBtn.disabled = false;
+          },
+          function () {
+            alert(
+              "Location access denied. Please enable location permissions.",
+            );
+            findNearbyBtn.innerHTML =
+              '<i class="fa-solid fa-location-crosshairs mr-2"></i> Find rooms near me';
+            findNearbyBtn.disabled = false;
+          },
+        );
+      });
+    }
+
+    // Reset Location Button Click
+    if (resetLocationBtn) {
+      resetLocationBtn.addEventListener("click", function () {
+        localStorage.removeItem(LOCATION_KEY);
+        localStorage.removeItem(LOCATION_ENABLED_KEY);
+
+        // Reset UI
+        findNearbyBtn.classList.remove("hidden");
+        viewAllNearbyBtn.classList.add("hidden");
+        resetLocationBtn.classList.add("hidden");
+        container.innerHTML = "";
+        firstTimeMessage.classList.remove("hidden");
+      });
+    }
+
+    // Initialize on page load
+    checkSavedLocation();
+  });
+</script>
+{% endverbatim %}
+ {% endblock %}
