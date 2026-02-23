@@ -1,169 +1,302 @@
-{% extends "base.html" %}
-{% load static %}
-
+{% extends "base.html" %} 
+{% load static %} 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-12">
-
-    <!-- PAGE HEADER -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+  <!-- PAGE HEADER -->
+  <div
+    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+  >
     <div>
-        <h1 class="text-3xl font-bold text-gray-800">My Listings</h1>
-        <p class="text-gray-500 mt-1">
-            Manage your draft, pending, and approved listings
-        </p>
+      <h1 class="text-3xl font-bold text-gray-800">My Listings</h1>
+      <p class="text-gray-500 mt-1">
+        Manage your draft, pending, and approved listings
+      </p>
     </div>
 
-    <!-- ================= DRAFT LISTINGS ================= -->
-    <section>
-        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            📝 Draft Listings
-        </h2>
+    <!-- Header Actions -->
+    <div class="flex items-center gap-3">
+      <!-- Trash Link -->
+      <a
+        href="{% url 'deleted_listing' %}"
+        class="relative inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition"
+      >
+        <i class="fa-solid fa-trash-can"></i>
+        Trash {% if trash_count > 0 %}
+        <span
+          class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
+        >
+          {{ trash_count }}
+        </span>
+        {% endif %}
+      </a>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for listing in drafts %}
-                <a href="{% url 'owner_listing_details' listing.id %}"
-                   class="group bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+      <!-- Add New Listing -->
+      <a
+        href="{% url 'owner_add_listingstep1' %}"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition"
+      >
+        <i class="fa-solid fa-plus"></i>
+        Add Listing
+      </a>
+    </div>
+  </div>
 
-                    <!-- Image -->
-                    <div class="h-44 bg-gray-200 relative">
-                        {% if listing.photos.first %}
-                            <img src="{{ listing.photos.first.image.url }}"
-                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform">
-                        {% else %}
-                            <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                <i class="fa-solid fa-image text-3xl"></i>
-                            </div>
-                        {% endif %}
+  <!-- ================= DRAFT LISTINGS ================= -->
+  <section>
+    <h2
+      class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2"
+    >
+      📝 Draft Listings
+      <span class="text-sm font-normal text-gray-500"
+        >({{ drafts.count }})</span
+      >
+    </h2>
 
-                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full
-                                     bg-gray-200 text-gray-700">
-                            Draft
-                        </span>
-                    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for listing in drafts %}
+      <a
+        href="{% url 'owner_listing_details' listing.id %}"
+        class="group bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition"
+      >
+        <!-- Image -->
+        <div class="h-44 bg-gray-200 relative">
+          {% if listing.photos.first %}
+          <img
+            src="{{ listing.photos.first.image.url }}"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+          />
+          {% else %}
+          <div
+            class="w-full h-full flex items-center justify-center text-gray-400"
+          >
+            <i class="fa-solid fa-image text-3xl"></i>
+          </div>
+          {% endif %}
 
-                    <!-- Content -->
-                    <div class="p-4 space-y-2">
-                        <h3 class="font-semibold text-gray-800 truncate">
-                            {{ listing.title }}
-                        </h3>
-
-                        <p class="text-sm text-gray-500">
-                            {{ listing.city }} {{ listing.area }}
-                        </p>
-
-                        {% if listing.monthly_rent %}
-                            <p class="font-bold text-indigo-600">
-                                रु {{ listing.monthly_rent }} / month
-                            </p>
-                        {% endif %}
-
-                        <div class="pt-2 flex justify-between items-center text-sm">
-                            <span class="text-gray-400">
-                                Last updated {{ listing.updated_at|date:"M d, Y" }}
-                            </span>
-                            <span class="text-indigo-600 font-semibold">
-                                Edit →
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            {% empty %}
-                <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
-                    <i class="fa-regular fa-folder-open text-4xl mb-3"></i>
-                    <p>No draft listings yet.</p>
-                </div>
-            {% endfor %}
+          <span
+            class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700"
+          >
+            Draft
+          </span>
         </div>
-    </section>
 
-    <!-- ================= PENDING LISTINGS ================= -->
-    <section>
-        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            ⏳ Pending Verification
-        </h2>
+        <!-- Content -->
+        <div class="p-4 space-y-2">
+          <h3 class="font-semibold text-gray-800 truncate">
+            {{ listing.title }}
+          </h3>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for listing in pending %}
-                <a href="{% url 'owner_listing_details' listing.id %}"
-                   class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+          <p class="text-sm text-gray-500">
+            {{ listing.city }} {{ listing.area }}
+          </p>
 
-                    <div class="h-44 bg-gray-200 relative">
-                        {% if listing.photos.first %}
-                            <img src="{{ listing.photos.first.image.url }}"
-                                 class="w-full h-full object-cover">
-                        {% else %}
-                            <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                <i class="fa-solid fa-image text-3xl"></i>
-                            </div>
-                        {% endif %}
+          {% if listing.monthly_rent %}
+          <p class="font-bold text-indigo-600">
+            Rs. {{ listing.monthly_rent }} / month
+          </p>
+          {% endif %}
 
-                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full
-                                     bg-yellow-100 text-yellow-700">
-                            Pending
-                        </span>
-                    </div>
-
-                    <div class="p-4 space-y-2">
-                        <h3 class="font-semibold text-gray-800 truncate">
-                            {{ listing.title }}
-                        </h3>
-
-                        <p class="text-sm text-yellow-600">
-                            Waiting for admin approval
-                        </p>
-                    </div>
-                </a>
-            {% empty %}
-                <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
-                    <p>No listings pending verification.</p>
-                </div>
-            {% endfor %}
+          <div class="pt-2 flex justify-between items-center text-sm">
+            <span class="text-gray-400">
+              Last updated {{ listing.updated_at|date:"M d, Y" }}
+            </span>
+            <span class="text-indigo-600 font-semibold"> Edit → </span>
+          </div>
         </div>
-    </section>
+      </a>
+      {% empty %}
+      <div
+        class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500"
+      >
+        <i class="fa-regular fa-folder-open text-4xl mb-3"></i>
+        <p>No draft listings yet.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
 
-    <!-- ================= APPROVED LISTINGS ================= -->
-    <section>
-        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            ✅ Approved Listings
-        </h2>
+  <!-- ================= PENDING LISTINGS ================= -->
+  <section>
+    <h2
+      class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2"
+    >
+      ⏳ Pending Verification
+      <span class="text-sm font-normal text-gray-500"
+        >({{ pending.count }})</span
+      >
+    </h2>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for listing in approved %}
-                <a href="{% url 'owner_listing_details' listing.id %}"
-                   class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for listing in pending %}
+      <a
+        href="{% url 'owner_listing_details' listing.id %}"
+        class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition"
+      >
+        <div class="h-44 bg-gray-200 relative">
+          {% if listing.photos.first %}
+          <img
+            src="{{ listing.photos.first.image.url }}"
+            class="w-full h-full object-cover"
+          />
+          {% else %}
+          <div
+            class="w-full h-full flex items-center justify-center text-gray-400"
+          >
+            <i class="fa-solid fa-image text-3xl"></i>
+          </div>
+          {% endif %}
 
-                    <div class="h-44 bg-gray-200 relative">
-                        {% if listing.photos.first %}
-                            <img src="{{ listing.photos.first.image.url }}"
-                                 class="w-full h-full object-cover">
-                        {% else %}
-                            <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                <i class="fa-solid fa-image text-3xl"></i>
-                            </div>
-                        {% endif %}
-
-                        <span class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full
-                                     bg-green-100 text-green-700">
-                            Approved
-                        </span>
-                    </div>
-
-                    <div class="p-4 space-y-2">
-                        <h3 class="font-semibold text-gray-800 truncate">
-                            {{ listing.title }}
-                        </h3>
-
-                        <p class="text-sm text-green-600">
-                            Live & visible to users
-                        </p>
-                    </div>
-                </a>
-            {% empty %}
-                <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
-                    <p>No approved listings yet.</p>
-                </div>
-            {% endfor %}
+          <span
+            class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-700"
+          >
+            Pending
+          </span>
         </div>
-    </section>
 
+        <div class="p-4 space-y-2">
+          <h3 class="font-semibold text-gray-800 truncate">
+            {{ listing.title }}
+          </h3>
+
+          <p class="text-sm text-yellow-600">Waiting for admin approval</p>
+        </div>
+      </a>
+      {% empty %}
+      <div
+        class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500"
+      >
+        <p>No listings pending verification.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ================= APPROVED LISTINGS ================= -->
+  <section>
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4"
+    >
+      <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+        ✅ Approved Listings
+        <span class="text-sm font-normal text-gray-500"
+          >({{ approved_all_count }})</span
+        >
+      </h2>
+
+      <!-- FILTER TABS -->
+      <div
+        class="bg-white rounded-xl border border-gray-200 p-1 inline-flex gap-1"
+      >
+        <a
+          href="?filter=all"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition {% if availability_filter == 'all' %}bg-gray-900 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}"
+        >
+          All ({{ approved_all_count }})
+        </a>
+        <a
+          href="?filter=available"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition flex items-center gap-2 {% if availability_filter == 'available' %}bg-emerald-600 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}"
+        >
+          <span
+            class="w-2 h-2 rounded-full {% if availability_filter == 'available' %}bg-white{% else %}bg-emerald-500{% endif %}"
+          ></span>
+          Available ({{ approved_available_count }})
+        </a>
+        <a
+          href="?filter=unavailable"
+          class="px-4 py-2 text-sm font-medium rounded-lg transition flex items-center gap-2 {% if availability_filter == 'unavailable' %}bg-red-600 text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}"
+        >
+          <span
+            class="w-2 h-2 rounded-full {% if availability_filter == 'unavailable' %}bg-white{% else %}bg-red-500{% endif %}"
+          ></span>
+          Unavailable ({{ approved_unavailable_count }})
+        </a>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for listing in approved %}
+      <a
+        href="{% url 'owner_listing_details' listing.id %}"
+        class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition {% if not listing.is_available %}opacity-75{% endif %}"
+      >
+        <div class="h-44 bg-gray-200 relative">
+          {% if listing.photos.first %}
+          <img
+            src="{{ listing.photos.first.image.url }}"
+            class="w-full h-full object-cover {% if not listing.is_available %}grayscale{% endif %}"
+          />
+          {% else %}
+          <div
+            class="w-full h-full flex items-center justify-center text-gray-400"
+          >
+            <i class="fa-solid fa-image text-3xl"></i>
+          </div>
+          {% endif %}
+
+          <!-- Availability Badge (replaces "Approved" badge) -->
+          {% if listing.is_available %}
+          <span
+            class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 flex items-center gap-1.5"
+          >
+            <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+            Available
+          </span>
+          {% else %}
+          <span
+            class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700 flex items-center gap-1.5"
+          >
+            <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+            Unavailable
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="p-4 space-y-2">
+          <h3 class="font-semibold text-gray-800 truncate">
+            {{ listing.title }}
+          </h3>
+
+          <p class="text-sm text-gray-500">
+            {{ listing.city }} {{ listing.area }}
+          </p>
+
+          {% if listing.monthly_rent %}
+          <p class="font-bold text-indigo-600">
+            Rs. {{ listing.monthly_rent }} / month
+          </p>
+          {% endif %}
+
+          <p
+            class="text-sm {% if listing.is_available %}text-green-600{% else %}text-red-600{% endif %}"
+          >
+            {% if listing.is_available %} Live & visible to users {% else %}
+            Hidden from search results {% endif %}
+          </p>
+        </div>
+      </a>
+      {% empty %}
+      <div
+        class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500"
+      >
+        {% if availability_filter == 'available' %}
+        <i class="fa-solid fa-eye-slash text-4xl mb-3 text-gray-300"></i>
+        <p>No available listings.</p>
+        <p class="text-sm mt-1">
+          All your approved listings are currently marked as unavailable.
+        </p>
+        {% elif availability_filter == 'unavailable' %}
+        <i class="fa-solid fa-check-circle text-4xl mb-3 text-gray-300"></i>
+        <p>No unavailable listings.</p>
+        <p class="text-sm mt-1">
+          All your approved listings are currently available.
+        </p>
+        {% else %}
+        <p>No approved listings yet.</p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
 </div>
 {% endblock %}

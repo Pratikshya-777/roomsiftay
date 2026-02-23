@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-# from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
+from datetime import timedelta  # Add this import
 
 
 class User(AbstractUser):
@@ -61,16 +61,28 @@ class BuyerReport(models.Model):
 
 
 class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('listing_unavailable', 'Listing Unavailable'),
+        ('listing_available', 'Listing Available'),
+        ('listing_deleted', 'Listing Deleted'),
+        ('message', 'New Message'),
+        ('general', 'General'),
+    ]
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=200)
     message = models.TextField()
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES, default='general')
+    listing = models.ForeignKey('Listing', on_delete=models.SET_NULL, null=True, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    
     class Meta:
         ordering = ['-created_at']
-
+    
     def __str__(self):
-        return f"Notification for {self.user.username}"
+        return f"{self.title} - {self.user.username}"
+
 
 # class PasswordResetOTP(models.Model):
 #     user = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -172,7 +184,6 @@ class Listing(models.Model):
     lift_available = models.BooleanField(default=False)
     pet_allowed = models.BooleanField(default=False)
 
-
     # STEP 3 — Verification
     status = models.CharField(
         max_length=20,
@@ -186,6 +197,8 @@ class Listing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_available = models.BooleanField(default=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)  # NEW FIELD
 
     def is_visible_to_public(self):
         return self.status == "approved" and self.is_active
@@ -194,8 +207,24 @@ class Listing(models.Model):
         return self.status in ["draft", "rejected"]
 
     def soft_delete(self):
+        """Move listing to trash"""
         self.is_active = False
+        self.deleted_at = timezone.now()
         self.save()
+
+    def restore(self):
+        """Restore listing from trash"""
+        self.is_active = True
+        self.deleted_at = None
+        self.save()
+
+    def days_until_permanent_delete(self):
+        """Calculate days remaining before permanent deletion"""
+        if self.deleted_at:
+            delete_date = self.deleted_at + timedelta(days=7)
+            remaining = (delete_date - timezone.now()).days
+            return max(0, remaining)
+        return None
 
     def __str__(self):
         return f"{self.title} ({self.get_status_display()})"
@@ -251,30 +280,18 @@ class Conversation(models.Model):
         return f"Chat: {self.listing} | {self.buyer} → {self.owner}"
 
 class Message(models.Model):
-    conversation = models.ForeignKey(
-        Conversation,
-        on_delete=models.CASCADE,
-        related_name="messages"
-    )
-
-    sender = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="sent_messages"
-    )
-
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
-
-    is_read = models.BooleanField(default=False)
-
     created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["created_at"]
-
-    def __str__(self):
-        return f"Message from {self.sender}"
+    is_read = models.BooleanField(default=False)  
     
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"{self.sender.username}: {self.text[:30]}"
+
 class SavedListing(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)

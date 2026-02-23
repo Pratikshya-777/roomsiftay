@@ -1,47 +1,215 @@
-{% extends "task/admin/admin_base.html" %}
-
-{% block title %}Verification{% endblock %}
-
+{% extends "base.html" %} 
+{% load static %} 
+{% block title %}Owner Verification Admin{% endblock %} 
 {% block content %}
-
-<div class="max-w-3xl mx-auto bg-white p-10 rounded-3xl shadow border border-gray-100">
-
-    <h2 class="text-2xl font-semibold mb-6">
-        Owner Verification
-    </h2>
-
-    <div class="mb-6">
-        <p class="text-gray-600">
-            <strong>Username:</strong> {{ verification.user.username }}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <!-- Header -->
+  <div class="bg-white rounded-2xl border border-gray-200 p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Owner Verification</h1>
+        <p class="text-sm text-gray-500 mt-1">
+          Review and approve owner identity documents
         </p>
+      </div>
+      <a
+        href="{% url 'admin_dashboard' %}"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition"
+      >
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
 
-        <p class="text-gray-600">
-            <strong>Document Type:</strong> {{ verification.document_type }}
-        </p>
+  <!-- Pending Verifications -->
+  <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200 bg-amber-50">
+      <h2 class="text-lg font-semibold text-amber-800 flex items-center gap-2">
+        <i class="fa-solid fa-clock"></i>
+        Pending Verifications
+        <span
+          class="px-2 py-0.5 bg-amber-200 text-amber-800 text-sm rounded-full"
+        >
+          {{ pending_verifications.count }}
+        </span>
+      </h2>
     </div>
 
-    <div class="mb-8">
-        <a href="{{ verification.document_file.url }}"
-           target="_blank"
-           class="bg-gray-200 px-4 py-2 rounded-lg text-sm">
-            View Uploaded Document
-        </a>
+    {% if pending_verifications %}
+    <div class="divide-y divide-gray-100">
+      {% for v in pending_verifications %}
+      <div class="p-6 hover:bg-gray-50 transition">
+        <div
+          class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+        >
+          <!-- User Info -->
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center"
+            >
+              <span class="text-lg font-bold text-indigo-600">
+                {{ v.user.username|slice:":1"|upper }}
+              </span>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900">{{ v.user.username }}</h3>
+              <p class="text-sm text-gray-500">{{ v.user.email }}</p>
+              <p class="text-xs text-gray-400 mt-1">
+                Document Type:
+                <span class="font-medium text-gray-600"
+                  >{{ v.document_type }}</span
+                >
+              </p>
+            </div>
+          </div>
+
+          <!-- Document Preview -->
+          <div class="flex items-center gap-4">
+            {% if v.document_file %}
+            <a
+              href="{{ v.document_file.url }}"
+              target="_blank"
+              class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition"
+            >
+              <i class="fa-solid fa-file-image"></i>
+              View Document
+            </a>
+            {% else %}
+            <span class="text-sm text-gray-400">No document uploaded</span>
+            {% endif %}
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-2">
+            <form
+              method="POST"
+              action="{% url 'admin_verification_action' v.id %}"
+              class="inline"
+            >
+              {% csrf_token %}
+              <input type="hidden" name="action" value="approve" />
+              <button
+                type="submit"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition"
+              >
+                <i class="fa-solid fa-check"></i>
+                Approve
+              </button>
+            </form>
+
+            <form
+              method="POST"
+              action="{% url 'admin_verification_action' v.id %}"
+              class="inline"
+            >
+              {% csrf_token %}
+              <input type="hidden" name="action" value="reject" />
+              <button
+                type="submit"
+                onclick="
+                  return confirm(
+                    'Are you sure you want to reject this verification?',
+                  );
+                "
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition"
+              >
+                <i class="fa-solid fa-times"></i>
+                Reject
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="p-12 text-center">
+      <div
+        class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+      >
+        <i class="fa-solid fa-check-circle text-2xl text-gray-400"></i>
+      </div>
+      <p class="font-medium text-gray-700">No pending verifications</p>
+      <p class="text-sm text-gray-500 mt-1">
+        All owner verifications have been processed.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recently Verified -->
+  <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div class="p-6 border-b border-gray-200 bg-emerald-50">
+      <h2
+        class="text-lg font-semibold text-emerald-800 flex items-center gap-2"
+      >
+        <i class="fa-solid fa-check-circle"></i>
+        Recently Verified
+      </h2>
     </div>
 
-    <form method="POST" class="flex gap-4">
-        {% csrf_token %}
-
-        <button name="action" value="approve"
-                class="bg-green-500 text-white px-6 py-2 rounded-xl text-sm font-semibold">
-            Approve
-        </button>
-
-        <button name="action" value="reject"
-                class="bg-red-500 text-white px-6 py-2 rounded-xl text-sm font-semibold">
-            Reject
-        </button>
-    </form>
-
+    {% if verified_verifications %}
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+          <tr>
+            <th class="px-6 py-3 text-left">User</th>
+            <th class="px-6 py-3 text-left">Email</th>
+            <th class="px-6 py-3 text-left">Document Type</th>
+            <th class="px-6 py-3 text-center">Status</th>
+            <th class="px-6 py-3 text-right">Document</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for v in verified_verifications %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center"
+                >
+                  <span class="text-sm font-bold text-emerald-600">
+                    {{ v.user.username|slice:":1"|upper }}
+                  </span>
+                </div>
+                <span class="font-medium text-gray-900"
+                  >{{ v.user.username }}</span
+                >
+              </div>
+            </td>
+            <td class="px-6 py-4 text-gray-500">{{ v.user.email }}</td>
+            <td class="px-6 py-4 text-gray-500">{{ v.document_type }}</td>
+            <td class="px-6 py-4 text-center">
+              <span
+                class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full"
+              >
+                Verified
+              </span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              {% if v.document_file %}
+              <a
+                href="{{ v.document_file.url }}"
+                target="_blank"
+                class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              >
+                View →
+              </a>
+              {% else %}
+              <span class="text-gray-400 text-sm">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center">
+      <p class="text-gray-500">No verified owners yet.</p>
+    </div>
+    {% endif %}
+  </div>
 </div>
-
 {% endblock %}

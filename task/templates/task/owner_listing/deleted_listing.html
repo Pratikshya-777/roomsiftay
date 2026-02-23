@@ -1,0 +1,314 @@
+{% extends "base.html" %} 
+{% load static %} 
+{% block title %}Trash | My Listings{% endblock %} 
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <!-- HEADER -->
+  <div class="bg-white rounded-2xl border border-gray-200 p-6">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+    >
+      <div>
+        <div class="flex items-center gap-3">
+          <div
+            class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"
+          >
+            <svg
+              class="w-6 h-6 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Trash</h1>
+            <p class="text-sm text-gray-500">
+              Items are permanently deleted after 7 days
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a
+          href="{% url 'owner_listing' %}"
+          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Back to Listings
+        </a>
+
+        {% if trash_listings %}
+        <form method="POST" action="{% url 'empty_trash' %}" class="inline">
+          {% csrf_token %}
+          <button
+            type="submit"
+            onclick="
+              return confirm(
+                'Are you sure you want to permanently delete ALL items in trash? This cannot be undone.',
+              );
+            "
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Empty Trash
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO BANNER -->
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+    <div class="flex items-start gap-3">
+      <svg
+        class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
+      </svg>
+      <div>
+        <h4 class="font-medium text-amber-800">Auto-deletion Notice</h4>
+        <p class="text-sm text-amber-700 mt-1">
+          Listings in trash will be automatically and permanently deleted after
+          7 days. Restore them before the deadline to keep them.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTINGS GRID -->
+  {% if trash_listings %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for listing in trash_listings %}
+    <div
+      class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition group"
+    >
+      <!-- Image -->
+      <div class="relative h-48 bg-gray-100">
+        {% with first_photo=listing.photos.first %} {% if first_photo %}
+        <img
+          src="{{ first_photo.image.url }}"
+          alt="{{ listing.title }}"
+          class="w-full h-full object-cover opacity-60"
+        />
+        {% else %}
+        <div
+          class="w-full h-full flex items-center justify-center text-gray-300"
+        >
+          <svg
+            class="w-16 h-16"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+        {% endif %} {% endwith %}
+
+        <!-- Deleted Badge -->
+        <div class="absolute top-3 left-3">
+          <span
+            class="px-2.5 py-1 bg-red-600 text-white text-xs font-semibold rounded-lg"
+          >
+            Deleted
+          </span>
+        </div>
+
+        <!-- Days Remaining Badge -->
+        <div class="absolute top-3 right-3">
+          <span
+            class="px-2.5 py-1 bg-gray-900/70 text-white text-xs font-medium rounded-lg backdrop-blur-sm"
+          >
+            {{ listing.days_until_permanent_delete }} days left
+          </span>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-5">
+        <h3 class="font-semibold text-gray-900 truncate mb-1">
+          {{ listing.title }}
+        </h3>
+        <p class="text-sm text-gray-500 mb-3">
+          {{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}
+        </p>
+
+        <div class="flex items-center justify-between text-sm mb-4">
+          <span class="font-bold text-gray-900"
+            >NPR {{ listing.monthly_rent }}</span
+          >
+          <span class="text-gray-400">
+            Deleted {{ listing.deleted_at|timesince }} ago
+          </span>
+        </div>
+
+        <!-- Previous Status -->
+        <div class="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
+          <span class="text-xs text-gray-500">Was:</span>
+          <span
+            class="px-2 py-0.5 text-xs font-medium rounded-full {% if listing.status == 'draft' %}bg-gray-100 text-gray-600 {% elif listing.status == 'pending' %}bg-amber-100 text-amber-700 {% elif listing.status == 'approved' %}bg-green-100 text-green-700 {% else %}bg-gray-100 text-gray-600{% endif %}"
+          >
+            {{ listing.get_status_display }}
+          </span>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2">
+          <form
+            method="POST"
+            action="{% url 'restore_listing' listing.id %}"
+            class="flex-1"
+          >
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Restore
+            </button>
+          </form>
+
+          <form
+            method="POST"
+            action="{% url 'permanent_delete_listing' listing.id %}"
+          >
+            {% csrf_token %}
+            <button
+              type="submit"
+              onclick="
+                return confirm(
+                  'Permanently delete this listing? This cannot be undone.',
+                );
+              "
+              class="flex items-center justify-center p-2.5 text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition"
+              title="Delete Permanently"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="bg-white rounded-2xl border border-gray-200 p-12">
+    <div class="text-center">
+      <div
+        class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6"
+      >
+        <svg
+          class="w-10 h-10 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">Trash is Empty</h3>
+      <p class="text-gray-500 mb-6">
+        No deleted listings. Items you delete will appear here for 7 days.
+      </p>
+      <a
+        href="{% url 'owner_listing' %}"
+        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+        Back to My Listings
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

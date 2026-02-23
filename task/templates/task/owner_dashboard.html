@@ -1,58 +1,63 @@
-{% extends "base.html" %}
+{% extends "base.html" %} 
 {% block title %}Owner Dashboard | RoomSiftay{% endblock %}
+ {% block content %}
 
-{% block content %}
-
-{# ================= FLASH MESSAGES ================= #}
-{% if messages %}
-  {% for message in messages %}
-    <div id="alert-message"
-         class="flex items-center p-4 mb-4 text-green-800 rounded-2xl bg-green-50 border border-green-100 shadow-sm">
-      <i class="fas fa-check-circle mr-2"></i>
-      <span class="text-sm font-medium">{{ message }}</span>
-      <button onclick="this.parentElement.remove()" class="ml-auto text-green-800">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-  {% endfor %}
-{% endif %}
+<!-- REMOVE THIS ENTIRE BLOCK -->
+{% comment %} {% if messages %} {% for message in messages %}
+<div
+  id="alert-message"
+  class="flex items-center p-4 mb-4 text-green-800 rounded-2xl bg-green-50 border border-green-100 shadow-sm"
+>
+  <i class="fas fa-check-circle mr-2"></i>
+  <span class="text-sm font-medium">{{ message }}</span>
+  <button onclick="this.parentElement.remove()" class="ml-auto text-green-800">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+{% endfor %} {% endif %} {% endcomment %}
 
 <div class="max-w-7xl mx-auto space-y-6">
-
   {# ================= HEADER ================= #}
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+  <div
+    class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+  >
     <div>
       <h2 class="text-2xl font-bold text-gray-800">Owner Dashboard</h2>
       <p class="text-sm text-gray-500">Manage your properties and inquiries</p>
     </div>
-    <a href="{% url 'owner_add_listingstep1' %}"
-       class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2">
+    <a
+      href="{% url 'owner_add_listingstep1' %}"
+      class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2"
+    >
       <i class="fas fa-plus-circle"></i> Add New Listing
     </a>
   </div>
 
   {# ================= STATS ================= #}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
     <div class="bg-white p-5 rounded-2xl shadow-sm border">
       <h3 class="text-xs font-bold text-gray-400 uppercase">Identity Status</h3>
       <div class="mt-3">
-        {% if owner_profile %}
-          {% if owner_profile.is_verified %}
-            <span class="inline-flex items-center gap-1.5 text-green-600 font-semibold bg-green-50 px-3 py-1 rounded-full text-sm">
-              <i class="fas fa-check-circle"></i> Verified
-            </span>
-          {% elif owner_profile.auth_document %}
-            <span class="inline-flex items-center gap-1.5 text-blue-600 font-semibold bg-blue-50 px-3 py-1 rounded-full text-sm">
-              <i class="fas fa-clock"></i> Under Review
-            </span>
-          {% else %}
-            <span class="inline-flex items-center gap-1.5 text-amber-600 font-semibold bg-amber-50 px-3 py-1 rounded-full text-sm">
-              <i class="fas fa-exclamation-triangle"></i> Not Verified
-            </span>
-          {% endif %}
+        {% if owner_profile %} {% if owner_profile.is_verified %}
+        <span
+          class="inline-flex items-center gap-1.5 text-green-600 font-semibold bg-green-50 px-3 py-1 rounded-full text-sm"
+        >
+          <i class="fas fa-check-circle"></i> Verified
+        </span>
+        {% elif owner_profile.auth_document %}
+        <span
+          class="inline-flex items-center gap-1.5 text-blue-600 font-semibold bg-blue-50 px-3 py-1 rounded-full text-sm"
+        >
+          <i class="fas fa-clock"></i> Under Review
+        </span>
         {% else %}
-          <span class="text-red-600 font-semibold">Profile not created</span>
+        <span
+          class="inline-flex items-center gap-1.5 text-amber-600 font-semibold bg-amber-50 px-3 py-1 rounded-full text-sm"
+        >
+          <i class="fas fa-exclamation-triangle"></i> Not Verified
+        </span>
+        {% endif %} {% else %}
+        <span class="text-red-600 font-semibold">Profile not created</span>
         {% endif %}
       </div>
     </div>
@@ -64,20 +69,31 @@
 
     <div class="bg-white p-5 rounded-2xl shadow-sm border">
       <h3 class="text-xs font-bold text-gray-400 uppercase">Active Rooms</h3>
-      <p class="text-3xl font-bold text-green-600 mt-2">{{ active_count|default:"0" }}</p>
+      <p class="text-3xl font-bold text-green-600 mt-2">
+        {{ active_count|default:"0" }}
+      </p>
     </div>
 
     <div class="bg-white p-5 rounded-2xl shadow-sm border">
       <h3 class="text-xs font-bold text-gray-400 uppercase">New Chats</h3>
-      <p class="text-3xl font-bold text-indigo-600 mt-2">{{ pending_chats|default:"0" }}</p>
+      <p class="text-3xl font-bold text-indigo-600 mt-2">
+        {{ pending_chats|default:"0" }}
+      </p>
     </div>
-
   </div>
 
   {# ================= LISTINGS ================= #}
   <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-    <div class="p-6 border-b">
+    <div class="p-6 border-b flex justify-between items-center">
       <h3 class="font-bold text-gray-800">My Listings</h3>
+      {% if show_view_all %}
+      <a
+        href="{% url 'owner_listing' %}"
+        class="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center gap-1"
+      >
+        View All <i class="fas fa-arrow-right"></i>
+      </a>
+      {% endif %}
     </div>
 
     <div class="overflow-x-auto">
@@ -87,6 +103,7 @@
             <th class="px-6 py-4">Property</th>
             <th class="px-6 py-4 text-center">Availability</th>
             <th class="px-6 py-4">Status</th>
+            <th class="px-6 py-4">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y">
@@ -95,20 +112,30 @@
             <td class="px-6 py-4 font-medium">{{ item.title }}</td>
             <td class="px-6 py-4 text-center">
               {% if item.is_available %}
-                <span class="text-green-600 font-semibold">Available</span>
+              <span class="text-green-600 font-semibold">Available</span>
               {% else %}
-                <span class="text-red-600 font-semibold">Unavailable</span>
+              <span class="text-red-600 font-semibold">Unavailable</span>
               {% endif %}
             </td>
             <td class="px-6 py-4">
-              <span class="px-2 py-1 rounded text-xs font-bold bg-blue-50 text-blue-600 uppercase">
+              <span
+                class="px-2 py-1 rounded text-xs font-bold {% if item.status == 'approved' %}bg-green-50 text-green-600 {% elif item.status == 'pending' %}bg-yellow-50 text-yellow-600 {% elif item.status == 'draft' %}bg-gray-50 text-gray-600 {% else %}bg-red-50 text-red-600{% endif %} uppercase"
+              >
                 {{ item.status }}
               </span>
+            </td>
+            <td class="px-6 py-4">
+              <a
+                href="{% url 'owner_listing_details' item.id %}"
+                class="text-indigo-600 hover:underline text-sm font-medium"
+              >
+                View <i class="fas fa-chevron-right ml-1 text-xs"></i>
+              </a>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="3" class="px-6 py-10 text-center text-gray-400 italic">
+            <td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">
               No listings added yet.
             </td>
           </tr>
@@ -123,25 +150,31 @@
     <h3 class="font-bold text-gray-800 mb-4">Verification Center</h3>
 
     <form method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-
-      {% if owner_profile and owner_profile.auth_document %}
-        <p class="text-green-600 font-semibold mb-2">✅ Document uploaded</p>
-        <a href="{{ owner_profile.auth_document.url }}" target="_blank"
-           class="text-indigo-600 hover:underline text-sm">
-          View document
-        </a>
+      {% csrf_token %} {% if owner_profile and owner_profile.auth_document %}
+      <p class="text-green-600 font-semibold mb-2">✅ Document uploaded</p>
+      <a
+        href="{{ owner_profile.auth_document.url }}"
+        target="_blank"
+        class="text-indigo-600 hover:underline text-sm"
+      >
+        View document
+      </a>
       {% else %}
-        <input type="file" name="auth_document" required
-               class="block w-full text-sm border rounded-lg mb-3">
-        <button type="submit"
-                class="bg-gray-800 hover:bg-black text-white py-2 px-4 rounded-lg text-sm font-bold">
-          Upload Document
-        </button>
+      <input
+        type="file"
+        name="auth_document"
+        required
+        class="block w-full text-sm border rounded-lg mb-3"
+      />
+      <button
+        type="submit"
+        class="bg-gray-800 hover:bg-black text-white py-2 px-4 rounded-lg text-sm font-bold"
+      >
+        Upload Document
+      </button>
       {% endif %}
     </form>
   </div>
-
 </div>
 
 <script>

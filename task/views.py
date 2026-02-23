@@ -1,13 +1,13 @@
 from datetime import timedelta
-
-from django.shortcuts import render, redirect,get_object_or_404
+from math import radians, cos, sin, asin, sqrt  
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth import authenticate, login,update_session_auth_hash, get_user_model, logout as auth_logout
+from django.contrib.auth import authenticate, login, update_session_auth_hash, get_user_model, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, ListingForm , UserProfileForm,ListingStep1Form,ListingStep2Form,ListingStep3Form,MessageForm
+from .forms import CustomUserCreationForm, ListingForm, UserProfileForm, ListingStep1Form, ListingStep2Form, ListingStep3Form, MessageForm
 from django.conf import settings
 from django.contrib import messages
-from .models import Listing,ListingPhoto, BuyerReport, Notification, UserProfile, OwnerProfile, OwnerVerification,Owner,Conversation, Message,SavedListing,Review
+from .models import Listing, ListingPhoto, BuyerReport, Notification, UserProfile, OwnerProfile, OwnerVerification, Owner, Conversation, Message, SavedListing, Review
 import random
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
@@ -20,11 +20,28 @@ import math
 
 User = get_user_model()
 
+
+# ADD THIS FUNCTION HERE (at the top, after imports)
+def haversine(lon1, lat1, lon2, lat2):
+    """Calculate the distance between two points on earth in km"""
+    lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)])
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    km = 6371 * c
+    return round(km, 2)
+
+
 def generate_otp():
     return str(random.randint(100000, 999999))
 
+
 def home(request):
-    return render(request, 'task/index.html')
+    # Fetch all reviews to show on the landing page
+    recent_reviews = Review.objects.all().order_by('-created_at')[:5]
+    return render(request, 'task/index.html', {'reviews': recent_reviews})
+
 
 def contact(request):
     if request.method == "POST":
@@ -57,8 +74,10 @@ def contact(request):
 
     return render(request, "task/contact.html")
 
+
 def about(request):
     return render(request, 'task/about.html')
+
 
 def login_view(request):
     if request.method == "POST":
@@ -85,6 +104,7 @@ def login_view(request):
             })
 
     return render(request, "task/login.html")
+
 
 @login_required
 def owner_dashboard(request):
@@ -113,9 +133,13 @@ def owner_dashboard(request):
         return redirect('owner_dashboard')
 
     # 3. Gather dashboard data
-    listings = Listing.objects.filter(owner=request.user)
-    total_count = listings.count()
-    active_count = listings.filter(status='active').count()
+    all_listings = Listing.objects.filter(owner=request.user, is_active=True)
+    total_count = all_listings.count()
+    active_count = all_listings.filter(status='approved', is_available=True).count()
+    
+    # Limit to 6 for dashboard display
+    listings = all_listings.order_by('-created_at')[:6]
+    show_view_all = total_count > 6
 
     context = {
         'owner_profile': owner_profile,
@@ -123,8 +147,10 @@ def owner_dashboard(request):
         'listings': listings,
         'total_count': total_count,
         'active_count': active_count,
+        'show_view_all': show_view_all,
     }
     return render(request, 'task/owner_dashboard.html', context)
+
 
 def verification_page(request):
     request.session["mode"] = "owner"
@@ -153,14 +179,15 @@ def verification_page(request):
 
     return render(request, 'task/verification.html', {
         'verification': verification,
-        'owner_profile': owner_profile # Pass this to ensure consistency in template
+        'owner_profile': owner_profile
     })
+
 
 def forgot_password(request):
     return render(request, "task/forgot_password.html")
 
+
 def verify_otp(request):
-    # user id stored in session during registration
     user_id = request.session.get("otp_user_id")
 
     if not user_id:
@@ -178,7 +205,6 @@ def verify_otp(request):
             user.email_otp = None
             user.save()
 
-            # cleanup session
             del request.session["otp_user_id"]
 
             messages.success(request, "Email verified successfully. You can now login.")
@@ -188,6 +214,7 @@ def verify_otp(request):
             messages.error(request, "Invalid OTP. Please try again.")
 
     return render(request, "task/verify_otp.html")
+
 
 def resend_otp(request):
     user_id = request.session.get("otp_user_id")
@@ -212,12 +239,12 @@ def resend_otp(request):
     messages.success(request, "A new OTP has been sent to your email.")
     return redirect("verify_otp")
 
+
 def register(request):
     if request.method == "POST":
         data = request.POST.copy()
         email = data.get("email")
 
-        # Auto-set username = email
         if email:
             data["username"] = email
 
@@ -229,8 +256,7 @@ def register(request):
             user.email = email
             user.username = email
 
-            # Role selection
-            role = request.POST.get("role" ,"buyer")
+            role = request.POST.get("role", "buyer")
             if role == "owner":
                 user.is_owner = True
                 user.is_user = False
@@ -238,16 +264,13 @@ def register(request):
                 user.is_user = True
                 user.is_owner = False
 
-            # 🔐 IMPORTANT: deactivate user until OTP verified
             user.is_active = False
 
-            # Generate OTP
             otp = generate_otp()
             user.email_otp = otp
 
             user.save()
 
-            # Send OTP email
             send_mail(
                 subject="Verify your RoomSiftay account",
                 message=f"Your OTP is {otp}",
@@ -255,7 +278,6 @@ def register(request):
                 recipient_list=[user.email],
             )
 
-            # Store user id in session for OTP verification
             request.session["otp_user_id"] = user.id
 
             messages.success(
@@ -263,7 +285,6 @@ def register(request):
                 "We have sent a verification code to your email."
             )
 
-            # 🔁 Redirect to OTP page (NOT login)
             return redirect("verify_otp")
 
     else:
@@ -280,15 +301,13 @@ def role_redirect(request):
         if selected_role == "owner":
             return redirect("owner_dashboard")
         else:
-            # Default to user if cookie is missing or set to user
             return redirect("buyer_dashboard")
 
-    # 3. For Manual Users (who only have ONE role set to True)
     if user.is_owner:
         return redirect("owner_dashboard")
     
-    # Default fallback for everyone else
     return redirect("buyer_dashboard")
+
 
 @login_required
 def buyer_dashboard(request):
@@ -296,7 +315,6 @@ def buyer_dashboard(request):
 
     user = request.user
 
-    # 🔹 Stats
     saved_count = SavedListing.objects.filter(user=user).count()
 
     conversations = Conversation.objects.filter(buyer=user)
@@ -317,12 +335,10 @@ def buyer_dashboard(request):
         created_at__gte=one_week_ago
     ).count()
 
-    # 🔹 Recently Saved
     recent_saved = SavedListing.objects.filter(
         user=user
     ).select_related("listing").order_by("-saved_at")[:3]
 
-    # 🔹 Recent Conversations
     recent_conversations = conversations[:3]
 
     context = {
@@ -336,68 +352,61 @@ def buyer_dashboard(request):
 
     return render(request, "task/buyer_dashboard.html", context)
 
+
 @login_required
 def nearby_listings(request):
-    lat = request.GET.get("lat")
-    lng = request.GET.get("lng")
-    radius_km = request.GET.get("radius", 5)
-
-    if not lat or not lng:
-        return JsonResponse({"error": "Location required"}, status=400)
-
-    lat_f = float(lat)
-    lng_f = float(lng)
-    radius_f = float(radius_km)
-
-    def haversine_km(lat1, lon1, lat2, lon2):
-        r = 6371
-        phi1, phi2 = math.radians(lat1), math.radians(lat2)
-        dphi = math.radians(lat2 - lat1)
-        dlambda = math.radians(lon2 - lon1)
-        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-        return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-    # 🔹 First filter with bounding box
-    lat_delta = radius_f / 111.0
-    lng_delta = radius_f / (111.0 * math.cos(math.radians(lat_f)) or 1)
-
-    listings = Listing.objects.filter(
-        status="approved",
-        is_active=True,
-        latitude__isnull=False,
-        longitude__isnull=False,
-        latitude__gte=lat_f - lat_delta,
-        latitude__lte=lat_f + lat_delta,
-        longitude__gte=lng_f - lng_delta,
-        longitude__lte=lng_f + lng_delta,
-    )
-
-    # 🔹 Exact distance filtering
-    filtered = []
-    for l in listings:
-        dist = haversine_km(lat_f, lng_f, float(l.latitude), float(l.longitude))
-        if dist <= radius_f:
-            filtered.append((l, dist))
-
-    # Sort by distance
-    filtered.sort(key=lambda x: x[1])
-
-    # Take top 3
-    filtered = filtered[:3]
-
-    results = []
-    for listing, dist in filtered:
-        photo = listing.photos.filter(is_proof=False).first()
-        results.append({
-            "id": listing.id,
-            "title": listing.title,
-            "city": listing.city,
-            "rent": listing.monthly_rent,
-            "distance": round(dist, 2),
-            "image": photo.image.url if photo else ""
-        })
-
-    return JsonResponse({"listings": results})
+    """API endpoint to get nearby listings based on user's location"""
+    try:
+        lat = request.GET.get('lat')
+        lng = request.GET.get('lng')
+        radius = request.GET.get('radius', 5)  # Default 5km
+        
+        if not lat or not lng:
+            return JsonResponse({'error': 'Location required', 'listings': []})
+        
+        lat = float(lat)
+        lng = float(lng)
+        radius = float(radius)
+        
+        # Get all approved, available listings with coordinates
+        all_listings = Listing.objects.filter(
+            status='approved',
+            is_available=True,
+            is_active=True,
+            latitude__isnull=False,
+            longitude__isnull=False
+        )
+        
+        nearby = []
+        for listing in all_listings:
+            try:
+                distance = haversine(lng, lat, float(listing.longitude), float(listing.latitude))
+                if distance <= radius:
+                    # Get first photo
+                    first_photo = listing.photos.first()
+                    image_url = first_photo.image.url if first_photo else None
+                    
+                    nearby.append({
+                        'id': listing.id,
+                        'title': listing.title,
+                        'city': listing.city or '',
+                        'area': listing.area or '',
+                        'rent': str(listing.monthly_rent),
+                        'image': image_url,
+                        'distance': distance,
+                        'latitude': str(listing.latitude),
+                        'longitude': str(listing.longitude),
+                    })
+            except (ValueError, TypeError):
+                continue
+        
+        # Sort by distance
+        nearby.sort(key=lambda x: x['distance'])
+        
+        return JsonResponse({'listings': nearby})
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e), 'listings': []})
 
 
 @login_required
@@ -406,51 +415,39 @@ def report_issue(request):
         title = request.POST.get('title')
         description = request.POST.get('description')
         
-        # 1. Validation to prevent the IntegrityError (NOT NULL)
         if not title:
             messages.error(request, "Please provide a title for your report.")
             return render(request, 'task/report_issue.html')
 
-        # 2. Save the report to the database (Visible to Admin)
         BuyerReport.objects.create(
             user=request.user,
             title=title,
             description=description
         )
         
-        # 3. Add success notification
         messages.success(request, "Your report has been submitted successfully!")
-        
-        # 4. Stay on the same page so they see the message
-        return redirect('report_issue') 
+        return redirect('report_issue')
 
     return render(request, 'task/report_issue.html')
+
 
 @staff_member_required
 def admin_view(request):
     pending_verifications = OwnerVerification.objects.filter(
-    is_verified=False
+        is_verified=False
     ).select_related("user")
 
-    listings = Listing.objects.filter(
-    status__in=["pending"]
-)    
+    listings = Listing.objects.filter(status__in=["pending"])
     reports = BuyerReport.objects.all().order_by('-id')
     
     context = {
         'pending_verifications': pending_verifications,
         'listings': listings,
         'pending_reports': reports.filter(status='pending'),
-        'verified_reports': reports.filter(status='verified'), 
-        
+        'verified_reports': reports.filter(status='verified'),
     }
     return render(request, 'task/admin/admin.html', context)
-    # context = {
-    #     'owners': Owner.objects.filter(is_verified=False),
-    #     'listings': Listing.objects.all(),
-    #     'reports': BuyerReport.objects.all().order_by('-created_at'),
-    # }
-    # return render(request, 'task/admin.html', context)
+
 
 @staff_member_required
 def admin_listing_detail(request, listing_id):
@@ -487,6 +484,7 @@ def admin_listing_detail(request, listing_id):
         "listing": listing
     })
 
+
 @staff_member_required
 def admin_listings(request):
     listings = Listing.objects.filter(
@@ -497,18 +495,12 @@ def admin_listings(request):
         "listings": listings
     })
 
+
 def reset_password(request):
     if not request.session.get("otp_verified"):
         return redirect("forgot_password")
-    completion = 0
-    if request.user.get_full_name(): completion += 25
-    if request.user.email: completion += 25
-    if UserProfile.phone_number: completion += 25
-    if UserProfile.profile_photo: completion += 25
-
+    
     user = User.objects.get(id=request.session.get("reset_user_id"))
-    profile_form = UserProfileForm(instance=UserProfile)
-    password_form = PasswordChangeForm(user=request.user)
 
     if request.method == "POST":
         password = request.POST.get("password")
@@ -532,7 +524,6 @@ def reset_password(request):
 def buyer_profile(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     
-    # Profile completion
     completion = 0
     if request.user.get_full_name(): completion += 25
     if request.user.email: completion += 25
@@ -544,7 +535,6 @@ def buyer_profile(request):
 
     if request.method == "POST":
 
-        # DELETE profile photo
         if "delete_photo" in request.POST:
             if profile.profile_photo:
                 profile.profile_photo.delete(save=False)
@@ -564,7 +554,6 @@ def buyer_profile(request):
 
                 return redirect("buyer_profile")
 
-        # CHANGE password
         if "change_password" in request.POST:
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
@@ -579,61 +568,59 @@ def buyer_profile(request):
         "completion": completion,
     })
 
-def forgot_password(request):
-    return render(request, "task/forgot_password.html")
-
-def reset_password(request):
-    return render(request, "task/reset_password.html")
-
 
 @login_required
 @require_POST
 def resolve_report(request, report_id):
     try:
         report = BuyerReport.objects.get(id=report_id)
-        report.status = 'verified'  # Ensure you have a status field in your model
-        # report.resolved_at = timezone.now()
+        report.status = 'verified'
         report.save()
-        
-        # Notification.objects.create(
-        #     user=report.buyer, 
-        #     text=f"Hello! Your report on '{report.title}' has been verified by the admin."
-        # )
-
         return JsonResponse({'status': 'success'})
     except BuyerReport.DoesNotExist:
         return JsonResponse({'status': 'error'}, status=404)
-    
+
+
 def logout(request):
     auth_logout(request)
     return redirect("login")
 
+
 @login_required
 def owner_add_listingstep1(request):
     request.session["mode"] = "owner"
-    listing_id = request.session.get("listing_id")
-    listing = Listing.objects.filter(
-        id=listing_id,
-        owner=request.user
-    ).first() if listing_id else None
+    
+    # Check verification status
+    owner_profile, _ = OwnerProfile.objects.get_or_create(user=request.user)
+    is_verified = owner_profile.is_verified
+    
+    # If not verified, show the page but don't process form
+    if not is_verified:
+        form = ListingStep1Form()
+        return render(request, "task/owner_add_listing/owner_add_listingstep1.html", {
+            "form": form,
+            "is_verified": False,
+            "owner_profile": owner_profile,
+        })
+    
+    # Verified users can proceed
+    if request.method == "POST":
+        form = ListingStep1Form(request.POST)
+        if form.is_valid():
+            listing = form.save(commit=False)
+            listing.owner = request.user
+            listing.status = "draft"
+            listing.save()
+            request.session["listing_id"] = listing.id
+            return redirect("owner_add_listingstep2")
+    else:
+        form = ListingStep1Form()
 
-    form = ListingStep1Form(request.POST or None, instance=listing)
-
-    if request.method == "POST" and form.is_valid():
-        listing = form.save(commit=False)
-        listing.owner = request.user
-        listing.status = "draft"
-        listing.save()
-
-        request.session["listing_id"] = listing.id
-        return redirect("owner_add_listingstep2")
-
-    return render(
-        request,
-        "task/owner_add_listing/owner_add_listingstep1.html",
-        {"form": form},
-    )
-
+    return render(request, "task/owner_add_listing/owner_add_listingstep1.html", {
+        "form": form,
+        "is_verified": True,
+        "owner_profile": owner_profile,
+    })
 
 
 def owner_add_listingstep2(request):
@@ -652,7 +639,7 @@ def owner_add_listingstep2(request):
             return redirect("owner_add_listingstep3")
     else:
         form = ListingStep2Form(instance=listing)
-    return render(request, "task/owner_add_listing/owner_add_listingstep2.html",{"form": form})
+    return render(request, "task/owner_add_listing/owner_add_listingstep2.html", {"form": form})
 
 
 @login_required
@@ -684,7 +671,6 @@ def owner_add_listingstep3(request):
             messages.error(request, "Please confirm the photos.")
             return redirect("owner_add_listingstep3")
 
-        # Save room photos
         for image in photos:
             ListingPhoto.objects.create(
                 listing=listing,
@@ -692,7 +678,6 @@ def owner_add_listingstep3(request):
                 is_proof=False
             )
 
-        # Save proof photo (optional)
         if proof:
             listing.photos.filter(is_proof=True).delete()
 
@@ -702,10 +687,8 @@ def owner_add_listingstep3(request):
                 is_proof=True
             )
 
-        # IMPORTANT: redirect OUTSIDE proof condition
         return redirect("owner_add_listingstep4")
 
-    # GET request
     proof_photo = listing.photos.filter(is_proof=True).first()
 
     return render(
@@ -716,6 +699,7 @@ def owner_add_listingstep3(request):
             "proof_photo": proof_photo,
         }
     )
+
 
 def owner_add_listingstep4(request):
     request.session["mode"] = "owner"
@@ -735,7 +719,6 @@ def owner_add_listingstep4(request):
     if request.method == "POST":
         action = request.POST.get("action")
 
-        # SAVE AS DRAFT
         if action == "draft":
             listing.status = "draft"
             listing.save()
@@ -743,12 +726,10 @@ def owner_add_listingstep4(request):
             messages.success(request, "Listing saved as draft.")
             return redirect("owner_dashboard")
 
-        # SUBMIT FOR VERIFICATION
         if action == "submit":
             listing.status = "pending"
             listing.save()
 
-            # Clear session
             request.session.pop("listing_id", None)
 
             messages.success(
@@ -767,6 +748,7 @@ def owner_add_listingstep4(request):
         }
     )
 
+
 def provide_review(request):
     if request.method == "POST":
         comment = request.POST.get('comment')
@@ -775,26 +757,24 @@ def provide_review(request):
             Review.objects.create(user=request.user, comment=comment, rating=int(rating))
             messages.success(request, "Thank you for your review!")
             return JsonResponse({'status': 'success', 'message': 'Your review is submitted!'})
-            # return redirect('buyer_dashboard') # Redirects to landing page
     return render(request, 'task/provide_review.html')
 
-def home(request):
-    # Fetch all reviews to show on the landing page
-    recent_reviews = Review.objects.all().order_by('-created_at')[:5]
-    return render(request, 'task/index.html', {'reviews': recent_reviews})
 
 def all_reviews(request):
-    # Fetch every review in the database
     full_reviews = Review.objects.all().order_by('-created_at')
-    paginator = Paginator(full_reviews, 5) 
+    paginator = Paginator(full_reviews, 5)
     
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'task/all_reviews.html', {'page_obj': page_obj})
 
+
 @login_required
 def owner_listing(request):
     request.session["mode"] = "owner"
+    
+    availability_filter = request.GET.get('filter', 'all')
+    
     drafts = Listing.objects.filter(
         owner=request.user,
         status="draft",
@@ -807,11 +787,30 @@ def owner_listing(request):
         is_active=True
     )
 
-    approved = Listing.objects.filter(
+    approved_base = Listing.objects.filter(
         owner=request.user,
         status="approved",
         is_active=True
     )
+    
+    if availability_filter == 'available':
+        approved = approved_base.filter(is_available=True)
+    elif availability_filter == 'unavailable':
+        approved = approved_base.filter(is_available=False)
+    else:
+        approved = approved_base
+    
+    approved_all_count = approved_base.count()
+    approved_available_count = approved_base.filter(is_available=True).count()
+    approved_unavailable_count = approved_base.filter(is_available=False).count()
+    
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    trash_count = Listing.objects.filter(
+        owner=request.user,
+        is_active=False,
+        deleted_at__isnull=False,
+        deleted_at__gte=seven_days_ago
+    ).count()
 
     return render(
         request,
@@ -820,6 +819,11 @@ def owner_listing(request):
             "drafts": drafts,
             "pending": pending,
             "approved": approved,
+            "availability_filter": availability_filter,
+            "approved_all_count": approved_all_count,
+            "approved_available_count": approved_available_count,
+            "approved_unavailable_count": approved_unavailable_count,
+            "trash_count": trash_count,
         }
     )
 
@@ -839,6 +843,7 @@ def owner_listing_details(request, pk):
         {"listing": listing}
     )
 
+
 @login_required
 def submit_listing(request, pk):
     request.session["mode"] = "owner"
@@ -854,6 +859,7 @@ def submit_listing(request, pk):
 
     return redirect("owner_listing_details", pk=pk)
 
+
 @login_required
 def owner_edit_listing(request, pk):
     request.session["mode"] = "owner"
@@ -863,7 +869,6 @@ def owner_edit_listing(request, pk):
         owner=request.user
     )
 
-    # Prevent editing after approval (good business rule)
     if listing.status == "approved":
         messages.warning(
             request,
@@ -877,7 +882,6 @@ def owner_edit_listing(request, pk):
         if form.is_valid():
             form.save()
 
-            # Handle new photo upload (OPTIONAL but safe)
             if "image" in request.FILES:
                 ListingPhoto.objects.create(
                     listing=listing,
@@ -899,24 +903,11 @@ def owner_edit_listing(request, pk):
         }
     )
 
+
 @login_required
 def start_chat(request, listing_id):
     listing = get_object_or_404(Listing, id=listing_id)
-    # print("Logged in:", request.user)
-    # print("Listing owner:", listing.owner)
-    # if request.user == listing.owner:
-    #     print("Owner clicked chat → redirecting")
-    #     return redirect("chat_list")
 
-    # conversation, created = Conversation.objects.get_or_create(
-    #     listing=listing,
-    #     buyer=request.user,
-    #     owner=listing.owner,
-    # )
-
-    # print("Conversation created:", conversation.id)
-    # return redirect("chat_room", conversation_id=conversation.id)
-    # Prevent owner chatting with themselves
     if request.user == listing.owner:
         return redirect("chat_list")
 
@@ -927,6 +918,7 @@ def start_chat(request, listing_id):
     )
 
     return redirect("chat_room", conversation_id=conversation.id)
+
 
 @login_required
 def chat_list(request):
@@ -942,15 +934,18 @@ def chat_list(request):
         "conversations": conversations
     })
 
+
 @login_required
 def chat_room(request, conversation_id):
     conversation = get_object_or_404(Conversation, id=conversation_id)
 
-    # Security check
     if request.user not in [conversation.buyer, conversation.owner]:
         return redirect("chat_list")
 
-    messages = conversation.messages.order_by("created_at")
+    # Mark messages as read
+    conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+
+    chat_messages = conversation.messages.order_by("created_at")
 
     if request.method == "POST":
         form = MessageForm(request.POST)
@@ -965,14 +960,14 @@ def chat_room(request, conversation_id):
 
     return render(request, "task/chat/chat_room.html", {
         "conversation": conversation,
-        "messages": messages,
+        "messages": chat_messages,
         "form": form,
     })
 
+
 def buyer_search_room(request):
     request.session["mode"] = "buyer"
-    # .strip() removes spaces. So if user types " Pokhara " → becomes "Pokhara".
-    query = request.GET.get("q", "").strip() 
+    query = request.GET.get("q", "").strip()
     location = request.GET.get("location", "").strip()
     room_type = request.GET.get("room_type", "").strip()
     min_price = request.GET.get("min_price", "").strip()
@@ -989,19 +984,17 @@ def buyer_search_room(request):
 
     if query:
         listings = listings.filter(
-        Q(city__icontains=query) | Q(area__icontains=query) #Q is OR condition without Q city and area must match but with Q city or area match
-    )
+            Q(city__icontains=query) | Q(area__icontains=query)
+        )
 
     if location:
         listings = listings.filter(
-        Q(city__icontains=location) | Q(area__icontains=location)
-    )
-
+            Q(city__icontains=location) | Q(area__icontains=location)
+        )
 
     if room_type:
         listings = listings.filter(room_type=room_type)
 
-    # AMENITIES FILTERS (independent filters)
     if request.GET.get("wifi"):
         listings = listings.filter(wifi_available=True)
 
@@ -1041,13 +1034,15 @@ def buyer_search_room(request):
         except ValueError:
             pass
 
-    def haversine_km(lat1, lon1, lat2, lon2):
-        r = 6371
-        phi1, phi2 = math.radians(lat1), math.radians(lat2)
-        dphi = math.radians(lat2 - lat1)
-        dlambda = math.radians(lon2 - lon1)
-        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-        return 2 * r * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    def haversine(lon1, lat1, lon2, lat2):
+        """Calculate the distance between two points on earth in km"""
+        lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+        km = 6371 * c
+        return round(km, 2)
 
     if lat and lng and radius_km:
         try:
@@ -1071,22 +1066,20 @@ def buyer_search_room(request):
             for l in listings:
                 if l.latitude is None or l.longitude is None:
                     continue
-                dist = haversine_km(lat_f, lng_f, float(l.latitude), float(l.longitude))
+                dist = haversine(lng_f, lat_f, float(l.longitude), float(l.latitude))
                 if dist <= radius_f:
                     filtered.append(l)
             listings = filtered
 
         except ValueError:
             pass
-            # SORTING
+
     if sort == "newest":
-            listings = listings.order_by("-created_at")
-
+        listings = listings.order_by("-created_at")
     elif sort == "price_low":
-            listings = listings.order_by("monthly_rent")
-
+        listings = listings.order_by("monthly_rent")
     elif sort == "price_high":
-            listings = listings.order_by("-monthly_rent")
+        listings = listings.order_by("-monthly_rent")
 
     context = {
         "listings": listings,
@@ -1098,10 +1091,11 @@ def buyer_search_room(request):
         "lat": lat,
         "lng": lng,
         "radius_km": radius_km,
-        "sort": sort,        
+        "sort": sort,
     }
 
     return render(request, "task/buyer_search_room/buyer_search_room.html", context)
+
 
 def buyer_listing_detail(request, listing_id):
     request.session["mode"] = "buyer"
@@ -1112,7 +1106,9 @@ def buyer_listing_detail(request, listing_id):
         is_active=True
     )
 
-    is_saved = SavedListing.objects.filter(
+    is_saved = False
+    if request.user.is_authenticated:
+        is_saved = SavedListing.objects.filter(
             user=request.user, listing=listing
         ).exists()
 
@@ -1122,7 +1118,6 @@ def buyer_listing_detail(request, listing_id):
     })
 
 
-#  Save Listing
 @login_required
 def save_listing(request, listing_id):
     request.session["mode"] = "buyer"
@@ -1132,8 +1127,6 @@ def save_listing(request, listing_id):
         user=request.user,
         listing=listing
     )
-    print("Save triggered")
-    print("Created:", created)
 
     if not created:
         saved_obj.delete()
@@ -1144,21 +1137,75 @@ def save_listing(request, listing_id):
     return redirect("buyer_listing_detail", listing_id=listing_id)
 
 
-
-# 4 Saved Listings Page
 @login_required
 def saved_listings(request):
-    request.session["mode"] = "buyer"
-    saved = SavedListing.objects.filter(
-        user=request.user
-    ).select_related("listing").prefetch_related("listing__photos")
+    # Only show saved listings where listing is still active (not deleted)
+    saved = (
+        SavedListing.objects
+        .filter(
+            user=request.user,
+            listing__is_active=True,        # Not deleted
+            listing__status='approved'       # Approved by admin
+        )
+        .select_related("listing", "listing__owner")
+        .prefetch_related("listing__photos")
+    )
 
-    return render(request, "task/buyer_search_room/saved_listings.html", {
-        "saved_listings": saved
-    })
+    return render(
+        request,
+        "task/buyer_search_room/saved_listings.html",
+        {"saved_listings": saved},
+    )
+
+
+# ================= LISTING ACTIONS =================
+
+@login_required
+@require_POST
+def toggle_availability(request, listing_id):
+    listing = get_object_or_404(Listing, id=listing_id, owner=request.user)
+    
+    # Toggle availability
+    listing.is_available = not listing.is_available
+    listing.save()
+    
+    # If listing became UNAVAILABLE, notify users who saved it
+    if not listing.is_available:
+        saved_by_users = SavedListing.objects.filter(listing=listing).select_related('user')
+        
+        for saved in saved_by_users:
+            Notification.objects.create(
+                user=saved.user,
+                title="Saved Listing Unavailable",
+                message=f"'{listing.title}' in {listing.city} is no longer available.",
+                notification_type="listing_unavailable",
+                listing=listing
+            )
+    
+    # If listing became AVAILABLE again, notify users who saved it
+    else:
+        saved_by_users = SavedListing.objects.filter(listing=listing).select_related('user')
+        
+        for saved in saved_by_users:
+            Notification.objects.create(
+                user=saved.user,
+                title="Saved Listing Available Again!",
+                message=f"Good news! '{listing.title}' in {listing.city} is available again.",
+                notification_type="listing_available",
+                listing=listing
+            )
+    
+    if listing.is_available:
+        messages.success(request, "Listing marked as available.")
+    else:
+        messages.warning(request, "Listing marked as unavailable.")
+    
+    return redirect('owner_listing_details', pk=listing_id)
+
 
 @login_required
 def delete_listing(request, listing_id):
+    """Soft delete - moves listing to trash"""
     listing = get_object_or_404(
         Listing,
         id=listing_id,
@@ -1166,28 +1213,149 @@ def delete_listing(request, listing_id):
     )
 
     if request.method == "POST":
-        listing.soft_delete()
+        listing.is_active = False
+        listing.deleted_at = timezone.now()
+        listing.save()
+        messages.success(request, f"'{listing.title}' moved to trash. You can restore it within 7 days.")
 
     return redirect("owner_listing")
 
-@staff_member_required
-def admin_verification(request, verification_id):
-    verification = OwnerVerification.objects.select_related("user").get(id=verification_id)
 
+@login_required
+def deleted_listing(request):
+    """Show all soft-deleted listings (trash)"""
+    request.session["mode"] = "owner"
+    
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    
+    trash_listings = Listing.objects.filter(
+        owner=request.user,
+        is_active=False,
+        deleted_at__isnull=False,
+        deleted_at__gte=seven_days_ago
+    ).order_by('-deleted_at')
+    
+    # Auto-cleanup: Delete listings older than 7 days
+    old_listings = Listing.objects.filter(
+        owner=request.user,
+        is_active=False,
+        deleted_at__isnull=False,
+        deleted_at__lt=seven_days_ago
+    )
+    old_count = old_listings.count()
+    old_listings.delete()
+    
+    if old_count > 0:
+        messages.info(request, f"{old_count} listing(s) were permanently deleted (older than 7 days).")
+    
+    context = {
+        'trash_listings': trash_listings,
+        'trash_count': trash_listings.count(),
+    }
+    
+    return render(request, 'task/owner_listing/deleted_listing.html', context)
+
+
+@login_required
+def restore_listing(request, listing_id):
+    """Restore a listing from trash"""
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        owner=request.user,
+        is_active=False
+    )
+    
+    if request.method == "POST":
+        listing.is_active = True
+        listing.deleted_at = None
+        listing.save()
+        messages.success(request, f"'{listing.title}' has been restored successfully.")
+    
+    return redirect("deleted_listing")
+
+
+@login_required
+def permanent_delete_listing(request, listing_id):
+    """Permanently delete a listing (no recovery)"""
+    listing = get_object_or_404(
+        Listing,
+        id=listing_id,
+        owner=request.user,
+        is_active=False
+    )
+    
+    if request.method == "POST":
+        title = listing.title
+        listing.delete()
+        messages.success(request, f"'{title}' has been permanently deleted.")
+    
+    return redirect("deleted_listing")
+
+
+@login_required
+def empty_trash(request):
+    """Permanently delete all listings in trash"""
+    if request.method == "POST":
+        deleted_count = Listing.objects.filter(
+            owner=request.user,
+            is_active=False,
+            deleted_at__isnull=False
+        ).delete()[0]
+        
+        messages.success(request, f"{deleted_count} listing(s) permanently deleted.")
+    
+    return redirect("deleted_listing")
+
+
+# ================= ADMIN VERIFICATION =================
+
+@staff_member_required
+def admin_verification(request):
+    """List all pending verifications"""
+    pending_verifications = OwnerVerification.objects.filter(
+        is_verified=False,
+        document_file__isnull=False
+    ).exclude(document_file='').select_related('user')
+    
+    verified_verifications = OwnerVerification.objects.filter(
+        is_verified=True
+    ).select_related('user').order_by('-id')[:10]
+    
+    context = {
+        'pending_verifications': pending_verifications,
+        'verified_verifications': verified_verifications,
+    }
+    
+    return render(request, 'task/admin/admin_verification.html', context)
+
+
+@staff_member_required
+def admin_verification_action(request, verification_id):
+    """Handle approve/reject action for a specific verification"""
+    verification = get_object_or_404(OwnerVerification, id=verification_id)
+    
     if request.method == "POST":
         action = request.POST.get("action")
-
+        
         if action == "approve":
             verification.is_verified = True
             verification.save()
-
+            
+            owner_profile = OwnerProfile.objects.filter(user=verification.user).first()
+            if owner_profile:
+                owner_profile.is_verified = True
+                owner_profile.save()
+            
+            messages.success(request, f"{verification.user.username}'s verification approved!")
+            
         elif action == "reject":
             verification.is_verified = False
+            verification.document_file = None
             verification.save()
-
-        return redirect("admin_dashboard")
-
-    return render(request, "task/admin/admin_verification.html", {
-        "verification": verification
-    })
+            messages.warning(request, f"{verification.user.username}'s verification rejected.")
+        
+        return redirect("admin_verification")
+    
+    return redirect("admin_verification")
 

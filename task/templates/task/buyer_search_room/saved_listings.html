@@ -1,69 +1,113 @@
 {% extends "base.html" %}
 {% block title %}Saved Listings{% endblock %}
-
 {% block content %}
 <div class="max-w-7xl mx-auto space-y-8">
+  <div>
+    <h1 class="text-3xl font-bold text-gray-800">Saved Listings</h1>
+    <p class="text-gray-500 mt-1">Rooms you bookmarked</p>
+  </div>
 
-    <div>
-        <h1 class="text-3xl font-bold text-gray-800">Saved Listings</h1>
-        <p class="text-gray-500 mt-1">
-            Rooms you bookmarked
-        </p>
-    </div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for saved in saved_listings %}
+      {% with listing=saved.listing %}
 
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        {% for saved in saved_listings %}
-        {% with listing=saved.listing %}
+        {% if listing.is_active and listing.status == 'approved' %}
         <a href="{% url 'buyer_listing_detail' listing.id %}"
-           class="group bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition">
+           class="group bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition relative">
+          <div class="h-44 bg-gray-200 relative overflow-hidden">
+            {% if listing.photos.first %}
+              <img src="{{ listing.photos.first.image.url }}"
+                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            {% endif %}
+            {% if not listing.photos.first %}
+              <div class="w-full h-full flex items-center justify-center text-gray-400">
+                <i class="fa-solid fa-image text-3xl"></i>
+              </div>
+            {% endif %}
 
-            <!-- IMAGE -->
-            <div class="h-44 bg-gray-200 relative">
-                {% if listing.photos.first %}
-                    <img src="{{ listing.photos.first.image.url }}"
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform">
-                {% else %}
-                    <div class="w-full h-full flex items-center justify-center text-gray-400">
-                        <i class="fa-solid fa-image text-3xl"></i>
-                    </div>
-                {% endif %}
+            {% if not listing.is_available %}
+              <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <span class="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                  <i class="fa-solid fa-ban mr-1"></i> Unavailable
+                </span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="p-4 space-y-2">
+            <h3 class="font-semibold text-gray-800 truncate">{{ listing.title }}</h3>
+            <p class="text-sm text-gray-500">
+              <i class="fa-solid fa-location-dot mr-1"></i>
+              {{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}
+            </p>
+            <p class="font-bold text-indigo-600">Rs. {{ listing.monthly_rent }} / month</p>
+
+            <div class="pt-2 flex justify-between items-center text-sm">
+              {% if listing.is_available %}
+                <span class="text-indigo-600 font-semibold">View Details →</span>
+              {% endif %}
+              {% if not listing.is_available %}
+                <span class="text-gray-400">Currently unavailable</span>
+              {% endif %}
+              <span class="text-red-500"><i class="fa-solid fa-heart"></i></span>
             </div>
-
-            <!-- CONTENT -->
-            <div class="p-4 space-y-2">
-                <h3 class="font-semibold text-gray-800 truncate">
-                    {{ listing.title }}
-                </h3>
-
-                <p class="text-sm text-gray-500">
-                    {{ listing.city }} {{ listing.area }}
-                </p>
-
-                <p class="font-bold text-indigo-600">
-                    Rs. {{ listing.monthly_rent }} / month
-                </p>
-
-                <div class="pt-2 flex justify-between items-center text-sm">
-                    <span class="text-indigo-600 font-semibold">
-                        View →
-                    </span>
-
-                    <span class="flex gap-3 text-gray-500">
-                        ❤️
-                        🗨
-                    </span>
-                </div>
-            </div>
+          </div>
         </a>
-        {% endwith %}
-        {% empty %}
-        <div class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500">
-            No saved listings yet.
+        {% endif %}
+
+        {% if not listing.is_active or listing.status != 'approved' %}
+        <div class="bg-white rounded-xl overflow-hidden border shadow-sm opacity-50 cursor-not-allowed">
+          <div class="h-44 bg-gray-200 relative overflow-hidden">
+            {% if listing.photos.first %}
+              <img src="{{ listing.photos.first.image.url }}" class="w-full h-full object-cover grayscale" />
+            {% endif %}
+            {% if not listing.photos.first %}
+              <div class="w-full h-full flex items-center justify-center text-gray-400">
+                <i class="fa-solid fa-image text-3xl"></i>
+              </div>
+            {% endif %}
+
+            <div class="absolute inset-0 bg-black/70 flex items-center justify-center">
+              <span class="bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-bold">
+                <i class="fa-solid fa-trash mr-1"></i> Removed
+              </span>
+            </div>
+          </div>
+
+          <div class="p-4 space-y-2">
+            <h3 class="font-semibold text-gray-500 truncate">{{ listing.title }}</h3>
+            <p class="text-sm text-gray-400">
+              <i class="fa-solid fa-location-dot mr-1"></i>
+              {{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}
+            </p>
+            <p class="font-bold text-gray-400 line-through">Rs. {{ listing.monthly_rent }} / month</p>
+
+            <div class="pt-2 flex justify-between items-center text-sm">
+              <span class="text-gray-400 text-xs">This listing was removed</span>
+              <form method="post" action="{% url 'save_listing' listing.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="text-gray-400 hover:text-red-500 transition" title="Remove from saved">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
-        {% endfor %}
+        {% endif %}
 
-    </div>
-
+      {% endwith %}
+    {% empty %}
+      <div class="col-span-full bg-white border rounded-xl p-12 text-center">
+        <div class="text-6xl mb-4">💔</div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">No saved listings yet</h3>
+        <p class="text-gray-500 mb-6">Start exploring rooms and save your favorites!</p>
+        <a href="{% url 'buyer_search_room' %}"
+           class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">
+          <i class="fa-solid fa-search"></i>
+          Search Rooms
+        </a>
+      </div>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

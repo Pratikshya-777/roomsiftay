@@ -1,6 +1,6 @@
 {% extends 'base.html' %} 
-{% block title %}Add Listing · Step 1{% endblock %} 
-{% block content %}
+{% block title %}Add Listing · Step 1{% endblock %}
+ {% block content %}
 <div class="min-h-screen bg-gray-50 py-8 px-4">
   <div
     class="max-w-3xl mx-auto bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-10"
@@ -17,159 +17,269 @@
       </div>
     </div>
 
-    <form method="post" class="space-y-10">
-      {% csrf_token %} 
-      {% if form.errors %}
-      <div
-        class="bg-red-50 border border-red-200 p-4 rounded-xl text-sm text-red-600"
-      >
-        {{ form.errors }}
+    <!-- VERIFICATION WARNING -->
+    {% if not is_verified %}
+    <div class="mb-8 p-6 bg-amber-50 border border-amber-200 rounded-2xl">
+      <div class="flex items-start gap-4">
+        <div class="text-3xl">🔒</div>
+        <div class="flex-1">
+          <h3 class="font-semibold text-amber-800 text-lg">
+            Verification Required
+          </h3>
+
+          {% if owner_profile.auth_document %}
+          <!-- Document uploaded, under review -->
+          <p class="text-amber-700 mt-2">
+            Your identity verification is <strong>under review</strong>. You'll
+            be able to add listings once our team verifies your documents.
+          </p>
+          <div class="mt-4 flex items-center gap-2 text-sm text-amber-600">
+            <i class="fas fa-clock"></i>
+            <span>Usually takes 24-48 hours</span>
+          </div>
+          {% else %}
+          <!-- No document uploaded -->
+          <p class="text-amber-700 mt-2">
+            You need to verify your identity before adding listings. This helps
+            us maintain trust and safety for all users.
+          </p>
+          <div class="mt-4 flex flex-col sm:flex-row gap-3">
+            <a
+              href="{% url 'verification_page' %}"
+              class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-600 text-white font-semibold rounded-xl hover:bg-amber-700 transition"
+            >
+              <i class="fas fa-id-card"></i>
+              Verify Now
+            </a>
+            <a
+              href="{% url 'owner_dashboard' %}"
+              class="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-amber-300 text-amber-700 font-semibold rounded-xl hover:bg-amber-100 transition"
+            >
+              <i class="fas fa-arrow-left"></i>
+              Back to Dashboard
+            </a>
+          </div>
+          {% endif %}
+        </div>
       </div>
+    </div>
+
+    <!-- DISABLED FORM PREVIEW -->
+    <div class="opacity-50 pointer-events-none select-none">
       {% endif %}
 
-      <!-- TITLE -->
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-2 block">
-          📝 Listing Title <span class="text-red-500">*</span>
-        </label>
-        {{ form.title }}
-      </div>
-
-      <!-- ROOM TYPE -->
-      <div>
-        <label class="text-sm font-medium text-gray-700 mb-4 block">
-          🚪 Room Type <span class="text-red-500">*</span>
-        </label>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              name="room_type"
-              value="private"
-              class="peer hidden"
-              {% if form.room_type.value == "private" %}checked{% endif %}
-            />
-            <div
-              class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
-            >
-              <div class="text-2xl mb-2">🚪</div>
-              <p class="font-semibold text-gray-800">Private Room</p>
-              <p class="text-xs text-gray-500 mt-1">
-                Private room in shared home
-              </p>
-            </div>
-          </label>
-
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              name="room_type"
-              value="shared"
-              class="peer hidden"
-              {% if form.room_type.value == "shared" %}checked{% endif %}
-            />
-            <div
-              class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
-            >
-              <div class="text-2xl mb-2">👥</div>
-              <p class="font-semibold text-gray-800">Shared Room</p>
-              <p class="text-xs text-gray-500 mt-1">Shared with others</p>
-            </div>
-          </label>
-
-          <label class="cursor-pointer">
-            <input
-              type="radio"
-              name="room_type"
-              value="entire"
-              class="peer hidden"
-              {% if form.room_type.value == "entire" %}checked{% endif %}
-            />
-            <div
-              class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
-            >
-              <div class="text-2xl mb-2">🏠</div>
-              <p class="font-semibold text-gray-800">Entire Flat</p>
-              <p class="text-xs text-gray-500 mt-1">Whole apartment</p>
-            </div>
-          </label>
+      <form
+        method="post"
+        class="space-y-10"
+        {%
+        if
+        not
+        is_verified
+        %}aria-disabled="true"
+        {%
+        endif
+        %}
+      >
+        {% csrf_token %} {% if form.errors %}
+        <div
+          class="bg-red-50 border border-red-200 p-4 rounded-xl text-sm text-red-600"
+        >
+          {{ form.errors }}
         </div>
-      </div>
+        {% endif %}
 
-      <!-- LOCATION -->
-      <div class="pt-8 border-t space-y-6">
+        <!-- TITLE -->
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">📍 Location</h2>
-          <p class="text-sm text-gray-500">
-            Search and select your address. Pin will be placed automatically.
-          </p>
+          <label class="text-sm font-medium text-gray-700 mb-2 block">
+            📝 Listing Title <span class="text-red-500">*</span>
+          </label>
+          {{ form.title }}
         </div>
 
-        {{ form.city.as_hidden }} {{ form.area.as_hidden }} {{ form.latitude }}
-        {{ form.longitude }}
-
-        <!-- ADDRESS -->
-        <div class="relative">
-          <label class="text-sm font-medium text-gray-700 mb-2 block">
-            Full Address
+        <!-- ROOM TYPE -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-4 block">
+            🚪 Room Type <span class="text-red-500">*</span>
           </label>
 
-          {{ form.full_address }}
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="room_type"
+                value="private"
+                class="peer hidden"
+                {%
+                if
+                form.room_type.value=""
+                ="private"
+                %}checked{%
+                endif
+                %}
+                {%
+                if
+                not
+                is_verified
+                %}disabled{%
+                endif
+                %}
+              />
+              <div
+                class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
+              >
+                <div class="text-2xl mb-2">🚪</div>
+                <p class="font-semibold text-gray-800">Private Room</p>
+                <p class="text-xs text-gray-500 mt-1">
+                  Private room in shared home
+                </p>
+              </div>
+            </label>
 
-          <ul
-            id="address-suggestions"
-            class="absolute z-30 w-full bg-white border border-gray-200 rounded-2xl mt-2 shadow-xl hidden max-h-56 overflow-y-auto"
-          ></ul>
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="room_type"
+                value="shared"
+                class="peer hidden"
+                {%
+                if
+                form.room_type.value=""
+                ="shared"
+                %}checked{%
+                endif
+                %}
+                {%
+                if
+                not
+                is_verified
+                %}disabled{%
+                endif
+                %}
+              />
+              <div
+                class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
+              >
+                <div class="text-2xl mb-2">👥</div>
+                <p class="font-semibold text-gray-800">Shared Room</p>
+                <p class="text-xs text-gray-500 mt-1">Shared with others</p>
+              </div>
+            </label>
 
-          <p class="text-xs text-gray-400 mt-2">
-            Start typing and choose from suggestions.
-          </p>
-        </div>
-
-        <!-- MAP -->
-        <div id="map-section" class="hidden">
-          <div
-            class="rounded-3xl overflow-hidden border border-gray-200 shadow-md"
-          >
-            <div
-              class="px-4 py-3 text-sm font-medium text-gray-600 bg-gray-50 border-b"
-            >
-              📌 Drag the pin only if location is inaccurate
-            </div>
-            <div id="map" class="h-60 sm:h-72"></div>
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                name="room_type"
+                value="entire"
+                class="peer hidden"
+                {%
+                if
+                form.room_type.value=""
+                ="entire"
+                %}checked{%
+                endif
+                %}
+                {%
+                if
+                not
+                is_verified
+                %}disabled{%
+                endif
+                %}
+              />
+              <div
+                class="p-5 rounded-2xl border border-gray-200 bg-white peer-checked:border-indigo-600 peer-checked:ring-2 peer-checked:ring-indigo-500 hover:border-indigo-400 transition text-center"
+              >
+                <div class="text-2xl mb-2">🏠</div>
+                <p class="font-semibold text-gray-800">Entire Flat</p>
+                <p class="text-xs text-gray-500 mt-1">Whole apartment</p>
+              </div>
+            </label>
           </div>
         </div>
-      </div>
 
-      <!-- FOOTER -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t"
-      >
-        <a
-          href="{% url 'owner_dashboard' %}"
-          class="text-sm text-gray-500 hover:text-gray-800"
+        <!-- LOCATION -->
+        <div class="pt-8 border-t space-y-6">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">📍 Location</h2>
+            <p class="text-sm text-gray-500">
+              Search and select your address. Pin will be placed automatically.
+            </p>
+          </div>
+
+          {{ form.city.as_hidden }} {{ form.area.as_hidden }} {{ form.latitude }} {{ form.longitude }}
+
+          <!-- ADDRESS -->
+          <div class="relative">
+            <label class="text-sm font-medium text-gray-700 mb-2 block">
+              Full Address
+            </label>
+
+            {{ form.full_address }}
+
+            <ul
+              id="address-suggestions"
+              class="absolute z-30 w-full bg-white border border-gray-200 rounded-2xl mt-2 shadow-xl hidden max-h-56 overflow-y-auto"
+            ></ul>
+
+            <p class="text-xs text-gray-400 mt-2">
+              Start typing and choose from suggestions.
+            </p>
+          </div>
+
+          <!-- MAP -->
+          <div id="map-section" class="hidden">
+            <div
+              class="rounded-3xl overflow-hidden border border-gray-200 shadow-md"
+            >
+              <div
+                class="px-4 py-3 text-sm font-medium text-gray-600 bg-gray-50 border-b"
+              >
+                📌 Drag the pin only if location is inaccurate
+              </div>
+              <div id="map" class="h-60 sm:h-72"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t"
         >
-          Cancel
-        </a>
+          <a
+            href="{% url 'owner_dashboard' %}"
+            class="text-sm text-gray-500 hover:text-gray-800"
+          >
+            Cancel
+          </a>
 
-        <button
-          type="submit"
-          id="submitBtn"
-          class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition shadow-md"
-        >
-          Save & Continue →
-        </button>
-      </div>
+          <button
+            type="submit"
+            id="submitBtn"
+            {%
+            if
+            not
+            is_verified
+            %}disabled{%
+            endif
+            %}
+            class="w-full sm:w-auto px-8 py-3 rounded-2xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition shadow-md {% if not is_verified %}opacity-50 cursor-not-allowed{% endif %}"
+          >
+            Save & Continue →
+          </button>
+        </div>
 
-      <p class="text-xs text-gray-400 text-center">
-        You can edit everything later.
-      </p>
-    </form>
+        <p class="text-xs text-gray-400 text-center">
+          You can edit everything later.
+        </p>
+      </form>
+
+      {% if not is_verified %}
+    </div>
+    {% endif %}
   </div>
 </div>
 
-{% verbatim %}
+{% if is_verified %} {% verbatim %}
 <script>
   const addressInput = document.getElementById("id_full_address");
   const suggestions = document.getElementById("address-suggestions");
@@ -179,14 +289,14 @@
 
   async function searchPlaces(q) {
     const r = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${q}`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${q}`,
     );
     return r.json();
   }
 
   async function reverseGeocode(lat, lon) {
     const r = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
     );
     const data = await r.json();
     if (!data.address) return;
@@ -244,7 +354,9 @@
 
     if (!map) {
       map = L.map("map").setView([lat, lon], 15);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
+        map,
+      );
 
       marker = L.marker([lat, lon], { draggable: true }).addTo(map);
 
@@ -267,4 +379,5 @@
   });
 </script>
 {% endverbatim %}
-{% endblock %}
+ {% endif %} 
+ {% endblock %}

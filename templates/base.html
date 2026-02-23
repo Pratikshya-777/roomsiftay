@@ -1,225 +1,303 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RoomSiftay</title>
 
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      rel="stylesheet"
+    />
 
-<!-- Leaflet JS -->
-        <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-        </script>
+    <!-- Leaflet CSS (OpenStreetMap) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
 
-</head>
+    <!-- Leaflet JS (OpenStreetMap) -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
 
-<body class="bg-gray-100 flex flex-col min-h-screen">
+    <!-- Marker Cluster CSS & JS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
+    />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
-    {% comment %} {% if messages %}
-<div class="fixed top-6 right-6 space-y-3 z-50">
-    {% for message in messages %}
-        <div class="px-5 py-3 rounded-xl shadow-lg text-white
-            {% if message.tags == 'success' %}bg-green-600
-            {% elif message.tags == 'error' %}bg-red-600
-            {% elif message.tags == 'info' %}bg-blue-600
-            {% else %}bg-gray-800{% endif %}">
-            {{ message }}
-        </div>
-    {% endfor %}
-</div>
-{% endif %} {% endcomment %}
+    <!-- Geocoder CSS & JS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
+    />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  </head>
 
+  <body class="bg-gray-100 flex flex-col min-h-screen">
+    <div id="overlay" class="fixed inset-0 bg-black/40 hidden z-30"></div>
 
-<div id="overlay" class="fixed inset-0 bg-black/40 hidden z-30"></div>
-
-<!-- ================= NAVBAR ================= -->
-<nav class="fixed top-0 z-50 w-full bg-[#112240] text-white px-6 py-4 flex items-center justify-between shadow-lg">
-
-    <!-- Left -->
-    <div class="flex items-center gap-4">
+    <!-- ================= NAVBAR ================= -->
+    <nav
+      class="fixed top-0 z-50 w-full bg-[#112240] text-white px-6 py-4 flex items-center justify-between shadow-lg"
+    >
+      <!-- Left -->
+      <div class="flex items-center gap-4">
         <button id="menuBtn" class="text-2xl focus:outline-none">
-            <i class="fa-solid fa-bars"></i>
+          <i class="fa-solid fa-bars"></i>
         </button>
         <span class="text-2xl font-bold tracking-tight">🏠 RoomSiftay</span>
-    </div>
+      </div>
 
-
-
-    
-     <!-- Right -->
-    <div class="flex items-center gap-4">
+      <!-- Right -->
+      <div class="flex items-center gap-4">
         <!-- Right -->
-<div class="flex items-center gap-4">
+        <div class="flex items-center gap-4">
+          <!-- User Name -->
+          <span class="text-sm text-gray-300">
+            Welcome, {{ user.first_name|default:user.username }}
+          </span>
 
-    <!-- User Name -->
-    <span class="text-sm text-gray-300">
-        Welcome, {{ user.first_name|default:user.username }}
-    </span>
+          <!-- Avatar + Dropdown -->
+          <div class="relative group cursor-pointer">
+            <img
+              src="{% if profile.profile_photo %}{{ profile.profile_photo.url }}{% else %}https://static.vecteezy.com/system/resources/previews/002/318/271/original/user-profile-icon-free-vector.jpg{% endif %}"
+              class="w-10 h-10 rounded-full object-cover border border-white/40 shadow"
+            />
 
-    <!-- Avatar + Dropdown -->
-    <div class="relative group cursor-pointer">
+            <!-- Dropdown menu -->
+            <div
+              class="absolute right-0 mt-3 w-48 bg-white text-gray-700 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200"
+            >
+              <a
+                href="{% url 'buyer_profile' %}"
+                class="block px-4 py-3 hover:bg-gray-100 rounded-t-xl"
+              >
+                <i class="fa fa-user mr-2"></i> My Profile
+              </a>
 
-        <img
-        src="{% if profile.profile_photo %}{{ profile.profile_photo.url }}{% else %}https://static.vecteezy.com/system/resources/previews/002/318/271/original/user-profile-icon-free-vector.jpg{% endif %}"
-        class="w-10 h-10 rounded-full object-cover border border-white/40 shadow">
+              <div class="border-t"></div>
 
-        <!-- Dropdown menu -->
-        <div class="absolute right-0 mt-3 w-48 bg-white text-gray-700 rounded-xl shadow-lg
-                    opacity-0 group-hover:opacity-100 invisible group-hover:visible
-                    transition-all duration-200">
-
-            <a href="{% url 'buyer_profile' %}"
-               class="block px-4 py-3 hover:bg-gray-100 rounded-t-xl">
-               <i class="fa fa-user mr-2"></i> My Profile
-            </a>
-
-            <div class="border-t"></div>
-
-            <a href="{% url 'logout' %}"
-               class="block px-4 py-3 text-red-500 hover:bg-red-50 rounded-b-xl">
-               <i class="fa fa-right-from-bracket mr-2"></i> Logout
-            </a>
-
+              <a
+                href="{% url 'logout' %}"
+                class="block px-4 py-3 text-red-500 hover:bg-red-50 rounded-b-xl"
+              >
+                <i class="fa fa-right-from-bracket mr-2"></i> Logout
+              </a>
+            </div>
+          </div>
         </div>
-    </div>
+      </div>
+    </nav>
 
-</div>
+    <!-- ================= SIDEBAR ================= -->
 
-    </div> 
-
-
-
-
-</nav>
-
-<!-- ================= SIDEBAR ================= -->
-
-<aside id="sidebar"
-class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 bg-[#112240] text-white
-transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto">
-
-    <div class="px-4 py-2 border-b border-slate-700 mb-4">
+    <aside
+      id="sidebar"
+      class="fixed top-0 left-0 z-40 w-64 h-screen pt-20 bg-[#112240] text-white transform -translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto"
+    >
+      <div class="px-4 py-2 border-b border-slate-700 mb-4">
         <p class="text-xs uppercase text-gray-500 font-bold tracking-widest">
-            {% if request.session.mode == "owner" %}
-                Owner Menu
-            {% else %}
-                Buyer Menu
-            {% endif %}
+          {% if request.session.mode == "owner" %} Owner Menu {% else %} Buyer
+          Menu {% endif %}
         </p>
-    </div>
+      </div>
 
-    <ul class="px-2 space-y-1 text-sm">
-
-        {% if  request.session.mode == "buyer" %}
-            <li>
-                <a href="{% url 'buyer_dashboard' %}"
-                   class="flex items-center px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'buyer_dashboard' %}bg-blue-600{% else %}hover:bg-slate-800 text-gray-300{% endif %}">
-                    <i class="fa-solid fa-chart-line mr-3"></i> Dashboard
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'buyer_search_room' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-magnifying-glass mr-3"></i> Search Rooms
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'buyer_profile' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-user mr-3"></i> My Profile
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'saved_listings' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-heart mr-3"></i> Saved Listings
-                </a>
-            </li>
-             <li>
-                <a href="{% url 'provide_review' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-star mr-3"></i> Website Review
-                </a>
-            </li>
-             <li>
-                <a href="{% url 'report_issue' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-flag mr-3"></i> Report Issue
-                </a>
-            </li>
+      <ul class="px-2 space-y-1 text-sm">
+        {% if request.session.mode == "buyer" %}
+        <li>
+          <a
+            href="{% url 'buyer_dashboard' %}"
+            class="flex items-center px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'buyer_dashboard' %}bg-blue-600{% else %}hover:bg-slate-800 text-gray-300{% endif %}"
+          >
+            <i class="fa-solid fa-chart-line mr-3"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'buyer_search_room' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-magnifying-glass mr-3"></i> Search Rooms
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'buyer_profile' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-user mr-3"></i> My Profile
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'saved_listings' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-heart mr-3"></i> Saved Listings
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'provide_review' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-star mr-3"></i> Website Review
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'report_issue' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-flag mr-3"></i> Report Issue
+          </a>
+        </li>
         {% else %}
-            <li>
-                <a href="{% url 'owner_dashboard' %}"
-                   class="flex items-center px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'owner_dashboard' %}bg-blue-600{% else %}hover:bg-slate-800 text-gray-300{% endif %}">
-                    <i class="fa-solid fa-chart-line mr-3"></i> Dashboard
-                </a>
-            </li>
-            <li>
-                <a href="{% url 'verification_page' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-magnifying-glass mr-3"></i> Verification & Authentication
-                </a>
-            </li>
-            <li>
-                 <a href="{% url 'owner_add_listingstep1' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-heart mr-3"></i> Add New Listings 
-                 </a>
-            </li>
-            <li>
-                <a href="{% url 'owner_listing' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-house-chimney mr-3"></i> My Listings
-                </a>
-            </li>
-             <li>
-                <a href="#" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-user mr-3"></i> My Profile
-                </a>
-            </li>
-            <li>
-        <a href="{% url 'chat_list' %}" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800">
-                    <i class="fa-solid fa-comment-dots mr-3"></i> Chats with Buyers
-                </a>
-            </li>
+        <li>
+          <a
+            href="{% url 'owner_dashboard' %}"
+            class="flex items-center px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'owner_dashboard' %}bg-blue-600{% else %}hover:bg-slate-800 text-gray-300{% endif %}"
+          >
+            <i class="fa-solid fa-chart-line mr-3"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'verification_page' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-magnifying-glass mr-3"></i> Verification &
+            Authentication
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'owner_add_listingstep1' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-heart mr-3"></i> Add New Listings
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'owner_listing' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-house-chimney mr-3"></i> My Listings
+          </a>
+        </li>
+        <!-- TRASH LINK -->
+        <li>
+          <a
+            href="{% url 'deleted_listing' %}"
+            class="flex items-center justify-between px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <span class="flex items-center">
+              <i class="fa-solid fa-trash-can mr-3"></i> Trash
+            </span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'buyer_profile' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-user mr-3"></i> My Profile
+          </a>
+        </li>
+        <li>
+          <a
+            href="{% url 'chat_list' %}"
+            class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800"
+          >
+            <i class="fa-solid fa-comment-dots mr-3"></i> Chats with Buyers
+          </a>
+        </li>
         {% endif %}
 
         <div class="pt-4 mt-4 border-t border-slate-700">
-            <li>
-                <a href="{% url 'logout' %}" class="flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10">
-                    <i class="fa-solid fa-right-from-bracket mr-3"></i> Logout
-                </a>
-            </li>
+          <li>
+            <a
+              href="{% url 'logout' %}"
+              class="flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10"
+            >
+              <i class="fa-solid fa-right-from-bracket mr-3"></i> Logout
+            </a>
+          </li>
         </div>
+      </ul>
+    </aside>
 
-    </ul>
-</aside>
+    <!-- ================= GLOBAL MESSAGES ================= -->
+    {% if messages %}
+    <div class="fixed top-20 right-6 z-50 space-y-3 max-w-sm">
+      {% for message in messages %}
+      <div
+        id="alert-msg-{{ forloop.counter }}"
+        class="flex items-center gap-3 px-5 py-4 rounded-2xl shadow-lg border backdrop-blur-sm {% if message.tags == 'success' %} bg-green-50 text-green-800 border-green-200 {% elif message.tags == 'warning' %} bg-amber-50 text-amber-800 border-amber-200 {% elif message.tags == 'error' %} bg-red-50 text-red-800 border-red-200 {% else %} bg-blue-50 text-blue-800 border-blue-200 {% endif %}"
+      >
+        <i
+          class="fas {% if message.tags == 'success' %}fa-check-circle text-green-500 {% elif message.tags == 'warning' %}fa-exclamation-triangle text-amber-500 {% elif message.tags == 'error' %}fa-times-circle text-red-500 {% else %}fa-info-circle text-blue-500{% endif %} text-lg"
+        ></i>
+        <span class="text-sm font-medium flex-1">{{ message }}</span>
+        <button
+          onclick="this.parentElement.remove()"
+          class="opacity-60 hover:opacity-100 transition"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll('[id^="alert-msg-"]').forEach((el) => {
+          el.style.transition = "all 0.3s ease";
+          el.style.opacity = "0";
+          el.style.transform = "translateX(20px)";
+          setTimeout(() => el.remove(), 300);
+        });
+      }, 5000);
+    </script>
+    {% endif %}
 
-<!-- ================= MAIN CONTENT ================= -->
-<main class="pt-24 px-8 flex-1">
-    {% block content %}
-    {% endblock %}
-</main>
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="pt-24 px-8 flex-1">{% block content %} {% endblock %}</main>
 
-<!-- ================= SIDEBAR SCRIPT ================= -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const menuBtn = document.getElementById("menuBtn");
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("overlay");
+    <!-- ================= SIDEBAR SCRIPT ================= -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const menuBtn = document.getElementById("menuBtn");
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("overlay");
 
-    menuBtn.addEventListener("click", () => {
-        sidebar.classList.remove("-translate-x-full");
-        overlay.classList.remove("hidden");
-    });
+        menuBtn.addEventListener("click", () => {
+          sidebar.classList.remove("-translate-x-full");
+          overlay.classList.remove("hidden");
+        });
 
-    overlay.addEventListener("click", () => {
-        sidebar.classList.add("-translate-x-full");
-        overlay.classList.add("hidden");
-    });
-});
-
-</script>
-
-</body>
-{% include "footer.html" %}
+        overlay.addEventListener("click", () => {
+          sidebar.classList.add("-translate-x-full");
+          overlay.classList.add("hidden");
+        });
+      });
+    </script>
+  </body>
+  {% include "footer.html" %}
 </html>
