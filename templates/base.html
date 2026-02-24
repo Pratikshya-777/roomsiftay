@@ -245,6 +245,7 @@
     </aside>
 
     <!-- ================= GLOBAL MESSAGES ================= -->
+     {% block global_messages %}
     {% if messages %}
     <div class="fixed top-20 right-6 z-50 space-y-3 max-w-sm">
       {% for message in messages %}
@@ -276,6 +277,8 @@
       }, 5000);
     </script>
     {% endif %}
+      {% endblock %}
+
 
     <!-- ================= MAIN CONTENT ================= -->
     <main class="pt-24 px-8 flex-1">{% block content %} {% endblock %}</main>
@@ -301,3 +304,4 @@
   </body>
   {% include "footer.html" %}
 </html>
+

@@ -18,10 +18,10 @@
             {% for verification in pending_verifications %}
             <div class="flex justify-between items-center py-5">
                 <span class="text-gray-500 text-lg">{{ verification.user.username }}</span>
-                <button type="button"
+                 <a href="{% url 'admin_verification'  %}"
                         class="bg-[#4a86e8] text-white px-5 py-1.5 rounded-lg text-xs font-semibold">
                     View Proof
-                </button>
+            </a>
             </div>
                 {% empty %}
         <p class="text-gray-400 italic py-4">

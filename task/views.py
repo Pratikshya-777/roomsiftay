@@ -315,7 +315,13 @@ def buyer_dashboard(request):
 
     user = request.user
 
-    saved_count = SavedListing.objects.filter(user=user).count()
+    # Only count saved listings that are still active, approved, AND available
+    saved_count = SavedListing.objects.filter(
+        user=user,
+        listing__is_active=True,
+        listing__status='approved',
+        listing__is_available=True  # Only count available ones
+    ).count()
 
     conversations = Conversation.objects.filter(buyer=user)
     unread_messages = Message.objects.filter(
@@ -335,8 +341,12 @@ def buyer_dashboard(request):
         created_at__gte=one_week_ago
     ).count()
 
+    # Filter to only show active, approved, AND AVAILABLE listings in recently saved
     recent_saved = SavedListing.objects.filter(
-        user=user
+        user=user,
+        listing__is_active=True,
+        listing__status='approved',
+        listing__is_available=True  # ADD THIS - hide unavailable from dashboard
     ).select_related("listing").order_by("-saved_at")[:3]
 
     recent_conversations = conversations[:3]
@@ -433,8 +443,12 @@ def report_issue(request):
 
 @staff_member_required
 def admin_view(request):
+
     pending_verifications = OwnerVerification.objects.filter(
-        is_verified=False
+        is_verified=False,              # Not yet approved
+        document_file__isnull=False     # Has uploaded a file
+    ).exclude(
+        document_file=''                # Exclude empty strings
     ).select_related("user")
 
     listings = Listing.objects.filter(status__in=["pending"])
@@ -649,7 +663,7 @@ def owner_add_listingstep3(request):
     if not listing_id:
         return redirect("owner_add_listingstep1")
 
-    listing = get_object_or_404(
+    listing = get_object_or_400(
         Listing,
         id=listing_id,
         owner=request.user
