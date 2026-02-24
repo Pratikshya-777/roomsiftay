@@ -1,61 +1,117 @@
 {% extends "task/admin/admin_base.html" %}
 
 {% block title %}Manage Listings{% endblock %}
-
-{# Optional: highlight sidebar if you later add nav_listings block #}
-{# {% block nav_listings %}sidebar-active{% endblock %} #}
+{% block nav_listings %}sidebar-active{% endblock %}
 
 {% block content %}
 
-<!-- ================= PAGE HEADER ================= -->
 <div class="mb-8">
     <h1 class="text-2xl font-semibold text-gray-700">
         Manage Listings
     </h1>
     <p class="text-sm text-gray-400 mt-1">
-        Review, approve, or reject property listings
+        Review and manage property listings
     </p>
 </div>
 
-<!-- ================= LISTINGS CARD ================= -->
-<div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
+<!-- ================= PENDING ================= -->
+<div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-10">
+    <h2 class="text-lg font-semibold text-yellow-600 mb-6">
+        Pending Listings
+    </h2>
 
-    {% for listing in listings %}
-    <div class="flex justify-between items-center py-5
-                {% if not forloop.last %}border-b border-gray-100{% endif %}">
-
+    {% for listing in pending_listings %}
+    <div class="flex justify-between items-center py-4 border-b border-gray-100">
         <div>
-            <p class="font-medium text-gray-700">
-                {{ listing.title }}
-            </p>
-
-            <p class="text-sm mt-1">
-                <span class="px-3 py-1 rounded-full text-xs font-semibold
-                    {% if listing.status == 'approved' %}
-                        bg-green-100 text-green-600
-                    {% elif listing.status == 'rejected' %}
-                        bg-red-100 text-red-600
-                    {% else %}
-                        bg-yellow-100 text-yellow-600
-                    {% endif %}
-                ">
-                    {{ listing.get_status_display }}
-                </span>
+            <p class="font-medium text-gray-700">{{ listing.title }}</p>
+            <p class="text-xs text-gray-400">
+                Owner: {{ listing.owner.email }}
             </p>
         </div>
 
         <a href="{% url 'admin_listing_detail' listing.id %}"
-           class="bg-[#4a86e8] text-white px-5 py-2 rounded-xl text-sm font-semibold shadow hover:bg-blue-600 transition">
-            Manage
+           class="bg-yellow-500 text-white px-5 py-2 rounded-xl text-sm font-semibold">
+            Review
         </a>
-
     </div>
     {% empty %}
-        <p class="text-gray-400 italic text-center py-10">
-            No listings to review.
-        </p>
+    <p class="text-gray-400 italic">No pending listings.</p>
     {% endfor %}
+</div>
 
+
+<!-- ================= APPROVED ================= -->
+<div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-10">
+    <h2 class="text-lg font-semibold text-green-600 mb-6">
+        Approved Listings
+    </h2>
+
+    {% for listing in approved_listings %}
+    <div class="flex justify-between items-center py-4 border-b border-gray-100">
+        <div>
+            <p class="font-medium text-gray-700">{{ listing.title }}</p>
+            <p class="text-xs text-gray-400">
+                {{ listing.city }} • Rs {{ listing.monthly_rent }}
+            </p>
+        </div>
+
+        <div class="flex gap-3">
+            <a href="{% url 'admin_listing_detail' listing.id %}"
+               class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm">
+                Manage
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-gray-400 italic">No approved listings.</p>
+    {% endfor %}
+</div>
+
+
+<!-- ================= REJECTED ================= -->
+<div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-10">
+    <h2 class="text-lg font-semibold text-red-600 mb-6">
+        Rejected Listings
+    </h2>
+
+    {% for listing in rejected_listings %}
+    <div class="flex justify-between items-center py-4 border-b border-gray-100">
+        <div>
+            <p class="font-medium text-gray-700">{{ listing.title }}</p>
+            <p class="text-xs text-gray-400">
+                Owner can re-edit and resubmit
+            </p>
+        </div>
+
+        <a href="{% url 'admin_listing_detail' listing.id %}"
+           class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm">
+            View
+        </a>
+    </div>
+    {% empty %}
+    <p class="text-gray-400 italic">No rejected listings.</p>
+    {% endfor %}
+</div>
+
+
+<!-- ================= TRASH / SOFT DELETED ================= -->
+<div class="bg-gray-50 rounded-2xl p-8 border border-gray-200">
+    <h2 class="text-lg font-semibold text-gray-600 mb-6">
+        Deleted Listings (Trash)
+    </h2>
+
+    {% for listing in deleted_listings %}
+    <div class="flex justify-between items-center py-4 border-b border-gray-200">
+        <div>
+            <p class="font-medium text-gray-700">{{ listing.title }}</p>
+            <p class="text-xs text-gray-400">
+                Permanently deletes in {{ listing.days_until_permanent_delete }} days
+            </p>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-gray-400 italic">Trash is empty.</p>
+    {% endfor %}
 </div>
 
 {% endblock %}

@@ -14,39 +14,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
       rel="stylesheet"
     />
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-    <!-- Leaflet CSS (OpenStreetMap) -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin=""
-    />
-
-    <!-- Leaflet JS (OpenStreetMap) -->
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin=""
-    ></script>
-
-    <!-- Marker Cluster CSS & JS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"
-    />
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-
-    <!-- Geocoder CSS & JS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
-    />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+            <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+        </script>
   </head>
 
   <body class="bg-gray-100 flex flex-col min-h-screen">
@@ -301,7 +273,227 @@
         });
       });
     </script>
+ <!-- ================= ROOM SIFTAY AI ASSISTANT ================= -->
+
+<!-- Toggle Button -->
+<button id="chatToggle"
+  class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-xl z-50">
+  <i class="fa-solid fa-robot"></i>
+</button>
+
+<!-- Chat Window -->
+<div id="chatWindow"
+  class="fixed bottom-24 right-6 w-96 h-[520px] bg-white rounded-2xl shadow-2xl hidden flex flex-col overflow-hidden z-50 border">
+
+  <!-- Header -->
+  <div class="bg-[#112240] text-white px-4 py-3 flex justify-between items-center">
+    <div>
+      <h2 class="font-semibold text-sm">RoomSiftay Assistant</h2>
+      <p class="text-xs text-gray-300">Smart Rental Guide</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button onclick="clearChat()"
+        class="text-xs bg-white/10 px-2 py-1 rounded hover:bg-white/20 transition">
+        Clear
+      </button>
+      <button id="closeChat" class="text-gray-300 hover:text-white">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="chatMessages"
+    class="flex-1 overflow-y-auto p-4  bg-gray-50 text-sm scroll-smooth">
+  </div>
+
+  <!-- Typing Indicator -->
+  <div id="typingIndicator"
+    class="px-4 py-2 text-xs text-gray-500 hidden flex items-center gap-1">
+    <span>Assistant is typing</span>
+    <span class="typing-dot"></span>
+    <span class="typing-dot"></span>
+    <span class="typing-dot"></span>
+  </div>
+
+  <!-- Input -->
+  <div class="p-3 border-t flex gap-2">
+    <input id="chatInput"
+      class="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="Ask about rooms, prices, verification..." />
+    <button onclick="sendMessage()"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg text-sm">
+      Send
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-in-out;
+}
+.typing-dot {
+  width: 4px;
+  height: 4px;
+  background: gray;
+  border-radius: 50%;
+  animation: blink 1.4s infinite both;
+}
+.typing-dot:nth-child(2) { animation-delay: .2s; }
+.typing-dot:nth-child(3) { animation-delay: .4s; }
+
+@keyframes blink {
+  0% { opacity: .2; }
+  20% { opacity: 1; }
+  100% { opacity: .2; }
+}
+</style>
+
+<script>
+const chatToggle = document.getElementById("chatToggle");
+const chatWindow = document.getElementById("chatWindow");
+const closeChat = document.getElementById("closeChat");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const typingIndicator = document.getElementById("typingIndicator");
+
+chatToggle.onclick = () => chatWindow.classList.toggle("hidden");
+closeChat.onclick = () => chatWindow.classList.add("hidden");
+
+let chatHistory = JSON.parse(localStorage.getItem("roomsiftay_chat")) || [];
+
+if (chatHistory.length === 0) {
+  addMessage("bot",
+    "Hello 👋 Welcome to RoomSiftay!\n\n" +
+    "You can ask things like:\n" +
+    "- room in pokhara\n" +
+    "- cheapest room under 8000\n" +
+    "- how to verify account\n" +
+    "- show my saved listings"
+  , false);
+}
+
+chatHistory.forEach(msg => {
+  if (msg.type === "room_results") {
+    renderRoomCards(msg.data, false);
+  } else {
+    addMessage(msg.sender, msg.text, false);
+  }
+});
+
+function saveChat() {
+  localStorage.setItem("roomsiftay_chat", JSON.stringify(chatHistory));
+}
+
+function clearChat() {
+  localStorage.removeItem("roomsiftay_chat");
+  chatHistory = [];
+  chatMessages.innerHTML = "";
+  addMessage("bot", "Chat cleared. How can I assist you today?", false);
+}
+
+function addMessage(sender, text, save = true) {
+  const msgDiv = document.createElement("div");
+  msgDiv.className = sender === "user" ? "flex justify-end" : "flex justify-start";
+
+  msgDiv.innerHTML = `
+    <div class="${
+      sender === "user"
+        ? "bg-blue-600 text-white"
+        : "bg-white border text-gray-800"
+    } px-4 py-2 rounded-2xl max-w-[75%]  shadow-sm animate-fadeIn">
+      ${text}
+    </div>
+  `;
+
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  if (save) {
+    chatHistory.push({ sender, text, type: "text" });
+    saveChat();
+  }
+}
+
+function renderRoomCards(data, save = true) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "flex justify-start";
+
+  const container = document.createElement("div");
+  container.className = "bg-gray-100 p-3 rounded-2xl space-y-3 max-w-[85%] animate-fadeIn";
+
+  const header = document.createElement("div");
+  header.className = "font-semibold text-blue-600 text-sm";
+  header.innerText = `🏠 Showing ${data.total} rooms in ${data.city}`;
+  container.appendChild(header);
+
+  data.listings.forEach(room => {
+    const card = document.createElement("div");
+    card.className =
+      "bg-white rounded-xl shadow-sm p-3 hover:shadow-md transition border";
+
+    card.innerHTML = `
+      <h3 class="font-semibold text-base">${room.title}</h3>
+      <p class="text-xs text-gray-500">📍 ${room.city}</p>
+      <p class="text-blue-600 font-bold mt-1">Rs ${room.rent}</p>
+      <a href="/buyer/listing/${room.id}/"
+         class="inline-block mt-2 text-xs text-blue-500 hover:underline">
+         View Details →
+      </a>
+    `;
+
+    container.appendChild(card);
+  });
+
+  wrapper.appendChild(container);
+  chatMessages.appendChild(wrapper);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  if (save) {
+    chatHistory.push({ type: "room_results", data });
+    saveChat();
+  }
+}
+
+async function sendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  addMessage("user", message);
+  chatInput.value = "";
+  typingIndicator.classList.remove("hidden");
+
+  try {
+    const response = await fetch("/chatbot/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message })
+    });
+
+    const data = await response.json();
+    typingIndicator.classList.add("hidden");
+
+    if (data.type === "room_results") {
+      renderRoomCards(data);
+    } else {
+      addMessage("bot", data.message);
+    }
+
+  } catch (error) {
+    typingIndicator.classList.add("hidden");
+    addMessage("bot", "Something went wrong. Please try again.");
+  }
+}
+
+chatInput.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") sendMessage();
+});
+</script>
   </body>
   {% include "footer.html" %}
 </html>
-

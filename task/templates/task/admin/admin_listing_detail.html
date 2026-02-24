@@ -112,15 +112,19 @@
 
     <!-- ACTION FORM -->
     <form method="post" class="border-t pt-8">
-        {% csrf_token %}
+    {% csrf_token %}
 
+    {% if listing.is_active %}
+
+        <!-- REJECTION NOTE -->
         <label class="block font-medium text-gray-600 mb-2">
-            Rejection Reason
+            Rejection Reason (Required only if rejecting)
         </label>
+
         <textarea name="admin_note"
                   class="w-full border rounded-xl p-4 focus:ring-2 focus:ring-blue-200 focus:outline-none"
                   rows="4"
-                  placeholder="Required only if rejecting the listing..."></textarea>
+                  placeholder="Write reason if rejecting listing...">{{ listing.admin_note }}</textarea>
 
         {% if error %}
             <p class="text-red-500 mt-2 text-sm font-medium">
@@ -128,18 +132,43 @@
             </p>
         {% endif %}
 
-        <div class="flex gap-4 mt-6">
+        <div class="flex gap-4 mt-6 flex-wrap">
+
+            <!-- APPROVE -->
+            {% if listing.status != "approved" %}
             <button name="action" value="approve"
                     class="bg-green-600 text-white px-6 py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition">
                 ✅ Approve
             </button>
+            {% endif %}
 
+            <!-- REJECT -->
             <button name="action" value="reject"
                     class="bg-red-600 text-white px-6 py-2 rounded-xl text-sm font-semibold hover:bg-red-700 transition">
                 ❌ Reject
             </button>
+
+            <!-- DELETE -->
+            <button name="action" value="delete"
+                    onclick="return confirm('Are you sure you want to delete this listing?')"
+                    class="bg-gray-800 text-white px-6 py-2 rounded-xl text-sm font-semibold hover:bg-black transition">
+                🗑 Delete
+            </button>
+
         </div>
-    </form>
+
+    {% else %}
+
+        <!-- RESTORE BUTTON -->
+        <div class="mt-6">
+            <button name="action" value="restore"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 transition">
+                ♻ Restore Listing
+            </button>
+        </div>
+
+    {% endif %}
+</form>
 
 </div>
 

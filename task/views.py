@@ -8,7 +8,7 @@ from .forms import CustomUserCreationForm, ListingForm, UserProfileForm, Listing
 from django.conf import settings
 from django.contrib import messages
 from .models import Listing, ListingPhoto, BuyerReport, Notification, UserProfile, OwnerProfile, OwnerVerification, Owner, Conversation, Message, SavedListing, Review
-import random
+import random, math,json
 from django.core.mail import send_mail
 from django.contrib.auth.forms import PasswordChangeForm
 from django.http import JsonResponse
@@ -16,7 +16,8 @@ from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.core.paginator import Paginator
 from django.utils import timezone
-import math
+from django.views.decorators.csrf import csrf_exempt
+from .chatbot import handle_room_query, ask_llm
 
 User = get_user_model()
 
@@ -40,7 +41,16 @@ def generate_otp():
 def home(request):
     # Fetch all reviews to show on the landing page
     recent_reviews = Review.objects.all().order_by('-created_at')[:5]
-    return render(request, 'task/index.html', {'reviews': recent_reviews})
+    featured_listings = Listing.objects.filter(
+        status="approved",
+        is_active=True,
+        is_available=True
+    ).order_by("-created_at")[:3]  
+
+    return render(request, 'task/index.html', {
+        'reviews': recent_reviews,
+        "featured_listings": featured_listings
+    })
 
 
 def contact(request):
@@ -182,11 +192,6 @@ def verification_page(request):
         'owner_profile': owner_profile
     })
 
-
-def forgot_password(request):
-    return render(request, "task/forgot_password.html")
-
-
 def verify_otp(request):
     user_id = request.session.get("otp_user_id")
 
@@ -207,8 +212,8 @@ def verify_otp(request):
 
             del request.session["otp_user_id"]
 
-            messages.success(request, "Email verified successfully. You can now login.")
-            return redirect("buyer")
+            messages.success(request, "Email verified successfully. Welcome .")
+            return redirect("buyer_dashboard")
 
         else:
             messages.error(request, "Invalid OTP. Please try again.")
@@ -292,64 +297,66 @@ def register(request):
 
     return render(request, "task/register.html", {"form": form})
 
-
 @login_required
 def role_redirect(request):
     user = request.user
+
+    # 🔥 FIRST: Handle Admin / Staff
+    if user.is_staff:
+        return redirect("admin-dashboard")
+
     selected_role = request.COOKIES.get('social_role')
+
+    # If user has both roles
     if user.is_user and user.is_owner:
         if selected_role == "owner":
             return redirect("owner_dashboard")
         else:
             return redirect("buyer_dashboard")
 
+    # If only owner
     if user.is_owner:
         return redirect("owner_dashboard")
-    
-    return redirect("buyer_dashboard")
 
+    # Default
+    return redirect("buyer_dashboard")
 
 @login_required
 def buyer_dashboard(request):
     request.session["mode"] = "buyer"
 
     user = request.user
-
-    # Only count saved listings that are still active, approved, AND available
-    saved_count = SavedListing.objects.filter(
+    saved_qs = SavedListing.objects.filter(
         user=user,
         listing__is_active=True,
         listing__status='approved',
-        listing__is_available=True  # Only count available ones
-    ).count()
+        listing__is_available=True
+    )
 
+    saved_count = saved_qs.count()
     conversations = Conversation.objects.filter(buyer=user)
+    conversation_ids = conversations.values_list("id", flat=True)
+
     unread_messages = Message.objects.filter(
-        conversation__in=conversations,
+        conversation_id__in=conversation_ids,
         is_read=False
     ).exclude(sender=user).count()
 
-    unread_notifications = Notification.objects.filter(
-        user=user,
-        is_read=False
-    ).count()
+    notifications_qs = Notification.objects.filter(user=user)
 
+    unread_notifications = notifications_qs.filter(is_read=False).count()
+
+    latest_notifications = notifications_qs.order_by("-created_at")[:5]
     one_week_ago = timezone.now() - timedelta(days=7)
+
     new_listings_count = Listing.objects.filter(
         status="approved",
         is_active=True,
         created_at__gte=one_week_ago
     ).count()
+    recent_saved = saved_qs.select_related("listing").order_by("-saved_at")[:3]
 
-    # Filter to only show active, approved, AND AVAILABLE listings in recently saved
-    recent_saved = SavedListing.objects.filter(
-        user=user,
-        listing__is_active=True,
-        listing__status='approved',
-        listing__is_available=True  # ADD THIS - hide unavailable from dashboard
-    ).select_related("listing").order_by("-saved_at")[:3]
-
-    recent_conversations = conversations[:3]
+    recent_conversations = conversations.order_by("-created_at")[:3]
 
     context = {
         "saved_count": saved_count,
@@ -358,6 +365,7 @@ def buyer_dashboard(request):
         "new_listings_count": new_listings_count,
         "recent_saved": recent_saved,
         "recent_conversations": recent_conversations,
+        "notifications": latest_notifications,   # ✅ pass notifications
     }
 
     return render(request, "task/buyer_dashboard.html", context)
@@ -462,6 +470,33 @@ def admin_view(request):
     }
     return render(request, 'task/admin/admin.html', context)
 
+@staff_member_required
+def admin_listings(request):
+    pending_listings = Listing.objects.filter(
+        status="pending",
+        is_active=True
+    ).order_by("-created_at")
+
+    approved_listings = Listing.objects.filter(
+        status="approved",
+        is_active=True
+    ).order_by("-created_at")
+
+    rejected_listings = Listing.objects.filter(
+        status="rejected",
+        is_active=True
+    ).order_by("-created_at")
+
+    deleted_listings = Listing.objects.filter(
+        is_active=False
+    ).order_by("-deleted_at")
+
+    return render(request, "task/admin/admin_listings.html", {
+        "pending_listings": pending_listings,
+        "approved_listings": approved_listings,
+        "rejected_listings": rejected_listings,
+        "deleted_listings": deleted_listings,
+    })
 
 @staff_member_required
 def admin_listing_detail(request, listing_id):
@@ -471,48 +506,68 @@ def admin_listing_detail(request, listing_id):
         status__in=["pending", "approved", "rejected"]
     )
 
+    error = None
+
     if request.method == "POST":
         action = request.POST.get("action")
         admin_note = request.POST.get("admin_note", "").strip()
 
+        # ================= APPROVE =================
         if action == "approve":
             listing.status = "approved"
-            listing.is_active = True
             listing.admin_note = ""
+            listing.is_active = True
             listing.save()
 
+            Notification.objects.create(
+                user=listing.owner,
+                title="Listing Approved",
+                message="Your listing has been approved and is now live.",
+                notification_type="listing_available",
+                listing=listing
+            )
+
+        # ================= REJECT =================
         elif action == "reject":
             if not admin_note:
-                return render(request, "task/admin/admin_listing_detail.html", {
-                    "listing": listing,
-                    "error": "Rejection reason is required."
-                })
-            listing.status = "rejected"
-            listing.is_active = False
-            listing.admin_note = admin_note
-            listing.save()
+                error = "Rejection reason is required."
+            else:
+                listing.status = "rejected"
+                listing.admin_note = admin_note
+                listing.save()
 
-        return redirect("admin_dashboard")
+                Notification.objects.create(
+                    user=listing.owner,
+                    title="Listing Rejected",
+                    message="Your listing was rejected. Please edit and resubmit.",
+                    notification_type="listing_unavailable",
+                    listing=listing
+                )
+
+        # ================= DELETE (SOFT DELETE) =================
+        elif action == "delete":
+            listing.soft_delete()
+
+            Notification.objects.create(
+                user=listing.owner,
+                title="Listing Deleted",
+                message="Your listing was removed by admin.",
+                notification_type="listing_deleted",
+                listing=listing
+            )
+
+        # ================= RESTORE =================
+        elif action == "restore":
+            listing.restore()
+
+        if not error:
+            return redirect("admin_listings")
 
     return render(request, "task/admin/admin_listing_detail.html", {
-        "listing": listing
+        "listing": listing,
+        "error": error
     })
 
-
-@staff_member_required
-def admin_listings(request):
-    listings = Listing.objects.filter(
-        status__in=["pending"]
-    ).order_by("-created_at")
-
-    return render(request, "task/admin/admin_listings.html", {
-        "listings": listings
-    })
-
-
-def reset_password(request):
-    if not request.session.get("otp_verified"):
-        return redirect("forgot_password")
     
     user = User.objects.get(id=request.session.get("reset_user_id"))
 
@@ -531,7 +586,7 @@ def reset_password(request):
         else:
             messages.error(request, "Passwords do not match")
 
-    return render(request, "task/reset_password.html")
+    return render(request, "task/password_reset/reset_password.html")
 
 
 @login_required
@@ -582,15 +637,28 @@ def buyer_profile(request):
         "completion": completion,
     })
 
-
 @login_required
 @require_POST
 def resolve_report(request, report_id):
     try:
         report = BuyerReport.objects.get(id=report_id)
-        report.status = 'verified'
-        report.save()
+
+        # Only resolve if still pending
+        if report.status == "pending":
+            report.status = "verified"
+            report.resolved_at = timezone.now()
+            report.save()
+
+            # 🔔 CREATE NOTIFICATION FOR BUYER
+            Notification.objects.create(
+                user=report.user,
+                title="Report Resolved",
+                message=f"Your report titled '{report.title}' has been reviewed and resolved by our admin team.",
+                notification_type="general"
+            )
+
         return JsonResponse({'status': 'success'})
+
     except BuyerReport.DoesNotExist:
         return JsonResponse({'status': 'error'}, status=404)
 
@@ -663,7 +731,7 @@ def owner_add_listingstep3(request):
     if not listing_id:
         return redirect("owner_add_listingstep1")
 
-    listing = get_object_or_400(
+    listing = get_object_or_404(
         Listing,
         id=listing_id,
         owner=request.user
@@ -800,6 +868,11 @@ def owner_listing(request):
         status="pending",
         is_active=True
     )
+    rejected = Listing.objects.filter(
+        owner=request.user,
+        status="rejected",
+        is_active=True
+    )
 
     approved_base = Listing.objects.filter(
         owner=request.user,
@@ -833,6 +906,7 @@ def owner_listing(request):
             "drafts": drafts,
             "pending": pending,
             "approved": approved,
+            "rejected": rejected, 
             "availability_filter": availability_filter,
             "approved_all_count": approved_all_count,
             "approved_available_count": approved_available_count,
@@ -873,50 +947,54 @@ def submit_listing(request, pk):
 
     return redirect("owner_listing_details", pk=pk)
 
-
 @login_required
 def owner_edit_listing(request, pk):
-    request.session["mode"] = "owner"
     listing = get_object_or_404(
         Listing,
-        pk=pk,
+        id=pk,
         owner=request.user
     )
 
-    if listing.status == "approved":
-        messages.warning(
-            request,
-            "Approved listings cannot be edited. Please contact admin."
-        )
-        return redirect("owner_listing_detail", pk=pk)
+    if not listing.is_active:
+        messages.error(request, "Deleted listings cannot be edited.")
+        return redirect("owner_listing")
 
     if request.method == "POST":
-        form = ListingForm(request.POST, instance=listing)
+        form = ListingForm(request.POST, request.FILES, instance=listing)
 
         if form.is_valid():
-            form.save()
+            listing = form.save(commit=False)
 
-            if "image" in request.FILES:
+            if listing.status == "rejected":
+                listing.status = "pending"
+                listing.admin_note = ""
+
+            listing.save()
+
+            delete_photo_ids = request.POST.getlist("delete_photos")
+            if delete_photo_ids:
+                ListingPhoto.objects.filter(
+                    id__in=delete_photo_ids,
+                    listing=listing
+                ).delete()
+
+            new_photos = request.FILES.getlist("new_photos")
+            for photo in new_photos:
                 ListingPhoto.objects.create(
                     listing=listing,
-                    image=request.FILES["image"]
+                    image=photo
                 )
 
             messages.success(request, "Listing updated successfully.")
-            return redirect("owner_listing_detail", pk=pk)
+            return redirect("owner_listing")
 
     else:
         form = ListingForm(instance=listing)
 
-    return render(
-        request,
-        "task/owner_listing/owner_edit_listing.html",
-        {
-            "form": form,
-            "listing": listing,
-        }
-    )
-
+    return render(request, "task/owner_listing/owner_edit_listing.html", {
+        "form": form,
+        "listing": listing
+    })
 
 @login_required
 def start_chat(request, listing_id):
@@ -990,6 +1068,7 @@ def buyer_search_room(request):
     lat = request.GET.get("lat", "").strip()
     lng = request.GET.get("lng", "").strip()
     radius_km = request.GET.get("radius_km", "").strip()
+    location_mode = request.GET.get("location_mode", "").strip()
 
     listings = Listing.objects.filter(
         status="approved",
@@ -1058,7 +1137,7 @@ def buyer_search_room(request):
         km = 6371 * c
         return round(km, 2)
 
-    if lat and lng and radius_km:
+    if lat and lng and location_mode == "radius":
         try:
             lat_f = float(lat)
             lng_f = float(lng)
@@ -1322,8 +1401,6 @@ def empty_trash(request):
     return redirect("deleted_listing")
 
 
-# ================= ADMIN VERIFICATION =================
-
 @staff_member_required
 def admin_verification(request):
     """List all pending verifications"""
@@ -1373,3 +1450,70 @@ def admin_verification_action(request, verification_id):
     
     return redirect("admin_verification")
 
+
+from .chatbot import process_message
+
+@csrf_exempt
+def chatbot_api(request):
+    if request.method != "POST":
+        return JsonResponse({
+            "type": "text",
+            "message": "Invalid request method."
+        }, status=405)
+
+    data = json.loads(request.body)
+    message = data.get("message")
+    mode = request.session.get("mode", "buyer")
+    reply = process_message(message, request.user, mode=mode)
+    if isinstance(reply, dict):
+        return JsonResponse(reply)
+
+    return JsonResponse({
+        "type": "text",
+        "message": reply
+    })
+
+
+@staff_member_required
+def admin_reports(request):
+
+    pending_reports = BuyerReport.objects.filter(
+        status="pending"
+    ).order_by("-created_at")
+
+    archived_reports = BuyerReport.objects.filter(
+        status="verified"
+    ).order_by("-resolved_at")
+
+    return render(request, "task/admin/admin_reports.html", {
+        "pending_reports": pending_reports,
+        "archived_reports": archived_reports,
+    })
+
+@staff_member_required
+def admin_report_detail(request, id):
+    report = get_object_or_404(BuyerReport, id=id)
+
+    if request.method == "POST":
+        report.status = "verified"
+        report.resolved_at = timezone.now()
+        report.save()
+
+        Notification.objects.create(
+            user=report.user,
+            message="Your reported issue has been reviewed and resolved."
+        )
+
+        return redirect("admin_reports")    
+
+    return render(request, "task/admin/admin_report_detail.html", {
+        "report": report
+    })
+
+@login_required
+def notifications(request):
+    notifications = request.user.notifications.all()
+
+    return render(request, "task/notifications.html", {
+        "notifications": notifications
+    })

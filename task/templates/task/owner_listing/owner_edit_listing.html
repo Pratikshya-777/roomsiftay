@@ -2,64 +2,144 @@
 {% block title %}Edit Listing{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-10 px-4">
-    <div class="max-w-3xl mx-auto">
+<div class="min-h-screen bg-gray-100 py-12 px-6">
+  <div class="max-w-6xl mx-auto space-y-10">
 
-        <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                ✏️ Edit Listing
-            </h1>
-            <p class="text-gray-500 mt-1">
-                Update the details for <span class="font-medium">{{ listing.title }}</span>
-            </p>
-        </div>
-
-        <!-- Card -->
-        <div class="bg-white rounded-2xl shadow-lg p-8">
-
-            <form method="POST" enctype="multipart/form-data" class="space-y-6">
-                {% csrf_token %}
-
-                {% for field in form %}
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">
-                        {{ field.label }}
-                    </label>
-
-                    <!-- Field -->
-                    <div class="relative">
-                        {{ field}}
-                    </div>
-
-                    <!-- Errors -->
-                    {% if field.errors %}
-                        <p class="text-red-600 text-sm mt-1">
-                            {{ field.errors|striptags }}
-                        </p>
-                    {% endif %}
-                </div>
-                {% endfor %}
-
-                <!-- Divider -->
-                <div class="border-t pt-6"></div>
-
-                <!-- Actions -->
-                <div class="flex items-center justify-between">
-                    <a href="{% url 'owner_listing_details' listing.id %}"
-                       class="text-gray-600 hover:text-gray-900 hover:underline transition">
-                        ← Cancel
-                    </a>
-
-                    <button
-                        type="submit"
-                        class="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold shadow hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
-                        💾 Save Changes
-                    </button>
-                </div>
-            </form>
-
-        </div>
+    <!-- ================= PAGE HEADER ================= -->
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">
+        ✏️ Edit Listing
+      </h1>
+      <p class="text-gray-500 mt-2">
+        Update details for 
+        <span class="font-semibold text-gray-800">
+          {{ listing.title }}
+        </span>
+      </p>
     </div>
+
+    <!-- ================= REJECTION ALERT ================= -->
+    {% if listing.status == "rejected" %}
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-6 shadow-sm">
+      <div class="flex items-start gap-4">
+        <div class="text-3xl">❌</div>
+        <div>
+          <h3 class="font-semibold text-red-700 text-lg">
+            Listing Rejected
+          </h3>
+          <p class="text-red-600 mt-1">
+            {{ listing.admin_note }}
+          </p>
+          <p class="text-sm text-gray-500 mt-2">
+            Update the listing and save to automatically resubmit for review.
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-10">
+      {% csrf_token %}
+
+      <!-- ================= BASIC INFO CARD ================= -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <h2 class="text-xl font-semibold text-gray-800">
+            📍 Basic Information
+          </h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          {% for field in form %}
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              {{ field.label }}
+            </label>
+
+            {{ field }}
+
+            {% if field.errors %}
+            <p class="text-red-500 text-sm mt-1">
+              {{ field.errors|striptags }}
+            </p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- ================= EXISTING PHOTOS CARD ================= -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6">
+        <div class="flex items-center justify-between border-b pb-4">
+          <h2 class="text-xl font-semibold text-gray-800">
+            🏠 Existing Photos
+          </h2>
+          <span class="text-sm text-gray-500">
+            Select photos to remove
+          </span>
+        </div>
+
+        {% if listing.photos.all %}
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {% for photo in listing.photos.all %}
+          <div class="relative group">
+            <img src="{{ photo.image.url }}"
+                 class="rounded-xl border h-40 w-full object-cover transition group-hover:opacity-80">
+
+            <label class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white shadow-md px-3 py-1 text-xs rounded-full flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+              <input type="checkbox"
+                     name="delete_photos"
+                     value="{{ photo.id }}"
+                     class="h-3 w-3 text-red-600">
+              Remove
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10 text-gray-400">
+          <i class="fa-solid fa-image text-4xl mb-3"></i>
+          <p>No photos uploaded yet.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- ================= ADD NEW PHOTOS CARD ================= -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6">
+        <div class="border-b pb-4">
+          <h2 class="text-xl font-semibold text-gray-800">
+            ➕ Add New Photos
+          </h2>
+        </div>
+
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-indigo-400 transition">
+          <input type="file"
+                 name="new_photos"
+                 multiple
+                 accept="image/*"
+                 class="w-full">
+
+          <p class="text-sm text-gray-500 mt-4">
+            Upload high quality images. You can select multiple files.
+          </p>
+        </div>
+      </div>
+
+      <!-- ================= ACTION BUTTONS ================= -->
+      <div class="flex justify-between items-center pt-4">
+        <a href="{% url 'owner_listing_details' listing.id %}"
+           class="text-gray-600 hover:text-gray-900 transition font-medium">
+          ← Cancel
+        </a>
+
+        <button type="submit"
+                class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:bg-indigo-700 transition">
+          💾 Save Changes
+        </button>
+      </div>
+
+    </form>
+
+  </div>
 </div>
 {% endblock %}

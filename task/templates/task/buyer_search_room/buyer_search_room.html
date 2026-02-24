@@ -335,6 +335,7 @@
   <input type="hidden" name="lng" id="lngInput" value="{{ lng }}" />
   <input type="hidden" name="radius_km" id="radiusInput" value="{{ radius_km|default:'5' }}" />
   <input type="hidden" name="open_map" id="openMapInput" value="{{ open_map }}" />
+  <input type="hidden" name="location_mode" id="locationModeInput" value="{{ request.GET.location_mode }}" />
 </form>
 
 <!-- Listings data for JavaScript -->
@@ -515,7 +516,8 @@ document.addEventListener("DOMContentLoaded", function() {
             localStorage.setItem(LOCATION_ENABLED_KEY, "true");
         }
 
-        filtersForm.submit();
+        document.getElementById("locationModeInput").value = "map";
+filtersForm.submit();
     });
 
     // Use my location button
@@ -536,7 +538,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 latInput.value = lat;
                 lngInput.value = lng;
 
-                // Save to localStorage
+                document.getElementById("locationModeInput").value = "radius";
                 localStorage.setItem(LOCATION_KEY, JSON.stringify({ lat: lat, lng: lng }));
                 localStorage.setItem(LOCATION_ENABLED_KEY, "true");
 
@@ -578,7 +580,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Initialize
     checkLocationStatus();
 
-});
+}); 
 </script>
 {% endverbatim %}
 

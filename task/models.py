@@ -18,11 +18,6 @@ class User(AbstractUser):
     EMAIL_FIELD = 'email' 
 
 
-class OldListing(models.Model):
-    title = models.CharField(max_length=200)
-    # Status: use a red icon/dot in the template for 'Pending'
-    status = models.CharField(max_length=20, default='Pending') 
-
 
 class OwnerProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

@@ -2,6 +2,20 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
 from .models import User, BuyerReport
+from .models import *
+
+admin.site.register(OwnerProfile)
+admin.site.register(Owner)
+admin.site.register(Listing)
+admin.site.register(ListingPhoto)
+admin.site.register(Review)
+# admin.site.register(UserProfile)
+# admin.site.register(Notification)
+# admin.site.register(Conversation)
+# admin.site.register(Message)
+admin.site.register(SavedListing)
+admin.site.register(OwnerVerification)
+# admin.site.register(PasswordResetOTP)
 
 User = get_user_model()
 

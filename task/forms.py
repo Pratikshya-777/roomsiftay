@@ -49,6 +49,15 @@ class CustomPasswordResetForm(PasswordResetForm):
             "placeholder": "Enter your email address"
         })
     )
+    def get_users(self, email):
+        """
+        Override default Django behavior.
+        Allow reset even if user has no usable password (social login users).
+        """
+        return User.objects.filter(
+            email__iexact=email,
+            is_active=True
+        )
 
 
 class ListingStep1Form(forms.ModelForm):
@@ -201,7 +210,24 @@ class ListingForm(forms.ModelForm):
             "admin_note",
             "created_at",
             "updated_at",
+            "is_active",
+            "deleted_at",
+            "is_available",
         ]
+
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "city": forms.TextInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "area": forms.TextInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "full_address": forms.Textarea(attrs={"class": "w-full px-4 py-3 rounded-xl border", "rows": 3}),
+            "monthly_rent": forms.NumberInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "security_deposit": forms.NumberInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "bedrooms": forms.NumberInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "bathrooms": forms.NumberInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "floor_number": forms.NumberInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "total_area": forms.NumberInput(attrs={"class": "w-full px-4 py-3 rounded-xl border"}),
+            "kitchen_type": forms.Select(attrs={"class": "w-full px-4 py-3 rounded-xl border bg-white"}),
+        }
 
 class ListingPhotoForm(forms.ModelForm):
     class Meta:

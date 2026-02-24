@@ -1,8 +1,11 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+
+from task.forms import CustomPasswordResetForm
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import reverse_lazy
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -17,17 +20,17 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path("logout/", views.logout, name="logout"),
     path("verification/", views.verification_page, name='verification_page'),
+    path("notification/", views.notifications, name='notifications'),
     path("nearby-listings/", views.nearby_listings, name="nearby_listings"),
-    
     path(
-        'forgot_password/',
-        auth_views.PasswordResetView.as_view(
-            template_name='task/forgot_password.html',
-            success_url="password_reset/password-reset-done/",
-        ),
-        name='forgot_password'
+    'forgot_password/',
+    auth_views.PasswordResetView.as_view(
+        template_name='task/password_reset/forgot_password.html',
+        form_class=CustomPasswordResetForm,
+        success_url=reverse_lazy('password_reset_done'),
     ),
-
+    name='forgot_password'
+),
     path(
         'password-reset-done/',
         auth_views.PasswordResetDoneView.as_view(
@@ -40,7 +43,7 @@ urlpatterns = [
         'reset/<uidb64>/<token>/',
         auth_views.PasswordResetConfirmView.as_view(
             template_name='task/password_reset/password_reset_confirm.html',
-            success_url="/password-reset-complete/",
+            success_url=reverse_lazy('password_reset_complete'),
         ),
         name='password_reset_confirm'
     ),
@@ -57,7 +60,6 @@ urlpatterns = [
     path('report-issue/', views.report_issue, name='report_issue'),
     path('admin-dashboard/', views.admin_view, name='admin_dashboard'),
     path("profile/", views.buyer_profile, name="buyer_profile"),
-    path("reset-password/", views.reset_password, name="reset_password"),
     path('resolve-report/<int:report_id>/', views.resolve_report, name='resolve_report'),
 
     path("add-listing-step1/", views.owner_add_listingstep1, name="owner_add_listingstep1"),
@@ -93,6 +95,9 @@ urlpatterns = [
     path("owner/trash/restore/<int:listing_id>/", views.restore_listing, name="restore_listing"),
     path("owner/trash/permanent-delete/<int:listing_id>/", views.permanent_delete_listing, name="permanent_delete_listing"),
     path("owner/trash/empty/", views.empty_trash, name="empty_trash"),
+    path("chatbot/", views.chatbot_api, name="chatbot_api"),
+    path("admin-reports/", views.admin_reports, name="admin_reports"),
+    path("admin-reports/<int:id>/", views.admin_report_detail, name="admin_report_detail"),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,81 @@
+{% extends "task/admin/admin_base.html" %}
+
+{% block title %}Manage Reports{% endblock %}
+{% block nav_reports %}sidebar-active{% endblock %}
+
+{% block content %}
+<main class="p-8">
+
+    <!-- PAGE HEADER -->
+    <div class="mb-10">
+        <h1 class="text-3xl font-semibold text-gray-700">
+            Buyer Reports
+        </h1>
+        <p class="text-gray-400 text-sm mt-1">
+            Review and resolve buyer submitted issues
+        </p>
+    </div>
+
+    <!-- ================= PENDING ================= -->
+    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 mb-12">
+        <h2 class="text-xl font-semibold text-gray-600 mb-6">
+            Pending Reports
+        </h2>
+
+        <div class="divide-y divide-gray-100">
+            {% for report in pending_reports %}
+            <div class="py-6 flex justify-between items-center">
+                <div>
+                    <p class="font-semibold text-gray-800">
+                        {{ report.title }}
+                    </p>
+                    <p class="text-gray-500 text-sm">
+                        Buyer: {{ report.user.username }}
+                    </p>
+                    <p class="text-gray-400 text-xs">
+                        {{ report.created_at|date:"M d, Y" }}
+                    </p>
+                </div>
+
+                <a href="{% url 'admin_report_detail' report.id %}"
+                   class="bg-[#4a86e8] text-white px-5 py-2 rounded-lg text-xs font-semibold">
+                    View Details
+                </a>
+            </div>
+            {% empty %}
+            <p class="text-gray-400 italic py-6">
+                No pending reports.
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ================= ARCHIVE ================= -->
+    <div class="bg-gray-50 p-8 rounded-[2rem] border border-gray-200">
+        <h2 class="text-lg font-medium text-gray-500 mb-6">
+            Archived (Resolved) Reports
+        </h2>
+
+        <div class="divide-y divide-gray-200">
+            {% for report in archived_reports %}
+            <div class="py-5 opacity-80">
+                <p class="font-medium text-gray-700">
+                    {{ report.title }}
+                </p>
+                <p class="text-gray-500 text-sm">
+                    Buyer: {{ report.user.username }}
+                </p>
+                <p class="text-gray-400 text-xs">
+                    Resolved on {{ report.resolved_at|date:"M d, Y" }}
+                </p>
+            </div>
+            {% empty %}
+            <p class="text-gray-400 text-sm">
+                Archive is empty.
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+
+</main>
+{% endblock %}

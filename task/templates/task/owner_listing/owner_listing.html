@@ -171,6 +171,66 @@
     </div>
   </section>
 
+  <!-- ================= REJECTED LISTINGS ================= -->
+<section>
+  <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+    ❌ Rejected Listings
+    <span class="text-sm font-normal text-gray-500">
+      ({{ rejected.count }})
+    </span>
+  </h2>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for listing in rejected %}
+    <a
+      href="{% url 'owner_listing_details' listing.id %}"
+      class="bg-white rounded-xl overflow-hidden border shadow-sm hover:shadow-md transition"
+    >
+      <div class="h-44 bg-gray-200 relative">
+        {% if listing.photos.first %}
+        <img
+          src="{{ listing.photos.first.image.url }}"
+          class="w-full h-full object-cover"
+        />
+        {% else %}
+        <div
+          class="w-full h-full flex items-center justify-center text-gray-400"
+        >
+          <i class="fa-solid fa-image text-3xl"></i>
+        </div>
+        {% endif %}
+
+        <span
+          class="absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700"
+        >
+          Rejected
+        </span>
+      </div>
+
+      <div class="p-4 space-y-2">
+        <h3 class="font-semibold text-gray-800 truncate">
+          {{ listing.title }}
+        </h3>
+
+        <p class="text-sm text-red-600 font-medium">
+          {{ listing.admin_note }}
+        </p>
+
+        <p class="text-sm text-gray-500">
+          Click to edit and resubmit
+        </p>
+      </div>
+    </a>
+    {% empty %}
+    <div
+      class="col-span-full bg-white border rounded-xl p-10 text-center text-gray-500"
+    >
+      <p>No rejected listings.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
   <!-- ================= APPROVED LISTINGS ================= -->
   <section>
     <div

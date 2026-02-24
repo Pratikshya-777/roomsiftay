@@ -1,0 +1,117 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Roomsiftay Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen flex bg-slate-100">
+
+<!-- LEFT SIDE -->
+<div class="hidden lg:flex w-1/2 bg-slate-100 text-slate-900 px-28 py-24 flex-col justify-center relative">
+
+    <!-- Subtle Divider Line -->
+    <div class="absolute right-0 top-0 h-full w-px bg-slate-200"></div>
+
+    <div class="max-w-lg">
+
+        <div class="flex items-center gap-3 mb-14">
+            <div class="w-2.5 h-2.5 bg-cyan-500 rounded-full"></div>
+            <span class="text-xs font-medium tracking-widest text-slate-500 uppercase">
+                Roomsiftay Admin
+            </span>
+        </div>
+
+        <h1 class="text-5xl font-semibold leading-tight tracking-tight text-slate-800">
+            Control your
+            <br>
+            property ecosystem.
+        </h1>
+
+        <p class="mt-8 text-lg text-slate-600 leading-relaxed">
+            A unified workspace to manage listings, approvals,
+            users and operational workflows — built for scale.
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- RIGHT SIDE -->
+<div class="flex w-full lg:w-1/2 items-center justify-center px-6 bg-slate-950">
+
+    <div class="w-full max-w-md">
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-10 shadow-xl">
+
+            <!-- Heading -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-semibold text-white">
+                    Welcome back
+                </h2>
+                <p class="text-slate-400 text-sm mt-2">
+                    Sign in to access the admin dashboard
+                </p>
+            </div>
+
+            {% if form.errors %}
+            <div class="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+                Invalid username or password.
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="post" action="{% url 'admin:login' %}" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="/admin-dashboard/">
+
+                <!-- Username -->
+                <div>
+                    <label class="block text-sm text-slate-400 mb-2">
+                        Username
+                    </label>
+                    <input type="text" name="username" required
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+                </div>
+
+                <!-- Password -->
+                <div class="relative">
+                    <label class="block text-sm text-slate-400 mb-2">
+                        Password
+                    </label>
+                    <input type="password" name="password" id="passwordField" required
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition">
+
+                    <button type="button"
+                        onclick="togglePassword()"
+                        class="absolute right-4 top-[42px] text-slate-400 text-sm hover:text-white transition">
+                        Show
+                    </button>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit"
+                    class="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-slate-900 font-semibold transition">
+                    Sign In
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function togglePassword() {
+    const field = document.getElementById("passwordField");
+    field.type = field.type === "password" ? "text" : "password";
+}
+</script>
+
+</body>
+</html>

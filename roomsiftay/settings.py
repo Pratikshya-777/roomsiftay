@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-
+        'django_extensions',
     # Providers
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
@@ -163,7 +163,7 @@ LOGIN_REDIRECT_URL = 'role_redirect'
 LOGOUT_REDIRECT_URL = '/login/'
 
 LOGIN_URL = 'login'
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"

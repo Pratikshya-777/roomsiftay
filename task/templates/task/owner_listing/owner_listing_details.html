@@ -18,16 +18,28 @@
 
         <div class="flex flex-wrap items-center gap-2">
             <span class="px-4 py-1.5 rounded-full text-sm font-semibold
-                {% if listing.status == 'draft' %}
-                    bg-gray-200 text-gray-700
-                {% elif listing.status == 'pending' %}
-                    bg-yellow-100 text-yellow-700
-                {% else %}
-                    bg-green-100 text-green-700
-                {% endif %}">
-                {% if listing.status == 'draft' %}📝{% elif listing.status == 'pending' %}⏳{% else %}✅{% endif %}
-                {{ listing.status|title }}
-            </span>
+    {% if listing.status == 'draft' %}
+        bg-gray-200 text-gray-700
+    {% elif listing.status == 'pending' %}
+        bg-yellow-100 text-yellow-700
+    {% elif listing.status == 'rejected' %}
+        bg-red-100 text-red-700
+    {% else %}
+        bg-green-100 text-green-700
+    {% endif %}">
+
+    {% if listing.status == 'draft' %}
+        📝
+    {% elif listing.status == 'pending' %}
+        ⏳
+    {% elif listing.status == 'rejected' %}
+        ❌
+    {% else %}
+        ✅
+    {% endif %}
+
+    {{ listing.status|title }}
+</span>
 
             {% if listing.status == 'approved' %}
                 <span class="px-4 py-1.5 rounded-full text-sm font-semibold
@@ -192,6 +204,24 @@
                         </button>
                     </form>
                 {% endif %}
+
+                {% if listing.status == "rejected" %}
+    <a href="{% url 'owner_edit_listing' listing.id %}"
+       class="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">
+        <i class="fa-solid fa-pen"></i>
+        Edit & Resubmit
+    </a>
+
+    <form method="post" action="{% url 'delete_listing' listing.id %}">
+        {% csrf_token %}
+        <button type="submit"
+                onclick="return confirm('Are you sure you want to delete this listing?');"
+                class="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-300 text-red-600 font-semibold hover:bg-red-50 transition">
+            <i class="fa-solid fa-trash"></i>
+            Delete Listing
+        </button>
+    </form>
+{% endif %}
 
                 <!-- ACTIONS FOR PENDING -->
                 {% if listing.status == "pending" %}

@@ -170,10 +170,14 @@
   <!-- ================= NOTIFICATIONS ================= -->
   <div class="bg-white border rounded-2xl p-6">
     <h2 class="text-xl font-semibold mb-6">Notifications</h2>
+    <a href="{% url 'notifications' %}"
+   class="text-slate-900 text-sm font-medium hover:underline mt-4 inline-block">
+   View All Notifications →
+</a>
 
-    {% if user.notifications.all %}
+    {% if notifications %}
     <div class="space-y-3">
-      {% for notification in user.notifications.all|slice:":5" %}
+      {% for notification in notifications %}
       <div
         class="border rounded-xl p-4 {% if not notification.is_read %}bg-gray-50{% endif %}"
       >

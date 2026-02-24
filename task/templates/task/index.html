@@ -4,9 +4,12 @@
 <head>
     <title>RoomSiftay</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
 
+<body class="bg-gray-50">
+
+<!-- NAVBAR -->
 <header class="navbar">
     <div class="logo">🏠 RoomSiftay</div>
     <nav>
@@ -15,134 +18,181 @@
     </nav>
 </header>
 
-<section class="hero">
-    <h1>Find Your Next Room<br>With Confidence</h1>
-    <br>
-    <br>
-    <p>Verified owners • Real photos • No brokers</p>
-</section>
+<!-- HERO SECTION -->
+<section class="relative h-[75vh] bg-cover bg-center flex items-center justify-center"
+         style="background-image: url('{% static 'images/hero.jpeg' %}');">
 
-<section class="why-choose-us">
-    <h2>Why Choose Us?</h2>
-    <div class="feature-container">
-        <div class="feature-card">
-            <div class="icon-wrapper">🛡️</div>
-            <h4>Verified Owner</h4>
-            <p>All owners are ID & phone verified for your safety.</p>
-        </div>
-        <div class="feature-card">
-            <div class="icon-wrapper">📸</div>
-            <h4>Real Photos</h4>
-            <p>What you see is what you get. Only genuine room images.</p>
-        </div>
-        <div class="feature-card">
-            <div class="icon-wrapper">🤝</div>
-            <h4>No Brokers</h4>
-            <p>Talk directly with room owners and save on extra fees.</p>
-        </div>
+    <!-- Dark overlay -->
+    <div class="absolute inset-0 bg-black/50"></div>
+
+    <div class="relative z-10 text-center text-white px-4 max-w-3xl">
+        <h1 class="text-4xl md:text-5xl font-bold leading-tight mb-6">
+            Find Your Next Room <br> With Confidence
+        </h1>
+
+        <p class="text-lg mb-8 text-gray-200">
+            Verified owners • Real photos • No brokers
+        </p>
+
+        <!-- SEARCH BAR -->
+        <form method="GET"
+              action="{% url 'buyer_search_room' %}"
+              class="bg-white rounded-xl shadow-lg p-3 flex flex-col md:flex-row gap-3 items-center">
+
+            <input type="text"
+                   name="city"
+                   placeholder="Enter city (e.g. Kathmandu)"
+                   class="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+            <input type="number"
+                   name="max_price"
+                   placeholder="Max Budget (Rs)"
+                   class="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+            <button type="submit"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                Search
+            </button>
+        </form>
     </div>
 </section>
 
+<!-- FEATURED ROOMS -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-6">
 
-{% comment %} <section class="why">
-    <h2>Why Choose Us?</h2>
-    <div class="feature-container">
-        <div class="feature-card">
-            <h4>Verified Owner</h4>
-            <p>All owners are ID & phone verified</p>
-        </div>
-        <div class="feature-card">
-            <h4>Real Photos</h4>
-            <p>Only genuine room images are listed</p>
-        </div>
-        <div class="feature-card">
-            <h4>No Brokers</h4>
-            <p>Direct contact with room owners</p>
-        </div>
-    </div>
-</section> {% endcomment %}
+        <h2 class="text-3xl font-bold text-center mb-12">
+            🔥 Latest Rooms
+        </h2>
 
-<section class="reviews">
-    <h2 class="reviews-heading">⭐ Reviews And Ratings</h2>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
 
-    <div class="reviews-container"> 
-        {% for review in reviews %}
-        <div class="review-card"> <div class="stars">
-                {% for i in "12345"|make_list %}
-                    {% if forloop.counter <= review.rating %}
-                        ⭐
+            {% for listing in featured_listings %}
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-2 transition duration-300">
+
+                {% with photo=listing.photos.first %}
+                    {% if photo %}
+                        <img src="{{ photo.image.url }}"
+                             class="w-full h-56 object-cover">
+                    {% else %}
+                        <img src="{% static 'images/default-room.jpg' %}"
+                             class="w-full h-56 object-cover">
                     {% endif %}
-                {% endfor %}
-            </div>
-            
-            <p class="review-text">"{{ review.comment }}"</p>
-            
-            <span class="reviewer-name">— {{ review.user.username }}</span>
-        </div>
-        {% empty %}
-        <div class="review-card">
-            <p>No reviews yet. Be the first to share your experience!</p>
-        </div>
-        {% endfor %}
-    </div>
+                {% endwith %}
 
-    <div style="text-align: center; margin-top: 40px;">
-        <a href="{% url 'all_reviews' %}" class="btn-view-all">
-            View All Reviews →
-        </a>
+                <div class="p-5">
+                    <h3 class="text-lg font-semibold mb-2">
+                        {{ listing.title }}
+                    </h3>
+
+                    <p class="text-gray-500 text-sm">
+                        {{ listing.city }}{% if listing.area %}, {{ listing.area }}{% endif %}
+                    </p>
+
+                    <p class="text-blue-600 font-bold mt-3 text-lg">
+                        Rs. {{ listing.monthly_rent }}
+                    </p>
+
+                    <a href="{% url 'buyer_listing_detail' listing.id %}"
+                       class="inline-block mt-4 text-blue-600 font-semibold hover:underline">
+                        View Details →
+                    </a>
+                </div>
+
+            </div>
+            {% empty %}
+                <p class="text-center text-gray-500">No listings available yet.</p>
+            {% endfor %}
+
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="{% url 'buyer_search_room' %}"
+               class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                Browse All Rooms →
+            </a>
+        </div>
+
     </div>
 </section>
 
+<!-- WHY CHOOSE US -->
+<section class="py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-6 text-center">
 
+        <h2 class="text-3xl font-bold mb-12">Why Choose Us?</h2>
 
+        <div class="grid md:grid-cols-3 gap-8">
 
-{% comment %} <section class="reviews">
-    <h2>⭐ Reviews And Ratings</h2>
+            <div class="p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                <div class="text-4xl mb-4">🛡️</div>
+                <h4 class="font-semibold text-lg mb-2">Verified Owners</h4>
+                <p class="text-gray-500 text-sm">
+                    All owners are ID & phone verified for your safety.
+                </p>
+            </div>
 
-    {% for review in reviews %}
-    <div class="review">
-        <p>
-            {% for i in "12345"|make_list %}
-                {% if forloop.counter <= review.rating %}
-                    ⭐
-                {% endif %}
+            <div class="p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                <div class="text-4xl mb-4">📸</div>
+                <h4 class="font-semibold text-lg mb-2">Real Photos</h4>
+                <p class="text-gray-500 text-sm">
+                    Only genuine room images — what you see is what you get.
+                </p>
+            </div>
+
+            <div class="p-8 rounded-xl shadow-md hover:shadow-xl transition">
+                <div class="text-4xl mb-4">🤝</div>
+                <h4 class="font-semibold text-lg mb-2">No Brokers</h4>
+                <p class="text-gray-500 text-sm">
+                    Talk directly with owners and avoid extra commission.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="py-20 bg-slate-900 text-white">
+    <div class="max-w-6xl mx-auto px-6 text-center">
+
+        <h2 class="text-3xl font-bold mb-12">⭐ Reviews & Ratings</h2>
+
+        <div class="grid md:grid-cols-3 gap-8">
+
+            {% for review in reviews %}
+            <div class="bg-slate-800 p-6 rounded-xl shadow-md">
+                <div class="mb-3">
+                    {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= review.rating %}
+                            ⭐
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <p class="text-gray-300 text-sm mb-4">
+                    "{{ review.comment }}"
+                </p>
+
+                <span class="text-blue-400 font-semibold text-sm">
+                    — {{ review.user.username }}
+                </span>
+            </div>
             {% endfor %}
-            
-            {{ review.comment }}
-        </p>
-        
-        <span>— {{ review.user.username }}</span>
+
+        </div>
+
+        <div class="mt-12">
+            <a href="{% url 'all_reviews' %}"
+               class="bg-blue-600 px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                View All Reviews →
+            </a>
+        </div>
+
     </div>
-    {% empty %}
-    <div class="review">
-        <p>No reviews yet. Be the first to share your experience!</p>
-    </div>
-    {% endfor %}
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="{% url 'all_reviews' %}" class="btn-view-all">
-            View All Reviews →
-        </a>
-    </div>
-</section> {% endcomment %}
+</section>
 
-
-
-<!-- <footer class="footer">
-    <div class="footer-left">
-        <h3>🏠 RoomSiftay</h3>
-        <p>
-            RoomSiftay helps you find verified rooms in real places
-            with genuine photos. Rent directly from owners.
-        </p>
-    </div> -->
-
-    <!-- <div class="footer-buttons">
-        <a href="{% url 'contact' %}" class="btn">Contact Us</a>
-        <a href="{% url 'about' %}" class="btn">About Us</a>
-
-    </div> -->
-</footer>
+{% include "footer.html" %}
 
 </body>
-{% include "footer.html" %}
 </html>
